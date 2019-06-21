@@ -1,0 +1,11 @@
+# tasks
+* TODO Heap representation
+* TODO clauses representation
+* TODO unfolding algorithm
+* TODO unification algorithm
+* TODO matching algorithm
+# thoughts
+* should have layered architecture with separation between reprentation and algorithms
+** … but what kind of representations?
+*** there is a runtime representation (arrays of bytecodes)
+*** there is a compilation representation (something with a decent syntax)
