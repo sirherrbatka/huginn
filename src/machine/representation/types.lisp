@@ -548,49 +548,48 @@
         (cell2 (dereference-heap-pointer execution-state pointer2)))
     (when (eql cell1 cell2)
       (return-from unify-pair t))
-    (let ((combine-tags (combine-tags cell1 cell2)))
-      (cond
-        ((eql combine-tags +var-var+)
-         (unify-variables execution-state
-                          execution-stack-cell
-                          pointer1 pointer2
-                          cell1 cell2))
-        ((eql combine-tags +var-fixnum+)
-         (unify-variable-fixnum execution-state
-                                execution-stack-cell
-                                pointer1 pointer2
-                                cell1 cell2))
-        ((eql combine-tags +fixnum-var+)
-         (unify-variable-fixnum execution-state
-                                execution-stack-cell
-                                pointer2 pointer1
-                                cell2 cell1))
-        ((eql combine-tags +var-ref+)
-         (unify-pair execution-state
-                     execution-stack-cell
-                     pointer1
-                     (follow-reference execution-state pointer2 t)))
-        ((eql combine-tags +ref-var+)
-         (unify-pair execution-state
-                     execution-stack-cell
-                     (follow-reference execution-state pointer1 t)
-                     pointer2))
-        ((eql combine-tags +var-exp+)
-         (unify-variable-expression execution-state execution-stack-cell
-                                    pointer1 pointer2 cell1 cell2))
-        ((eql combine-tags +exp-var+)
-         (unify-variable-expression execution-state execution-stack-cell
-                                    pointer2 pointer1 cell2 cell1))
-        ((eql combine-tags +exp-exp+)
-         (unify-expressions execution-state execution-stack-cell
-                            pointer1 pointer2))
-        ((eql combine-tags +fixnum-fixnum+)
-         nil)
-        ((eql combine-tags +ref-ref+)
-         (unify-references execution-state
-                           execution-stack-cell
-                           pointer1 pointer2
-                           cell1 cell2))))))
+    (switch ((combine-tags cell1 cell2) :test 'eql)
+      (+var-var+
+       (unify-variables execution-state
+                        execution-stack-cell
+                        pointer1 pointer2
+                        cell1 cell2))
+      (+var-fixnum+
+       (unify-variable-fixnum execution-state
+                              execution-stack-cell
+                              pointer1 pointer2
+                              cell1 cell2))
+      (+fixnum-var+
+       (unify-variable-fixnum execution-state
+                              execution-stack-cell
+                              pointer2 pointer1
+                              cell2 cell1))
+      (+var-ref+
+       (unify-pair execution-state
+                   execution-stack-cell
+                   pointer1
+                   (follow-reference execution-state pointer2 t)))
+      (+ref-var+
+       (unify-pair execution-state
+                   execution-stack-cell
+                   (follow-reference execution-state pointer1 t)
+                   pointer2))
+      (+var-exp+
+       (unify-variable-expression execution-state execution-stack-cell
+                                  pointer1 pointer2 cell1 cell2))
+      (+exp-var+
+       (unify-variable-expression execution-state execution-stack-cell
+                                  pointer2 pointer1 cell2 cell1))
+      (+exp-exp+
+       (unify-expressions execution-state execution-stack-cell
+                          pointer1 pointer2))
+      (+fixnum-fixnum+
+       nil)
+      (+ref-ref+
+       (unify-references execution-state
+                         execution-stack-cell
+                         pointer1 pointer2
+                         cell1 cell2)))))
 
 
 (defun unify (execution-state execution-stack-cell)
