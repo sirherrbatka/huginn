@@ -281,6 +281,16 @@
                      execution-stack-cell
                      pointer1
                      (follow-pointer execution-state pointer2 t)))
+        (+ref-fixnum+
+         (unify-pair execution-state
+                     execution-stack-cell
+                     (follow-pointer execution-state pointer1 t)
+                     pointer2))
+        (+fixnum-ref+
+         (unify-pair execution-state
+                     execution-stack-cell
+                     pointer1
+                     (follow-pointer execution-state pointer2 t)))
         (+ref-var+
          (unify-pair execution-state
                      execution-stack-cell
