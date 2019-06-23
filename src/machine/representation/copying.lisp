@@ -35,7 +35,7 @@
     (declare (type fixnum lookup-result)
              (optimize (speed 3)))
     (unless (eql lookup-result object-index)
-      (return-from index-object  lookup-result))
+      (return-from index-object lookup-result))
     (let ((bindings-length (length bindings)))
       (unless (< object-index bindings-length)
         (iterate
