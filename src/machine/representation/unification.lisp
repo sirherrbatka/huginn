@@ -218,8 +218,8 @@
                 execution-stack-cell
                 variable-pointer
                 (follow-pointer execution-state
-                                  (detag reference-cell)
-                                  t)))
+                                (detag reference-cell)
+                                t)))
 
 
   (declaim (notinline unify-variable-expression))
