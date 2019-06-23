@@ -132,8 +132,8 @@
     (or (eql ref1 ref2)
         (unify-pair execution-state
                     execution-stack-cell
-                    (follow-reference execution-state (detag ref1) t)
-                    (follow-reference execution-state (detag ref2) t))))
+                    (follow-pointer execution-state (detag ref1) t)
+                    (follow-pointer execution-state (detag ref2) t))))
 
 
   (declaim (notinline unify-variable-fixnum))
@@ -217,7 +217,7 @@
     (unify-pair execution-state
                 execution-stack-cell
                 variable-pointer
-                (follow-reference execution-state
+                (follow-pointer execution-state
                                   (detag reference-cell)
                                   t)))
 
@@ -280,11 +280,11 @@
          (unify-pair execution-state
                      execution-stack-cell
                      pointer1
-                     (follow-reference execution-state pointer2 t)))
+                     (follow-pointer execution-state pointer2 t)))
         (+ref-var+
          (unify-pair execution-state
                      execution-stack-cell
-                     (follow-reference execution-state pointer1 t)
+                     (follow-pointer execution-state pointer1 t)
                      pointer2))
         (+var-exp+
          (unify-variable-expression execution-state execution-stack-cell

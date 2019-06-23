@@ -131,9 +131,9 @@
   (setf (fill-pointer vector) 0))
 
 
-(declaim (inline follow-reference))
-(-> follow-reference (execution-state pointer &optional boolean) pointer)
-(defun follow-reference (execution-state pointer &optional recursive)
+(declaim (inline follow-pointer))
+(-> follow-pointer (execution-state pointer &optional boolean) pointer)
+(defun follow-pointer (execution-state pointer &optional recursive)
   (declare (type execution-state execution-state)
            (type pointer pointer)
            (optimize (speed 3) (safety 0)))
@@ -153,4 +153,4 @@
            (type pointer pointer)
            (optimize (speed 3) (safety 0)))
   (~> execution-state execution-state-heap
-      (aref (follow-reference execution-state pointer follow-references))))
+      (aref (follow-pointer execution-state pointer follow-references))))
