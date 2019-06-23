@@ -54,10 +54,13 @@
               clause-body-pointer))))
 
 
+(def <empty-range-placeholder> (make 'cl-ds:empty-range))
+
+
 (defstruct execution-stack-cell
   (clause nil :type (or null clause))
   ;; clause used to construct this execution-stack-cell
-  (clauses (make 'cl-ds:empty-range) :type cl-ds:fundamental-forward-range)
+  (clauses <empty-range-placeholder> :type cl-ds:fundamental-forward-range)
   (goals '() :type list)
   ;; list of goals (pointers to the heap) for this cell. During unfolding top goal in this cell is selected for proving. If goal can't be proved stack cell will be popped. Therefore this stack represents already proven goals.
   (heap-pointer 0 :type fixnum)

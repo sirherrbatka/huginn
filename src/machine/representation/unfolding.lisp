@@ -39,19 +39,14 @@
                                                         stack-cell
                                                         clause))
       (for new-stack-cell = (push-stack-cell stack-cell clause
-                                             bindings-fill-pointer
-                                             execution-state))
+                                             bindings-fill-pointer))
       (prepare-unification-stack execution-state
                                  new-stack-cell
                                  goal-pointer)
-      (for new-body-pointer = (execution-state-body-pointer new-stack-cell))
       (for head-unified-p = (unify execution-state new-stack-cell))
-      (when (and head-unified-p
-              (progn
-                (clause-body-to-heap execution-state new-stack-cell)
-                (prepare-unification-stack execution-state
-                                           new-stack-cell
-                                           new-body-pointer)
-                (unify execution-state new-stack-cell)))
-       (finish))
+      (unless head-unified-p
+        (pop-stack-cell execution-state new-stack-cell)
+        (next-iteration))
+      (clause-body-to-heap execution-state new-stack-cell)
+      (finish)
       (finally (return new-stack-cell)))))
