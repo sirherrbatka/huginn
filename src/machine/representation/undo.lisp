@@ -19,12 +19,11 @@
   (declare (type execution-state execution-state)
            (cl-ds.utils:index from below))
   (iterate
-    (with objects-mapping = (execution-state-objects-mapping execution-state))
     (declare (type fixnum i))
+    (with objects-mapping = (execution-state-objects-mapping execution-state))
     (with bindings = (execution-state-variable-bindings execution-state))
     (for i from from below below)
-    (remhash (aref bindings i) objects-mapping)
-    (finally (setf (execution-state-objects-index execution-state) from))))
+    (remhash (aref bindings i) objects-mapping)))
 
 
 (defun pop-stack-cell (execution-state execution-stack-cell)

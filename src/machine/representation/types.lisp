@@ -98,6 +98,12 @@
      :bindings-fill-pointer bindings-fill-pointer)))
 
 
+(defun make-heap (size)
+  (make-array size
+              :element-type 'cell
+              :initial-element 0))
+
+
 (defun expand-state-heap (state desired-size)
   (declare (type execution-state state)
            (type fixnum desired-size)
@@ -218,12 +224,6 @@
                 (setf (aref heap i) (tag +variable+ index))
                 (maxf bindings-fill-pointer index))))))
       bindings-fill-pointer)))
-
-
-(defun make-heap (size)
-  (make-array size
-              :element-type 'cell
-              :initial-element 0))
 
 
 (-> execution-state-heap-size (execution-state) fixnum)
