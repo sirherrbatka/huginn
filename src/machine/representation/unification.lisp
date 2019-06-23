@@ -82,29 +82,33 @@
   (-> unify-expressions
       (execution-state
        execution-stack-cell
-       pointer pointer)
+       pointer pointer
+       cell cell)
       boolean)
   (defun unify-expressions (execution-state
                             execution-stack-cell
                             first-expression-pointer
-                            second-expression-pointer)
+                            second-expression-pointer
+                            first-cell
+                            second-cell)
     (declare (optimize (speed 3))
              (type pointer first-expression-pointer second-expression-pointer)
              (type execution-stack-cell execution-stack-cell)
              (type execution-state execution-state))
     (declare (ignore execution-stack-cell))
-    (with-unification-stack (execution-state)
-      (let ((first-arity (deref (1+ first-expression-pointer)))
-            (second-arity (deref (1+ second-expression-pointer))))
-        (declare (type fixnum first-arity second-arity))
-        (unless (eql first-arity second-arity)
-          (done nil))
-        (iterate
-          (declare (type fixnum i))
-          (for i from 0 below first-arity)
-          (upush (the fixnum (+ first-expression-pointer 2 i))
-                 (the fixnum (+ second-expression-pointer 2 i))))
-        t)))
+    (or (eql first-cell second-cell)
+        (with-unification-stack (execution-state)
+          (let ((first-arity (deref (1+ first-expression-pointer)))
+                (second-arity (deref (1+ second-expression-pointer))))
+            (declare (type fixnum first-arity second-arity))
+            (unless (eql first-arity second-arity)
+              (done nil))
+            (iterate
+              (declare (type fixnum i))
+              (for i from 0 below first-arity)
+              (upush (the pointer (+ first-expression-pointer 2 i))
+                     (the pointer (+ second-expression-pointer 2 i))))
+            t))))
 
 
   (declaim (notinline unify-references))
@@ -124,10 +128,11 @@
              (type execution-stack-cell execution-stack-cell)
              (optimize (speed 3))
              (ignore pointer1 pointer2))
-    (unify-pair execution-state
-                execution-stack-cell
-                (follow-reference execution-state (detag ref1) t)
-                (follow-reference execution-state (detag ref2) t)))
+    (or (eql ref1 ref2)
+        (unify-pair execution-state
+                    execution-stack-cell
+                    (follow-reference execution-state (detag ref1) t)
+                    (follow-reference execution-state (detag ref2) t))))
 
 
   (declaim (notinline unify-variable-fixnum))
@@ -179,7 +184,7 @@
     (let ((first-unbound (variable-unbound-p cell1))
           (second-unbound (variable-unbound-p cell2)))
       (cond ((nor first-unbound second-unbound)
-             nil)
+             (eql cell1 cell2))
             ((and first-unbound second-unbound)
              (alter-cell execution-state execution-stack-cell
                          pointer1 (make-reference pointer2))
@@ -254,8 +259,6 @@
       (return-from unify-pair t))
     (let ((cell1 (dereference-heap-pointer execution-state pointer1))
           (cell2 (dereference-heap-pointer execution-state pointer2)))
-      (when (eql cell1 cell2)
-        (return-from unify-pair t))
       (switch ((combine-tags cell1 cell2) :test 'eql)
         (+var-var+
          (unify-variables execution-state
@@ -290,7 +293,8 @@
                                     pointer2 pointer1 cell2 cell1))
         (+exp-exp+
          (unify-expressions execution-state execution-stack-cell
-                            pointer1 pointer2))
+                            pointer1 pointer2
+                            cell1 cell2))
         (+fixnum-fixnum+
          nil)
         (+ref-ref+
