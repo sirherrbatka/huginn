@@ -44,9 +44,20 @@
   )
 
 
+(-> execution-state-body-pointer (execution-stack-cell) pointer)
+(defun execution-state-body-pointer (execution-stack-cell)
+  (declare (optimize (speed 3)))
+  (the pointer
+       (+ (execution-stack-cell-heap-pointer execution-stack-cell)
+          (~> execution-stack-cell
+              execution-stack-cell-clause
+              clause-body-pointer))))
+
+
 (defstruct execution-stack-cell
   (clause nil :type (or null clause))
   ;; clause used to construct this execution-stack-cell
+  (clauses (make 'cl-ds:empty-range) :type cl-ds:fundamental-forward-range)
   (goals '() :type list)
   ;; list of goals (pointers to the heap) for this cell. During unfolding top goal in this cell is selected for proving. If goal can't be proved stack cell will be popped. Therefore this stack represents already proven goals.
   (heap-pointer 0 :type fixnum)

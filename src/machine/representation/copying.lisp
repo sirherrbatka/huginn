@@ -49,20 +49,17 @@
       lookup-result)))
 
 
-;; this can benefit from automaticly generated and compiled function for each clause, should be a little bit faster.
-;; (declaim (inline clause-body-to-heap))
-(defun clause-to-heap (execution-state execution-stack-cell clause)
-  "Copies clause body to heap. Will extend variable bindings in the state (or fail and return nil if can't do so). Will return: new trail, new bindings-heap-pointer, and success-info. To unroll changes do the execution-state performed by this function it is required to both unwind-variable-bindings-trail and unbind-range"
+(defun clause-head-to-heap (execution-state execution-stack-cell clause)
   (declare (optimize (speed 3))
            (type execution-state execution-state)
            (type execution-stack-cell execution-stack-cell)
            (type clause clause))
-  (let* ((body-length (clause-body-length clause))
-         (content (clause-content clause))
+  (let* ((content (clause-content clause))
+         (head-length (clause-body-pointer clause))
          (variable-values (clause-variable-values clause))
          (fill-pointer
            (execution-stack-cell-heap-fill-pointer execution-stack-cell))
-         (new-fill-pointer (+ fill-pointer body-length)))
+         (new-fill-pointer (+ fill-pointer head-length)))
     (declare (type fixnum new-fill-pointer))
     (expand-state-heap execution-state new-fill-pointer)
     (let* ((heap (execution-state-heap execution-state))
@@ -84,7 +81,7 @@
           :reference
           (incf (aref heap i) fill-pointer)
           :variable
-          (unless (zerop word)
+          (unless (variable-unbound-p cell)
             (bind ((object (aref variable-values word)))
               (assert (value-bound-p object))
               (let* ((new-index (1+ bindings-fill-pointer))
@@ -94,4 +91,57 @@
                 (declare (type fixnum index new-index))
                 (setf (aref heap i) (tag +variable+ index))
                 (maxf bindings-fill-pointer index))))))
-      bindings-fill-pointer)))
+      bindings-fill-pointer))))
+
+
+(defun clause-body-to-heap (execution-state execution-stack-cell)
+  "Copies clause body to heap. Will extend variable bindings in the state (or fail and return nil if can't do so). Will return: new trail, new bindings-heap-pointer, and success-info. To unroll changes do the execution-state performed by this function it is required to both unwind-variable-bindings-trail and unbind-range"
+  (declare (optimize (speed 3))
+           (type execution-state execution-state)
+           (type execution-stack-cell execution-stack-cell))
+  (let* ((clause (execution-stack-cell-clause execution-stack-cell))
+         (body-length (clause-body-length clause))
+         (content (clause-content clause))
+         (variable-values (clause-variable-values clause))
+         (fill-pointer
+           (execution-stack-cell-heap-fill-pointer execution-stack-cell))
+         (new-fill-pointer (+ fill-pointer body-length)))
+    (declare (type fixnum new-fill-pointer))
+    (expand-state-heap execution-state new-fill-pointer)
+    (let* ((heap (execution-state-heap execution-state))
+           (body-pointer (~> execution-stack-cell
+                             execution-stack-cell-clause
+                             clause-body-pointer))
+           (bindings-fill-pointer (execution-stack-cell-bindings-fill-pointer
+                                   execution-stack-cell)))
+      (declare (type fixnum bindings-fill-pointer))
+      (iterate
+        (declare (type fixnum i j z))
+        (declare (type fixnum i j))
+        (for i from fill-pointer below new-fill-pointer)
+        (for j from body-pointer)
+        (for z from 0)
+        (for cell = (aref content j))
+        (setf (aref heap i) cell)
+        (for word = (detag cell))
+        (tag-case (cell)
+          :expression
+          (setf (aref heap i) (tag +expression+ i))
+          :reference
+          (incf (aref heap i) fill-pointer)
+          :variable
+          (unless (variable-unbound-p cell)
+            (bind ((object (aref variable-values word)))
+              (assert (value-bound-p object))
+              (let* ((new-index (1+ bindings-fill-pointer))
+                     (index (index-object execution-state
+                                          object
+                                          new-index)))
+                (declare (type fixnum index new-index))
+                (setf (aref heap i) (tag +variable+ index))
+                (maxf bindings-fill-pointer index))))))
+      (setf (execution-stack-cell-bindings-fill-pointer execution-stack-cell)
+            bindings-fill-pointer
+            (execution-stack-cell-heap-fill-pointer execution-stack-cell)
+            new-fill-pointer)
+      nil)))
