@@ -7,6 +7,11 @@
   :documentation "Just an empty array of correct type, used as initial binding for CLAUSE slot.")
 
 
+(define-constant +placeholder-pointer-array+
+    (make-array 0 :element-type 'pointer)
+  :test 'vector= )
+
+
 (deftype vector-representation ()
   `(simple-array cell (*)))
 
@@ -16,7 +21,7 @@
 
 
 (defstruct clause
-  (body-to-head-mapping +placeholder-array+ :type vector-representation)
+  (goal-pointers +placeholder-pointer-array+ :type (simple-array pointer (*)))
   (variable-values +placeholder-array+ :type simple-vector)
   (content +placeholder-array+ :type vector-representation)
   (body-pointer 0 :type fixnum))
@@ -69,16 +74,9 @@
            (type clause clause)
            (type pointer pointer-offset))
   (iterate
-    (with content-length = (clause-content-length clause))
-    (with content = (clause-content clause))
-    (with i = (clause-body-pointer clause))
-    (while (< i content-length))
-    (if (expression-cell-p (aref content i))
-        (progn (push (+ i pointer-offset) initial-list)
-               (incf i (~> (+ i 1)
-                           (aref content _)
-                           (+ 2))))
-        (incf i)))
+    (with goals = (clause-goal-pointers clause))
+    (for i from (1- (length goals)) downto 0)
+    (push (+ (aref goals i) pointer-offset) initial-list))
   initial-list)
 
 
