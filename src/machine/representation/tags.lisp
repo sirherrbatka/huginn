@@ -123,3 +123,18 @@
   (define-constant +fixnum-ref+ (combine-tags +fixnum+ +reference+))
   (define-constant +fixnum-exp+ (combine-tags +fixnum+ +expression+))
   (define-constant +fixnum-fixnum+ (combine-tags +fixnum+ +fixnum+)))
+
+
+(declaim (inline variable-unbound-p))
+(defun variable-unbound-p (cell)
+  (declare (type cell cell)
+           (optimize (speed 3)))
+  (assert (eql +variable+ (tag-of cell)))
+  (~> cell detag zerop))
+
+
+(declaim (inline make-reference))
+(defun make-reference (pointer)
+  (declare (type pointer pointer)
+           (optimize (speed 3)))
+  (tag +reference+ pointer))

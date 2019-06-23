@@ -42,7 +42,9 @@
               ,@body))))))
 
 
-(-> prepare-unification-stack (execution-state execution-stack-cell pointer) t)
+(-> prepare-unification-stack
+    (execution-state execution-stack-cell pointer)
+    t)
 (defun prepare-unification-stack (execution-state stack-cell goal-pointer)
   (declare (type execution-stack-cell stack-cell)
            (type execution-state execution-state)
@@ -75,7 +77,9 @@
 
 
 (-> unify-expressions
-    (execution-state execution-stack-cell pointer pointer)
+    (execution-state
+     execution-stack-cell
+     pointer pointer)
     boolean)
 (defun unify-expressions (execution-state
                           execution-stack-cell
@@ -101,8 +105,10 @@
 
 
 (-> unify-references
-    (execution-state execution-stack-cell pointer pointer
-                     cell cell)
+    (execution-state
+     execution-stack-cell
+     pointer pointer
+     cell cell)
     boolean)
 (defun unify-references (execution-state
                          execution-stack-cell
@@ -121,8 +127,10 @@
 
 
 (-> unify-variable-fixnum
-    (execution-state execution-stack-cell pointer pointer
-                                           cell cell)
+    (execution-state
+     execution-stack-cell
+     pointer pointer
+     cell cell)
     boolean)
 (defun unify-variable-fixnum (execution-state
                               execution-stack-cell
@@ -145,8 +153,10 @@
 
 
 (-> unify-variables
-    (execution-state execution-stack-cell pointer pointer
-                     cell cell)
+    (execution-state
+     execution-stack-cell
+     pointer pointer
+     cell cell)
     boolean)
 (defun unify-variables (execution-state
                         execution-stack-cell
@@ -160,13 +170,13 @@
   (unless (< pointer1 pointer2)
     (rotatef pointer1 pointer2)
     (rotatef cell1 cell2))
-  (let ((first-unbound (zerop (detag cell1)))
-        (second-unbound (zerop (detag cell2))))
+  (let ((first-unbound (variable-unbound-p cell1))
+        (second-unbound (variable-unbound-p cell2)))
     (cond ((nor first-unbound second-unbound)
            nil)
           ((and first-unbound second-unbound)
            (alter-cell execution-state execution-stack-cell
-                       pointer1 (tag +reference+ pointer2))
+                       pointer1 (make-reference pointer2))
            t)
           (first-unbound
            (alter-cell execution-state execution-stack-cell
@@ -200,8 +210,10 @@
 
 
 (-> unify-variable-expression
-    (execution-state execution-stack-cell pointer pointer
-                     cell cell)
+    (execution-state
+     execution-stack-cell
+     pointer pointer
+     cell cell)
     boolean)
 (defun unify-variable-expression (execution-state
                                   execution-stack-cell
@@ -216,12 +228,14 @@
   (alter-cell execution-state
               execution-stack-cell
               variable-pointer
-              (tag +reference+ expression-pointer))
+              (make-reference expression-pointer))
   t)
 
 
 (-> unify-pair
-    (execution-state execution-stack-cell pointer pointer)
+    (execution-state
+     execution-stack-cell
+     pointer pointer)
     boolean)
 (defun unify-pair (execution-state execution-stack-cell pointer1 pointer2)
   (declare (optimize (speed 3))

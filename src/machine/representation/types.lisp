@@ -58,9 +58,6 @@
   )
 
 
-(define-constant unbound 'unbound)
-
-
 (-> clause-content-length (clause) cl-ds.utils:index)
 (defun clause-content-length (clause)
   (declare (optimize (speed 3)))
@@ -81,7 +78,9 @@
 ;; Code assumes that next stack cell is located DIRECTLY after the current one on the heap
 (defun push-stack-cell (execution-stack-cell clause bindings-fill-pointer)
   "Constructs new stack-cell based on the clause, trail and execution-stack-cell assuming that this cell is constructed from the first goal of the execution-stack-cell after data was already placed to the heap."
-  (declare (type clause clause))
+  (declare (type clause clause)
+           (type execution-stack-cell execution-stack-cell)
+           (type fixnum bindings-fill-pointer))
   (let* ((fill-pointer (execution-stack-cell-heap-fill-pointer
                         execution-stack-cell))
          (new-fill-pointer (+ fill-pointer (clause-body-length clause))))
@@ -157,24 +156,6 @@
   (let ((word (detag cell)))
     (assert (> word 0))
     (aref (execution-state-variable-bindings state) (1- (detag cell)))))
-
-
-(declaim (inline (setf dereference-variable)))
-(defun (setf dereference-variable) (new-value state cell)
-  (declare (type execution-state state)
-           (type cell cell)
-           (optimize (speed 3)))
-  (setf (aref (execution-state-variable-bindings state) (detag cell))
-        new-value))
-
-
-(declaim (inline value-bound-p))
-(defun value-bound-p (object)
-  (not (value-unbound-p object)))
-
-(declaim (inline value-unbound-p))
-(defun value-unbound-p (object)
-  (eq unbound object))
 
 
 ;; this can benefit from automaticly generated and compiled function for each clause, should be a little bit faster.
