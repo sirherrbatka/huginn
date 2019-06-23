@@ -297,7 +297,7 @@
                             pointer1 pointer2
                             cell1 cell2))
         (+fixnum-fixnum+
-         nil)
+         (eql cell1 cell2))
         (+ref-ref+
          (unify-references execution-state
                            execution-stack-cell
