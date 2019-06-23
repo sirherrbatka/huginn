@@ -77,6 +77,12 @@
   )
 
 
+(-> execution-stack-cell-more-goals-p (execution-stack-cell) boolean )
+(defun execution-stack-cell-more-goals-p (execution-stack-cell)
+  (declare (optimize (speed 3)))
+  (~> execution-stack-cell execution-stack-cell-goals endp))
+
+
 (-> clause-content-length (clause) cl-ds.utils:index)
 (defun clause-content-length (clause)
   (declare (optimize (speed 3)))
