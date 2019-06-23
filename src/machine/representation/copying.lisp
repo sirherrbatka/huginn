@@ -83,15 +83,14 @@
           (incf (aref heap i) fill-pointer)
           :variable
           (unless (variable-unbound-p cell)
-            (bind ((object (aref variable-values word)))
-              (assert (value-bound-p object))
-              (let* ((new-index (1+ bindings-fill-pointer))
-                     (index (index-object execution-state
-                                          object
-                                          new-index)))
-                (declare (type fixnum index new-index))
-                (setf (aref heap i) (tag +variable+ index))
-                (maxf bindings-fill-pointer index))))))
+            (let* ((object (aref variable-values word))
+                   (new-index (1+ bindings-fill-pointer))
+                   (index (index-object execution-state
+                                        object
+                                        new-index)))
+              (declare (type fixnum index new-index))
+              (setf (aref heap i) (tag +variable+ index))
+              (maxf bindings-fill-pointer index)))))
       bindings-fill-pointer))))
 
 
@@ -136,15 +135,14 @@
           (incf (aref heap i) fill-pointer)
           :variable
           (unless (variable-unbound-p cell)
-            (bind ((object (aref variable-values word)))
-              (assert (value-bound-p object))
-              (let* ((new-index (1+ bindings-fill-pointer))
-                     (index (index-object execution-state
-                                          object
-                                          new-index)))
-                (declare (type fixnum index new-index))
-                (setf (aref heap i) (tag +variable+ index))
-                (maxf bindings-fill-pointer index))))))
+            (let* ((object (aref variable-values word))
+                   (new-index (1+ bindings-fill-pointer))
+                   (index (index-object execution-state
+                                        object
+                                        new-index)))
+              (declare (type fixnum index new-index))
+              (setf (aref heap i) (tag +variable+ index))
+              (maxf bindings-fill-pointer index)))))
       (setf (execution-stack-cell-bindings-fill-pointer execution-stack-cell)
             bindings-fill-pointer
 
