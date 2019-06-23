@@ -127,11 +127,12 @@
   (setf (fill-pointer vector) 0))
 
 
+(declaim (inline follow-reference))
 (-> follow-reference (execution-state pointer &optional boolean) pointer)
 (defun follow-reference (execution-state pointer &optional recursive)
   (declare (type execution-state execution-state)
            (type pointer pointer)
-           (optimize (speed 3)))
+           (optimize (speed 3) (safety 0)))
   (iterate
     (declare (type pointer prev-pointer))
     (with prev-pointer = pointer)
@@ -141,10 +142,11 @@
     (finally (return prev-pointer))))
 
 
+(declaim (inline dereference-heap-pointer))
 (-> dereference-heap-pointer (execution-state pointer &optional boolean) cell)
 (defun dereference-heap-pointer (execution-state pointer &optional follow-references)
   (declare (type execution-state execution-state)
            (type pointer pointer)
-           (optimize (speed 3)))
+           (optimize (speed 3) (safety 0)))
   (~> execution-state execution-state-heap
       (aref (follow-reference execution-state pointer follow-references))))
