@@ -65,7 +65,9 @@
   ;; list of goals (pointers to the heap) for this cell. During unfolding top goal in this cell is selected for proving. If goal can't be proved stack cell will be popped. Therefore this stack represents already proven goals.
   (heap-pointer 0 :type fixnum)
   ;; location of representation of this cell on the heap
-  (heap-cells-trail (make-array 16 :adjustable t :fill-pointer 0 :element-type 'fixnum)
+  (heap-cells-trail (make-array 16 :adjustable t
+                                   :fill-pointer 0
+                                   :element-type 'fixnum)
    :type (cl-ds.utils:extendable-vector fixnum))
   ;; undo trail for heap-cells. each cons cell in the list contains pair address.value
   (bindings-fill-pointer 0 :type cl-ds.utils:index)
