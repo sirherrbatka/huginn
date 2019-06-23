@@ -39,7 +39,8 @@
                                                         stack-cell
                                                         clause))
       (for new-stack-cell = (push-stack-cell stack-cell clause
-                                             bindings-fill-pointer))
+                                             bindings-fill-pointer
+                                             execution-state))
       (prepare-unification-stack execution-state
                                  new-stack-cell
                                  goal-pointer)

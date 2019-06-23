@@ -1,16 +1,25 @@
 (cl:in-package #:huginn.machine.representation)
 
 
+(defun matching-clauses (execution-state goal-pointer)
+  cl-ds.utils:todo)
+
+
 ;; this should be performed only after clause was already proven (and therefore copied to heap.
 ;; Code assumes that next stack cell is located DIRECTLY after the current one on the heap
-(defun push-stack-cell (execution-stack-cell clause bindings-fill-pointer)
+(defun push-stack-cell (execution-stack-cell clause
+                        bindings-fill-pointer execution-state)
   "Constructs new stack-cell based on the clause, trail and execution-stack-cell assuming that this cell is constructed from the first goal of the execution-stack-cell after data was already placed to the heap."
   (declare (type clause clause)
            (type execution-stack-cell execution-stack-cell)
            (type fixnum bindings-fill-pointer))
   (let* ((fill-pointer (execution-stack-cell-heap-fill-pointer
                         execution-stack-cell))
-         (new-fill-pointer (+ fill-pointer (clause-body-length clause))))
+         (new-fill-pointer (+ fill-pointer (clause-body-length clause)))
+         (goals (~>> execution-stack-cell
+                     execution-stack-cell-goals
+                     rest
+                     (clause-goals clause fill-pointer))))
     (declare (type cl-ds.utils:index new-fill-pointer fill-pointer))
     (make-execution-stack-cell
      :previous-cell execution-stack-cell
@@ -19,6 +28,8 @@
                  execution-stack-cell-goals
                  rest
                  (clause-goals clause fill-pointer))
+     :clauses (matching-clauses execution-state
+                                (first goals))
      :clause clause
      :heap-pointer fill-pointer
      :bindings-fill-pointer bindings-fill-pointer)))
