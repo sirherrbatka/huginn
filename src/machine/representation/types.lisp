@@ -65,7 +65,11 @@
 
 
 (defun clause-goals (clause pointer-offset &optional (initial-list '()))
-  cl-ds.utils:todo)
+  (declare (type list initial-list)
+           (type clause clause)
+           (type pointer pointer-offset))
+  (cons (+ pointer-offset (clause-body-pointer clause))
+        initial-list))
 
 
 (-> clause-body-length (clause) cl-ds.utils:index)

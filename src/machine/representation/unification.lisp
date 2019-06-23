@@ -92,6 +92,7 @@
                             first-cell
                             second-cell)
     (declare (optimize (speed 3))
+             (type cell first-cell second-cell)
              (type pointer first-expression-pointer second-expression-pointer)
              (type execution-stack-cell execution-stack-cell)
              (type execution-state execution-state))
