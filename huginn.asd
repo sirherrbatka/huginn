@@ -17,6 +17,7 @@
                                            (:file "tokens")
                                            (:file "tags")
                                            (:file "types")
+                                           (:file "copying")
                                            (:file "undo")
                                            (:file "unification")
                                            (:file "unfolding")))
