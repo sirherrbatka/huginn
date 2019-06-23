@@ -16,8 +16,10 @@
                                            (:file "utils")
                                            (:file "tokens")
                                            (:file "tags")
-                                           (:file "types")))
+                                           (:file "types")
+                                           (:file "undo")
+                                           (:file "unification")
+                                           (:file "unfolding")))
                              (:module "operations"
                               :components ((:file "package")
-                                           (:file "copying")
-                                           (:file "stack")))))))
+                                           ))))))
