@@ -42,15 +42,11 @@
                           clauses))
       (when (null clause)
         (leave (pop-stack-cell execution-state stack-cell)))
-      (for (values bindings-fill-pointer success) =
-           (clause-body-to-heap execution-state stack-cell
-                                clause goal))
-      (unless success
-        (unbind-range execution-state
-                      (execution-stack-cell-bindings-fill-pointer stack-cell)
-                      bindings-fill-pointer)
-        (unwind-variable-bindings-trail execution-state trail))
-      (for new-stack-cell = (push-stack-cell stack-cell clause))
+      (for bindings-fill-pointer = (clause-body-to-heap execution-state
+                                                        stack-cell
+                                                        clause))
+      (for new-stack-cell = (push-stack-cell stack-cell clause
+                                             bindings-fill-pointer))
       (prepare-unification-stack execution-state
                                  new-stack-cell
                                  goal)

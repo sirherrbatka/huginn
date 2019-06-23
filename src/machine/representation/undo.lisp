@@ -19,17 +19,25 @@
   (declare (type execution-state execution-state)
            (cl-ds.utils:index from below))
   (iterate
+    (with objects-mapping = (execution-state-objects-mapping execution-state))
     (declare (type fixnum i))
     (with bindings = (execution-state-variable-bindings execution-state))
     (for i from from below below)
-    (setf (aref bindings i) unbound)))
+    (remhash (aref bindings i) objects-mapping)
+    (finally (setf (execution-state-objects-index execution-state) from))))
 
 
 (defun pop-stack-cell (execution-state execution-stack-cell)
-  "Pop top stack-cell, adjust execution-state by clearing variables."
+  "Pop top stack-cell, adjust execution-state by clearing objects."
   (declare (type execution-stack-cell execution-stack-cell)
            (type execution-state execution-state))
   (~>> execution-stack-cell
        execution-stack-cell-heap-cells-trail
        (unwind-heap-cells-trail execution-state))
+  (unbind-range execution-state
+                (~> execution-stack-cell
+                    execution-stack-cell-previous-cell
+                    execution-stack-cell-bindings-fill-pointer)
+                (~> execution-stack-cell
+                    execution-stack-cell-bindings-fill-pointer))
   (execution-stack-cell-previous-cell execution-stack-cell))
