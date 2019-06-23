@@ -24,10 +24,7 @@
     (make-execution-stack-cell
      :previous-cell execution-stack-cell
      :heap-fill-pointer new-fill-pointer
-     :goals (~>> execution-stack-cell
-                 execution-stack-cell-goals
-                 rest
-                 (clause-goals clause fill-pointer))
+     :goals goals
      :clauses (matching-clauses execution-state
                                 (first goals))
      :clause clause
