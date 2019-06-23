@@ -33,7 +33,7 @@
          (goal-pointer (first goals)))
     (iterate
       (for (values clause more) = (cl-ds:consume-front clauses))
-      (unless more
+      (unless more ; no more clauses matching current goal
         (leave (pop-stack-cell execution-state stack-cell)))
       (for bindings-fill-pointer = (clause-head-to-heap execution-state
                                                         stack-cell
@@ -43,11 +43,10 @@
       (prepare-unification-stack execution-state
                                  new-stack-cell
                                  goal-pointer)
+      (for new-body-pointer = (execution-state-body-pointer new-stack-cell))
       (for head-unified-p = (unify execution-state new-stack-cell))
       (when (and head-unified-p
-              (let ((new-body-pointer
-                      (execution-state-body-pointer new-stack-cell)))
-                (declare (type pointer new-body-pointer))
+              (progn
                 (clause-body-to-heap execution-state new-stack-cell)
                 (prepare-unification-stack execution-state
                                            new-stack-cell
