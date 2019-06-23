@@ -42,9 +42,9 @@
                           clauses))
       (when (null clause)
         (leave (pop-stack-cell execution-state stack-cell)))
-      (for bindings-fill-pointer = (clause-body-to-heap execution-state
-                                                        stack-cell
-                                                        clause))
+      (for bindings-fill-pointer = (clause-to-heap execution-state
+                                                   stack-cell
+                                                   clause))
       (for new-stack-cell = (push-stack-cell stack-cell clause
                                              bindings-fill-pointer))
       (prepare-unification-stack execution-state

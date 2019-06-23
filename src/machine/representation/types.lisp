@@ -68,8 +68,18 @@
   (declare (type list initial-list)
            (type clause clause)
            (type pointer pointer-offset))
-  (cons (+ pointer-offset (clause-body-pointer clause))
-        initial-list))
+  (iterate
+    (with content-length = (clause-content-length clause))
+    (with content = (clause-content clause))
+    (with i = (clause-body-pointer clause))
+    (while (< i content-length))
+    (if (expression-cell-p (aref content i))
+        (progn (push (+ i pointer-offset) initial-list)
+               (incf i (~> (+ i 1)
+                           (aref content _)
+                           (+ 2))))
+        (incf i)))
+  initial-list)
 
 
 (-> clause-body-length (clause) cl-ds.utils:index)

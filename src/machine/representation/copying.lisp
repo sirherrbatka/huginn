@@ -51,7 +51,7 @@
 
 ;; this can benefit from automaticly generated and compiled function for each clause, should be a little bit faster.
 ;; (declaim (inline clause-body-to-heap))
-(defun clause-body-to-heap (execution-state execution-stack-cell clause)
+(defun clause-to-heap (execution-state execution-stack-cell clause)
   "Copies clause body to heap. Will extend variable bindings in the state (or fail and return nil if can't do so). Will return: new trail, new bindings-heap-pointer, and success-info. To unroll changes do the execution-state performed by this function it is required to both unwind-variable-bindings-trail and unbind-range"
   (declare (optimize (speed 3))
            (type execution-state execution-state)
@@ -59,7 +59,6 @@
            (type clause clause))
   (let* ((body-length (clause-body-length clause))
          (content (clause-content clause))
-         (body-pointer (clause-body-pointer clause))
          (variable-values (clause-variable-values clause))
          (fill-pointer
            (execution-stack-cell-heap-fill-pointer execution-stack-cell))
@@ -74,7 +73,7 @@
         (declare (type fixnum i j z))
         (declare (type fixnum i j))
         (for i from fill-pointer below new-fill-pointer)
-        (for j from body-pointer)
+        (for j from 0)
         (for z from 0)
         (for cell = (aref content j))
         (setf (aref heap i) cell)
