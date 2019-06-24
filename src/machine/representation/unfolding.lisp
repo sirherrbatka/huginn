@@ -40,6 +40,5 @@
 (defun find-answer (execution-state)
   (if (~> execution-state execution-state-stack null)
       nil
-      (let ((new-stack (unfold-all execution-state)))
-        (setf (execution-stack-cell execution-state) new-stack)
-        t)))
+      (not (null (setf (execution-stack-cell execution-state)
+                       (unfold-all execution-state))))))
