@@ -102,7 +102,7 @@
           (let ((first-arity (deref (1+ first-expression-pointer)))
                 (second-arity (deref (1+ second-expression-pointer))))
             (declare (type fixnum first-arity second-arity))
-            (unless (eql first-arity second-arity)
+            (unless (same-cells-p first-arity second-arity)
               (done nil))
             (iterate
               (declare (type fixnum i))
