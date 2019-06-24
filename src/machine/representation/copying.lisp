@@ -91,7 +91,7 @@
               (declare (type fixnum index new-index))
               (setf (aref heap i) (tag +variable+ index))
               (maxf bindings-fill-pointer index)))))
-      bindings-fill-pointer))))
+      bindings-fill-pointer)))
 
 
 (defun clause-body-to-heap (execution-state execution-stack-cell)
