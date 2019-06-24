@@ -21,4 +21,6 @@
                                            (:file "match-clauses")
                                            (:file "undo")
                                            (:file "unification")
-                                           (:file "unfolding")))))))
+                                           (:file "unfolding")))))
+               (:module "compiler"
+                :components ((:file "package")))))
