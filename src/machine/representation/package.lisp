@@ -3,5 +3,5 @@
 
 (defpackage huginn.machine.representation
   (:use #:huginn.aux-package #:cl)
-  (:shadow cl:and)
+  (:nicknames #:huginn.m.r)
   (:export ))
