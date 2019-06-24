@@ -216,7 +216,8 @@
                 variable-pointer
                 (follow-pointer execution-state
                                 (detag reference-cell)
-                                t)))
+                                t)
+                variable-cell))
 
 
   (declaim (notinline unify-variable-expression))
@@ -246,70 +247,82 @@
   (-> unify-pair
       (execution-state
        execution-stack-cell
-       pointer pointer)
+       pointer pointer
+       &optional
+       (or null cell)
+       (or null cell))
       boolean)
-  (defun unify-pair (execution-state execution-stack-cell pointer1 pointer2)
+  (defun unify-pair (execution-state execution-stack-cell pointer1 pointer2
+                     &optional cell1 cell2)
     (declare (optimize (speed 3))
              (type pointer pointer1 pointer2)
              (type execution-stack-cell execution-stack-cell)
              (type execution-state execution-state))
     (when (eql pointer1 pointer2)
       (return-from unify-pair t))
-    (let ((cell1 (dereference-heap-pointer execution-state pointer1))
-          (cell2 (dereference-heap-pointer execution-state pointer2)))
-      (switch ((combine-tags cell1 cell2) :test 'eql)
-        (+var-var+
-         (unify-variables execution-state
-                          execution-stack-cell
+    (when (null cell1)
+      (setf cell1 (dereference-heap-pointer execution-state pointer1)))
+    (when (null cell2)
+      (setf cell2 (dereference-heap-pointer execution-state pointer2)))
+    (switch ((combine-tags cell1 cell2) :test 'eql)
+      (+var-var+
+       (unify-variables execution-state
+                        execution-stack-cell
+                        pointer1 pointer2
+                        cell1 cell2))
+      (+var-fixnum+
+       (unify-variable-fixnum execution-state
+                              execution-stack-cell
+                              pointer1 pointer2
+                              cell1 cell2))
+      (+fixnum-var+
+       (unify-variable-fixnum execution-state
+                              execution-stack-cell
+                              pointer2 pointer1
+                              cell2 cell1))
+      (+var-ref+
+       (unify-pair execution-state
+                   execution-stack-cell
+                   pointer1
+                   (follow-pointer execution-state pointer2 t)
+                   cell1))
+      (+ref-fixnum+
+       (unify-pair execution-state
+                   execution-stack-cell
+                   (follow-pointer execution-state pointer1 t)
+                   pointer2
+                   nil
+                   cell2))
+      (+fixnum-ref+
+       (unify-pair execution-state
+                   execution-stack-cell
+                   pointer1
+                   (follow-pointer execution-state pointer2 t)
+                   cell1))
+      (+ref-var+
+       (unify-pair execution-state
+                   execution-stack-cell
+                   (follow-pointer execution-state pointer1 t)
+                   pointer2
+                   nil
+                   cell2))
+      (+var-exp+
+       (unify-variable-expression execution-state execution-stack-cell
+                                  pointer1 pointer2 cell1 cell2))
+      (+exp-var+
+       (unify-variable-expression execution-state execution-stack-cell
+                                  pointer2 pointer1 cell2 cell1))
+      (+exp-exp+
+       (unify-expressions execution-state execution-stack-cell
                           pointer1 pointer2
                           cell1 cell2))
-        (+var-fixnum+
-         (unify-variable-fixnum execution-state
-                                execution-stack-cell
-                                pointer1 pointer2
-                                cell1 cell2))
-        (+fixnum-var+
-         (unify-variable-fixnum execution-state
-                                execution-stack-cell
-                                pointer2 pointer1
-                                cell2 cell1))
-        (+var-ref+
-         (unify-pair execution-state
-                     execution-stack-cell
-                     pointer1
-                     (follow-pointer execution-state pointer2 t)))
-        (+ref-fixnum+
-         (unify-pair execution-state
-                     execution-stack-cell
-                     (follow-pointer execution-state pointer1 t)
-                     pointer2))
-        (+fixnum-ref+
-         (unify-pair execution-state
-                     execution-stack-cell
-                     pointer1
-                     (follow-pointer execution-state pointer2 t)))
-        (+ref-var+
-         (unify-pair execution-state
-                     execution-stack-cell
-                     (follow-pointer execution-state pointer1 t)
-                     pointer2))
-        (+var-exp+
-         (unify-variable-expression execution-state execution-stack-cell
-                                    pointer1 pointer2 cell1 cell2))
-        (+exp-var+
-         (unify-variable-expression execution-state execution-stack-cell
-                                    pointer2 pointer1 cell2 cell1))
-        (+exp-exp+
-         (unify-expressions execution-state execution-stack-cell
-                            pointer1 pointer2
-                            cell1 cell2))
-        (+fixnum-fixnum+
-         (same-cells-p cell1 cell2))
-        (+ref-ref+
-         (unify-references execution-state
-                           execution-stack-cell
-                           pointer1 pointer2
-                           cell1 cell2)))))
+      (+fixnum-fixnum+
+       (same-cells-p cell1 cell2))
+      (+ref-ref+
+       (unify-references execution-state
+                         execution-stack-cell
+                         pointer1 pointer2
+                         cell1 cell2))))
 
 
   (-> unify (execution-state execution-stack-cell) boolean)
