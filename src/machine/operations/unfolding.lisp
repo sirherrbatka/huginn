@@ -1,11 +1,11 @@
-(cl:in-package #:huginn.machine.representation)
+(cl:in-package #:huginn.machine.operations)
 
 
 (defun unfold (execution-state stack-cell)
-  (declare (type execution-stack-cell stack-cell)
-           (type execution-state execution-state))
-  (let* ((goals (execution-stack-cell-goals stack-cell))
-         (clauses (execution-stack-cell-clauses stack-cell))
+  (declare (type huginn.m.r:execution-stack-cell stack-cell)
+           (type huginn.m.r:execution-state execution-state))
+  (let* ((goals (huginn.m.r:execution-stack-cell-goals stack-cell))
+         (clauses (huginn.m.r:execution-stack-cell-clauses stack-cell))
          (goal-pointer (first goals)))
     (iterate
       (for (values clause more) = (cl-ds:consume-front clauses))
@@ -29,15 +29,16 @@
 
 (defun unfold-all (execution-state)
   (iterate
-    (with stack = (execution-state-stack execution-state))
-    (while (and (not (null stack))
-                (execution-stack-cell-more-goals-p stack)))
-    (setf stack (unfold execution-stack stack))
+    (with stack = (huginn.m.r:execution-state-stack execution-state))
+    (while (and
+             (not (null stack))
+             (huginn.m.r:execution-stack-cell-more-goals-p stack)))
+    (setf stack (unfold execution-state stack))
     (finally (return stack))))
 
 
 (defun find-answer (execution-state)
-  (if (~> execution-state execution-state-stack null)
+  (if (~> execution-state huginn.m.r:execution-state-stack null)
       nil
-      (not (null (setf (execution-stack-cell execution-state)
+      (not (null (setf (huginn.m.r:execution-state-stack execution-state)
                        (unfold-all execution-state))))))

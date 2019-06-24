@@ -1,7 +1,7 @@
 (cl:in-package #:cl-user)
 
 
-(defpackage huginn.machine.representation
+(defpackage #:huginn.machine.representation
   (:use #:huginn.aux-package #:cl)
   (:nicknames #:huginn.m.r)
   (:export
@@ -31,10 +31,19 @@
    #:make-execution-state
    #:execution-state-clauses
    #:execution-state-objects-mapping
-   #:execution-state-objects-variable-bindings
-   #:execution-state-objects-heap
-   #:execution-state-objects-unification-stack
-   #:execution-state-objects-stack
+   #:execution-state-variable-bindings
+   #:execution-state-heap
+   #:execution-state-unification-stack
+   #:execution-state-stack
+   #:execution-stack-cell-clauses
+   #:pointer
+   #:+tag-size+
+   #:index-object
+   #:cell
+   #:word
+   #:tag
+   #:detag
+   #:tag-of
    #:execution-stack-cell-more-goals-p
    #:clause-content-length
    #:make-clause

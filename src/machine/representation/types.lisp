@@ -67,7 +67,7 @@
                                     :fill-pointer 0)
    :type (cl-ds.utils:extendable-vector fixnum))
   ;; shared unification stack. needs to be resetted before using.
-  (stack nil :type (optional execution-stack-cell))
+  (stack nil :type (or null execution-stack-cell))
   )
 
 

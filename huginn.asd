@@ -13,14 +13,12 @@
                (:module "machine"
                 :components ((:module "representation"
                               :components ((:file "package")
-                                           (:file "utils")
-                                           (:file "tokens")
                                            (:file "tags")
-                                           (:file "types")
+                                           (:file "types")))
+                             (:module "operations"
+                              :components ((:file "package")
                                            (:file "copying")
                                            (:file "undo")
                                            (:file "unification")
-                                           (:file "unfolding")))
-                             (:module "operations"
-                              :components ((:file "package")
+                                           (:file "unfolding")
                                            ))))))
