@@ -129,11 +129,12 @@
              (type execution-stack-cell execution-stack-cell)
              (optimize (speed 3))
              (ignore pointer1 pointer2))
-    (or (same-cells-p ref1 ref2) ; same reference, unification succesfull
-        (unify-pair execution-state
-                    execution-stack-cell
-                    (follow-pointer execution-state (detag ref1) t)
-                    (follow-pointer execution-state (detag ref2) t))))
+    (if (same-cells-p ref1 ref2) ; same reference, unification succesfull
+        t
+        (with-unification-stack (execution-state)
+          (upush (follow-pointer execution-state (detag ref1) t)
+                 (follow-pointer execution-state (detag ref2) t))
+          t)))
 
 
   (declaim (notinline unify-variable-fixnum))
