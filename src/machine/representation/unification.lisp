@@ -97,7 +97,7 @@
              (type execution-stack-cell execution-stack-cell)
              (type execution-state execution-state))
     (declare (ignore execution-stack-cell))
-    (or (eql first-cell second-cell) ; first cell contains unique ID for the expression. If those matches it is the same expression so unification will succeed.
+    (or (same-cells-p first-cell second-cell) ; first cell contains unique ID for the expression. If those matches it is the same expression so unification will succeed.
         (with-unification-stack (execution-state)
           (let ((first-arity (deref (1+ first-expression-pointer)))
                 (second-arity (deref (1+ second-expression-pointer))))
@@ -129,7 +129,7 @@
              (type execution-stack-cell execution-stack-cell)
              (optimize (speed 3))
              (ignore pointer1 pointer2))
-    (or (eql ref1 ref2) ; same reference, unification succesfull
+    (or (same-cells-p ref1 ref2) ; same reference, unification succesfull
         (unify-pair execution-state
                     execution-stack-cell
                     (follow-pointer execution-state (detag ref1) t)
@@ -179,13 +179,10 @@
     (declare (optimize (speed 3))
              (type pointer pointer1 pointer2)
              (type cell cell1 cell2))
-    (unless (< pointer1 pointer2)
-      (rotatef pointer1 pointer2)
-      (rotatef cell1 cell2))
     (let ((first-unbound (variable-unbound-p cell1))
           (second-unbound (variable-unbound-p cell2)))
       (cond ((nor first-unbound second-unbound)
-             (eql cell1 cell2))
+             (same-cells-p cell1 cell2))
             ((and first-unbound second-unbound)
              (alter-cell execution-state execution-stack-cell
                          pointer1 (make-reference pointer2))
@@ -307,7 +304,7 @@
                             pointer1 pointer2
                             cell1 cell2))
         (+fixnum-fixnum+
-         (eql cell1 cell2))
+         (same-cells-p cell1 cell2))
         (+ref-ref+
          (unify-references execution-state
                            execution-stack-cell

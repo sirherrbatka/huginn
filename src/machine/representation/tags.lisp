@@ -133,6 +133,11 @@
   (~> cell detag zerop))
 
 
+(declaim (inline same-cells-p))
+(defun same-cells-p (first-cell second-cell)
+  (eql first-cell second-cell))
+
+
 (declaim (inline make-reference))
 (defun make-reference (pointer)
   (declare (type pointer pointer)
