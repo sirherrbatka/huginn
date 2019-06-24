@@ -100,12 +100,6 @@
   (- (clause-content-length clause) (clause-body-pointer clause)))
 
 
-(defun make-heap (size)
-  (make-array size
-              :element-type 'cell
-              :initial-element 0))
-
-
 (defun expand-state-heap (state desired-size)
   (declare (type execution-state state)
            (type fixnum desired-size)
