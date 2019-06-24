@@ -97,7 +97,7 @@
              (type execution-stack-cell execution-stack-cell)
              (type execution-state execution-state))
     (declare (ignore execution-stack-cell))
-    (or (eql first-cell second-cell)
+    (or (eql first-cell second-cell) ; first cell contains unique ID for the expression. If those matches it is the same expression so unification will succeed.
         (with-unification-stack (execution-state)
           (let ((first-arity (deref (1+ first-expression-pointer)))
                 (second-arity (deref (1+ second-expression-pointer))))
@@ -129,7 +129,7 @@
              (type execution-stack-cell execution-stack-cell)
              (optimize (speed 3))
              (ignore pointer1 pointer2))
-    (or (eql ref1 ref2)
+    (or (eql ref1 ref2) ; same reference, unification succesfull
         (unify-pair execution-state
                     execution-stack-cell
                     (follow-pointer execution-state (detag ref1) t)
@@ -154,7 +154,7 @@
              (type execution-stack-cell execution-stack-cell)
              (type pointer variable-pointer fixnum-pointer)
              (type cell fixnum-cell variable-cell))
-    (unless (eql 0 (detag variable-cell))
+    (unless (variable-unbound-p variable-cell)
       (return-from unify-variable-fixnum nil))
     (alter-cell execution-state
                 execution-stack-cell
@@ -237,7 +237,7 @@
                                     expression-cell)
     (declare (ignore expression-cell)
              (optimize (speed 3)))
-    (unless (eql 0 (detag variable-cell))
+    (unless (variable-unbound-p variable-cell) ; can't change bound variable
       (return-from unify-variable-expression nil))
     (alter-cell execution-state
                 execution-stack-cell
