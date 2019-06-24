@@ -325,11 +325,14 @@
                          cell1 cell2))))
 
 
-  (-> unify (execution-state execution-stack-cell) boolean)
-  (defun unify (execution-state execution-stack-cell)
+  (-> unify (execution-state execution-stack-cell pointer) boolean)
+  (defun unify (execution-state execution-stack-cell goal-pointer)
     (declare (type execution-stack-cell execution-stack-cell)
              (type execution-state execution-state)
              (optimize (speed 3)))
+    (prepare-unification-stack execution-state
+                               execution-stack-cell
+                               goal-pointer)
     (with-unification-stack (execution-state)
       (when (uemptyp)
         (done t))

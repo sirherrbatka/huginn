@@ -16,10 +16,9 @@
                                                         clause))
       (for new-stack-cell = (push-stack-cell stack-cell clause
                                              bindings-fill-pointer))
-      (prepare-unification-stack execution-state
-                                 new-stack-cell
-                                 goal-pointer)
-      (for head-unified-p = (unify execution-state new-stack-cell))
+      (for head-unified-p = (unify execution-state
+                                   new-stack-cell
+                                   goal-pointer))
       (unless head-unified-p
         (pop-stack-cell execution-state new-stack-cell)
         (next-iteration))
