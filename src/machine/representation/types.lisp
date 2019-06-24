@@ -27,33 +27,6 @@
   (body-pointer 0 :type fixnum))
 
 
-(defstruct execution-state
-  (clauses)
-  ;; all clauses that can be selected for unfolding
-  (objects-mapping (make-hash-table :test 'eq) :type hash-table)
-  ;; translates instance into unique index
-  (variable-bindings (make-array 64) :type (simple-array t (*)))
-  ;; reverse mapping, maps unique index to instance
-  (heap +placeholder-array+ :type vector-representation)
-  ;; heap, stores both data and code. Fresh clauses are appended at the back. It is a simple array, and fill-pointer is stored in the execution-stack-cell.
-  (unification-stack (make-array 16 :element-type 'fixnum
-                                    :adjustable t
-                                    :fill-pointer 0)
-   :type (cl-ds.utils:extendable-vector fixnum))
-  ;; shared unification stack. needs to be resetted before using.
-  )
-
-
-(-> execution-state-body-pointer (execution-stack-cell) pointer)
-(defun execution-state-body-pointer (execution-stack-cell)
-  (declare (optimize (speed 3)))
-  (the pointer
-       (+ (execution-stack-cell-heap-pointer execution-stack-cell)
-          (~> execution-stack-cell
-              execution-stack-cell-clause
-              clause-body-pointer))))
-
-
 (def <empty-range-placeholder> (make 'cl-ds:empty-range))
 
 
@@ -80,10 +53,38 @@
   )
 
 
+(defstruct execution-state
+  (clauses)
+  ;; all clauses that can be selected for unfolding
+  (objects-mapping (make-hash-table :test 'eq) :type hash-table)
+  ;; translates instance into unique index
+  (variable-bindings (make-array 64) :type (simple-array t (*)))
+  ;; reverse mapping, maps unique index to instance
+  (heap +placeholder-array+ :type vector-representation)
+  ;; heap, stores both data and code. Fresh clauses are appended at the back. It is a simple array, and fill-pointer is stored in the execution-stack-cell.
+  (unification-stack (make-array 16 :element-type 'fixnum
+                                    :adjustable t
+                                    :fill-pointer 0)
+   :type (cl-ds.utils:extendable-vector fixnum))
+  ;; shared unification stack. needs to be resetted before using.
+  (stack nil :type (optional execution-stack-cell))
+  )
+
+
+(-> execution-state-body-pointer (execution-stack-cell) pointer)
+(defun execution-state-body-pointer (execution-stack-cell)
+  (declare (optimize (speed 3)))
+  (the pointer
+       (+ (execution-stack-cell-heap-pointer execution-stack-cell)
+          (~> execution-stack-cell
+              execution-stack-cell-clause
+              clause-body-pointer))))
+
+
 (-> execution-stack-cell-more-goals-p (execution-stack-cell) boolean )
 (defun execution-stack-cell-more-goals-p (execution-stack-cell)
   (declare (optimize (speed 3)))
-  (~> execution-stack-cell execution-stack-cell-goals endp))
+  (~> execution-stack-cell execution-stack-cell-goals endp not))
 
 
 (-> clause-content-length (clause) cl-ds.utils:index)

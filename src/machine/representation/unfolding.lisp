@@ -16,15 +16,6 @@
   (not (endp clauses)))
 
 
-(declaim (notinline select-clause))
-(defun clause-matches-goal-p (clause goal)
-  cl-ds.utils:todo)
-
-
-(defun answer (execution-state stack-cell)
-  cl-ds.utils:todo)
-
-
 (defun unfold (execution-state stack-cell)
   (declare (type execution-stack-cell stack-cell)
            (type execution-state execution-state))
@@ -50,3 +41,21 @@
       (clause-body-to-heap execution-state new-stack-cell)
       (finish)
       (finally (return new-stack-cell)))))
+
+
+(defun unfold-all (execution-state)
+  (iterate
+    (with stack = (execution-state-stack execution-state))
+    (while (and (not (null stack))
+                (execution-stack-cell-more-goals-p stack)))
+    (setf stack (unfold execution-stack stack))
+    (finally (return stack))))
+
+
+(defun find-answer (execution-state)
+  (let ((old-stack (execution-state-stack execution-state)))
+    (if (null old-stack)
+        nil
+        (let ((new-stack (unfold-all execution-state)))
+          (setf (execution-stack-cell execution-state) new-stack)
+          t))))
