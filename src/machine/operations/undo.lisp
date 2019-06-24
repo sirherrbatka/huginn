@@ -29,7 +29,7 @@
 
 
 (defun pop-stack-cell (execution-state execution-stack-cell)
-  "Pop top stack-cell, adjust execution-state by clearing objects."
+  "Pop top stack-cell, adjust execution-state by clearing changes."
   (declare (type huginn.m.r:execution-stack-cell execution-stack-cell)
            (type huginn.m.r:execution-state execution-state))
   (~>> execution-stack-cell
