@@ -1,21 +1,6 @@
 (cl:in-package #:huginn.machine.representation)
 
 
-(declaim (notinline select-clause))
-(defun select-clause (predicate clauses)
-  (declare (type list clauses))
-  (iterate
-    (for sub on clauses)
-    (for first = (first sub))
-    (when (funcall predicate first)
-      (return-from select-clause (values first (rest sub))))
-    (finally (return (values nil nil)))))
-
-
-(defun more-clauses-p (clauses)
-  (not (endp clauses)))
-
-
 (defun unfold (execution-state stack-cell)
   (declare (type execution-stack-cell stack-cell)
            (type execution-state execution-state))
