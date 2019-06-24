@@ -38,9 +38,8 @@
 
 
 (defun find-answer (execution-state)
-  (let ((old-stack (execution-state-stack execution-state)))
-    (if (null old-stack)
-        nil
-        (let ((new-stack (unfold-all execution-state)))
-          (setf (execution-stack-cell execution-state) new-stack)
-          t))))
+  (if (~> execution-state execution-state-stack null)
+      nil
+      (let ((new-stack (unfold-all execution-state)))
+        (setf (execution-stack-cell execution-state) new-stack)
+        t)))
