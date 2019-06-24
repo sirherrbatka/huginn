@@ -329,6 +329,7 @@
   (defun unify (execution-state execution-stack-cell goal-pointer)
     (declare (type execution-stack-cell execution-stack-cell)
              (type execution-state execution-state)
+             (type pointer goal-pointer)
              (optimize (speed 3)))
     (prepare-unification-stack execution-state
                                execution-stack-cell
