@@ -1,10 +1,6 @@
 (cl:in-package #:huginn.machine.operations)
 
 
-(defun matching-clauses (execution-state goal-pointer)
-  cl-ds.utils:todo)
-
-
 ;; this should be performed only after clause was already proven (and therefore copied to heap.
 ;; Code assumes that next stack cell is located DIRECTLY after the current one on the heap
 (defun push-stack-cell (execution-stack-cell clause
@@ -86,9 +82,9 @@
           (unless (huginn.m.r:variable-unbound-p cell)
             (let* ((object (aref variable-values word))
                    (new-index (1+ bindings-fill-pointer))
-                   (index (huginn.m.r:index-object execution-state
-                                                   object
-                                                   new-index)))
+                   (index (index-object execution-state
+                                        object
+                                        new-index)))
               (declare (type fixnum index new-index))
               (setf (aref heap i) (huginn.m.r:tag huginn.m.r:+variable+
                                                   index))
@@ -142,9 +138,9 @@
           (unless (huginn.m.r:variable-unbound-p cell)
             (let* ((object (aref variable-values word))
                    (new-index (1+ bindings-fill-pointer))
-                   (index (huginn.m.r:index-object execution-state
-                                                   object
-                                                   new-index)))
+                   (index (index-object execution-state
+                                        object
+                                        new-index)))
               (declare (type fixnum index new-index))
               (setf (aref heap i) (huginn.m.r:tag huginn.m.r:+variable+
                                                   index))

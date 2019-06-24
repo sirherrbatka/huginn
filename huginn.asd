@@ -18,7 +18,7 @@
                              (:module "operations"
                               :components ((:file "package")
                                            (:file "copying")
+                                           (:file "match-clauses")
                                            (:file "undo")
                                            (:file "unification")
-                                           (:file "unfolding")
-                                           ))))))
+                                           (:file "unfolding")))))))

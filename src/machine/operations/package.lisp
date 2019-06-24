@@ -5,4 +5,5 @@
   (:use #:cl #:huginn.aux-package)
   (:nicknames #:huginn.m.o)
   (:export
+   #:find-answer
    ))
