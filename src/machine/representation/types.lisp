@@ -71,16 +71,6 @@
   )
 
 
-(-> execution-state-body-pointer (execution-stack-cell) pointer)
-(defun execution-state-body-pointer (execution-stack-cell)
-  (declare (optimize (speed 3)))
-  (the pointer
-       (+ (execution-stack-cell-heap-pointer execution-stack-cell)
-          (~> execution-stack-cell
-              execution-stack-cell-clause
-              clause-body-pointer))))
-
-
 (-> execution-stack-cell-more-goals-p (execution-stack-cell) boolean )
 (defun execution-stack-cell-more-goals-p (execution-stack-cell)
   (declare (optimize (speed 3)))
@@ -127,12 +117,8 @@
                 (the fixnum (* 128 (1+ (truncate desired-size 64)))))))
     (declare (type fixnum old-heap-size new-heap-size))
     (unless (= old-heap-size new-heap-size)
-      (let ((new-heap (make-heap new-heap-size)))
-        (setf (execution-state-heap state) new-heap)
-        (iterate
-          (declare (type fixnum i))
-          (for i from 0 below old-heap-size)
-          (setf (aref new-heap i) (aref old-heap i)))))
+      (setf (execution-state-heap state)
+            (adjust-array old-heap new-heap-size)))
     state))
 
 
