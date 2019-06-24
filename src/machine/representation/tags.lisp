@@ -15,7 +15,7 @@
 
 
 (deftype tag ()
-  `(unsigned-byte ,(1+ +tag-size+)))
+  `(integer 1 ,(1+ (ash 1 +tag-size+))))
 
 
 (declaim (inline tag))
@@ -49,7 +49,7 @@
                              (remove-if (curry #'eql #\+)
                                         (symbol-name tag-symbol))))
                    (predicate-symbol (intern predicate-name)))
-              (assert (typep (1- i) 'tag))
+              (assert (typep i 'tag))
               (prog1 `(progn (define-constant ,tag-symbol ,i)
                              (declaim (inline ,predicate-symbol))
                              (defun ,predicate-symbol (cell)
