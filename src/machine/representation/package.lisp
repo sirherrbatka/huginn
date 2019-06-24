@@ -5,60 +5,59 @@
   (:use #:huginn.aux-package #:cl)
   (:nicknames #:huginn.m.r)
   (:export
-   #:tag-case
-   #:+variable+
-   #:+reference+
-   #:+fixnum+
    #:+expression+
-   #:variable-cell-p
-   #:reference-cell-p
-   #:fixnum-cell-p
-   #:expression-cell-p
-   #:same-cells-p
-   #:variable-unbound-p
-   #:make-reference
+   #:+fixnum+
+   #:+reference+
+   #:+tag-size+
+   #:+variable+
+   #:cell
+   #:clause
+   #:clause-body-length
+   #:clause-body-pointer
+   #:clause-content
+   #:clause-content-length
+   #:clause-goal-pointers
+   #:clause-goals
+   #:clause-length
+   #:clause-variable-values
+   #:dereference-heap-pointer
+   #:dereference-variable
+   #:detag
    #:execution-stack-cell
+   #:execution-stack-cell-bindings-fill-pointer
    #:execution-stack-cell-clause
+   #:execution-stack-cell-clauses
    #:execution-stack-cell-clausese
    #:execution-stack-cell-goals
-   #:execution-stack-cell-heap-pointer
    #:execution-stack-cell-heap-cells-trail
-   #:execution-stack-cell-bindings-fill-pointer
    #:execution-stack-cell-heap-fill-pointer
-   #:execution-stack-cell-previous-cell
-   #:make-execution-stack-cell
-   #:execution-state
-   #:make-execution-state
-   #:execution-state-clauses
-   #:execution-state-objects-mapping
-   #:execution-state-variable-bindings
-   #:execution-state-heap
-   #:execution-state-unification-stack
-   #:execution-state-stack
-   #:execution-stack-cell-clauses
-   #:pointer
-   #:+tag-size+
-   #:index-object
-   #:cell
-   #:word
-   #:tag
-   #:detag
-   #:tag-of
+   #:execution-stack-cell-heap-pointer
    #:execution-stack-cell-more-goals-p
-   #:clause-content-length
-   #:make-clause
-   #:clause
-   #:clause-goal-pointers
-   #:clause-variable-values
-   #:clause-content
-   #:clause-body-pointer
-   #:make-clause
-   #:clause-goals
-   #:clause-body-length
-   #:expand-state-heap
-   #:dereference-variable
+   #:execution-stack-cell-previous-cell
+   #:execution-state
+   #:execution-state-clauses
+   #:execution-state-heap
    #:execution-state-heap-size
-   #:clause-length
+   #:execution-state-objects-mapping
+   #:execution-state-stack
+   #:execution-state-unification-stack
+   #:execution-state-variable-bindings
+   #:expand-state-heap
+   #:expression-cell-p
+   #:fixnum-cell-p
    #:follow-pointer
-   #:dereference-heap-pointer
-   ))
+   #:index-object
+   #:make-clause
+   #:make-clause
+   #:make-execution-stack-cell
+   #:make-execution-state
+   #:make-reference
+   #:pointer
+   #:reference-cell-p
+   #:same-cells-p
+   #:tag
+   #:tag-case
+   #:tag-of
+   #:variable-cell-p
+   #:variable-unbound-p
+   #:word))
