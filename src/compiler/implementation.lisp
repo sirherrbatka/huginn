@@ -15,6 +15,11 @@
     result))
 
 
+(defun anonymus-variable-p (variable)
+  (and (symbolp variable)
+       (string= (symbol-name variable) "?")))
+
+
 (defun gather-all-variables (list &key
                                     (index 0)
                                     (result (make-hash-table :test 'eq)))
@@ -24,7 +29,6 @@
                  (let ((new-index (ensure (gethash variable result)
                                     index)))
                    (when (or (eql new-index index)
-                             (and (symbolp variable)
-                                  (string= (symbol-name variable) "?")))
+                             (anonymus-variable-p variable))
                      (incf index))))))
   result)
