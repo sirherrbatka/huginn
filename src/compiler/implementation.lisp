@@ -25,9 +25,10 @@
        (char= #\? (aref (symbol-name variable) 0))))
 
 
-(defun gather-all-values (list &key
-                                 (index 0)
-                                 (result (make-hash-table :test 'eq)))
+(defun gather-all-variable-bindings
+    (list &key
+            (index 0)
+            (result (make-hash-table :test 'eq)))
   (~>> list flatten
        (remove-if (lambda (x) (or (variable-p x)
                                   (typep x 'huginn.m.r:word))))
