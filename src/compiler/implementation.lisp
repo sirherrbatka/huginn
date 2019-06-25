@@ -23,12 +23,12 @@
 (defun gather-all-variables (list &key
                                     (index 0)
                                     (result (make-hash-table :test 'eq)))
-  (~> list flatten
-      (remove-if (lambda (x) (typep x 'huginn.m.r:word)) _)
-      (map nil (lambda (variable)
-                 (let ((new-index (ensure (gethash variable result)
-                                    index)))
-                   (when (or (eql new-index index)
-                             (anonymus-variable-p variable))
-                     (incf index))))))
+  (~>> list flatten
+       (remove-if (lambda (x) (typep x 'huginn.m.r:word)))
+       (map nil (lambda (variable)
+                  (let ((new-index (ensure (gethash variable result)
+                                     index)))
+                    (when (or (eql new-index index)
+                              (anonymus-variable-p variable))
+                      (incf index))))))
   result)
