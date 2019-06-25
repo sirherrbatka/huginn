@@ -9,7 +9,7 @@
                (let ((new-index (ensure (gethash sublist result)
                                   index)))
                  (when (eql new-index index)
-                   (incf index))
+                   (incf index (+ 2 (length sublist))))
                  (map nil #'impl sublist)))))
     (impl list)
     result))
