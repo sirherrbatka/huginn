@@ -23,4 +23,5 @@
                                            (:file "unification")
                                            (:file "unfolding")))))
                (:module "compiler"
-                :components ((:file "package")))))
+                :components ((:file "package")
+                             (:file "implementation")))))
