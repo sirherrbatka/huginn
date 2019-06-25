@@ -20,15 +20,20 @@
        (string= (symbol-name variable) "?")))
 
 
-(defun gather-all-variables (list &key
-                                    (index 0)
-                                    (result (make-hash-table :test 'eq)))
+(defun variable-p (variable)
+  (and (symbolp variable)
+       (char= #\? (aref (symbol-name variable) 0))))
+
+
+(defun gather-all-values (list &key
+                                 (index 0)
+                                 (result (make-hash-table :test 'eq)))
   (~>> list flatten
-       (remove-if (lambda (x) (typep x 'huginn.m.r:word)))
+       (remove-if (lambda (x) (or (variable-p x)
+                                  (typep x 'huginn.m.r:word))))
        (map nil (lambda (variable)
                   (let ((new-index (ensure (gethash variable result)
                                      index)))
-                    (when (or (eql new-index index)
-                              (anonymus-variable-p variable))
+                    (when (eql new-index index)
                       (incf index))))))
   result)
