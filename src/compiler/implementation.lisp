@@ -1,6 +1,16 @@
 (cl:in-package #:huginn.compiler)
 
 
+(defun anonymus-variable-p (variable)
+  (and (symbolp variable)
+       (string= (symbol-name variable) "?")))
+
+
+(defun variable-p (variable)
+  (and (symbolp variable)
+       (char= #\? (aref (symbol-name variable) 0))))
+
+
 (defun gather-all-sublists (list &key
                                    (index 0)
                                    (result (make-hash-table :test 'eq)))
@@ -15,23 +25,14 @@
     result))
 
 
-(defun anonymus-variable-p (variable)
-  (and (symbolp variable)
-       (string= (symbol-name variable) "?")))
-
-
-(defun variable-p (variable)
-  (and (symbolp variable)
-       (char= #\? (aref (symbol-name variable) 0))))
-
-
 (defun gather-all-variable-bindings
     (list &key
             (index 0)
             (result (make-hash-table :test 'eq)))
   (~>> list flatten
-       (remove-if (lambda (x) (or (variable-p x)
-                                  (typep x 'huginn.m.r:word))))
+       (remove-if (lambda (x)
+                    (or (variable-p x)
+                        (typep x 'huginn.m.r:word))))
        (map nil (lambda (variable)
                   (let ((new-index (ensure (gethash variable result)
                                      index)))
