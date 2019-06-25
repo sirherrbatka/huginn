@@ -24,4 +24,5 @@
                                            (:file "unfolding")))))
                (:module "compiler"
                 :components ((:file "package")
+                             (:file "protocol")
                              (:file "implementation")))))

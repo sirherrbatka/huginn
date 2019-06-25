@@ -39,3 +39,12 @@
                     (when (eql new-index index)
                       (incf index))))))
   result)
+
+
+(defclass compilation-state (fundamental-compilation-state)
+  ((%forms-table :initarg :forms-table
+                 :reader forms-table)
+   (%list-input :initarg :list-input
+                :reader list-input))
+  (:default-initargs
+   :forms-table (make-hash-table :test 'eq)))
