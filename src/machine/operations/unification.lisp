@@ -7,7 +7,7 @@
              (optimize (speed 3)))
     (logior (ash (the fixnum (1- (huginn.m.r:tag-of first-cell)))
                  (1+ huginn.m.r:+tag-size+))
-            (1- (huginn.m.r:tag-of second-cell))))
+            (the fixnum (1- (huginn.m.r:tag-of second-cell)))))
 
 
   (flet ((combine-tags (first-tag second-tag)
