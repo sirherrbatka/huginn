@@ -89,9 +89,11 @@
            (type clause clause)
            (type pointer pointer-offset))
   (iterate
+    (declare (type fixnum i))
     (with goals = (clause-goal-pointers clause))
     (for i from (1- (length goals)) downto 0)
-    (push (+ (aref goals i) pointer-offset) initial-list))
+    (push (the pointer (+ (aref goals i) pointer-offset))
+          initial-list))
   initial-list)
 
 
