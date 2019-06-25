@@ -1,6 +1,14 @@
 (cl:in-package #:huginn.machine.representation)
 
 
+(deftype vector-representation ()
+  `(simple-array cell (*)))
+
+
+(deftype pointer ()
+  'non-negative-fixnum)
+
+
 (define-constant +placeholder-array+
     (make-array 0 :element-type 'cell)
   :test 'vector=
@@ -10,14 +18,6 @@
 (define-constant +placeholder-pointer-array+
     (make-array 0 :element-type 'pointer)
   :test 'vector= )
-
-
-(deftype vector-representation ()
-  `(simple-array cell (*)))
-
-
-(deftype pointer ()
-  'non-negative-fixnum)
 
 
 (defstruct clause
