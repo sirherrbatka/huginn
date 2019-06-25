@@ -1,8 +1,9 @@
 (cl:in-package #:huginn.compiler)
 
 
-(defun gather-all-sublists
-    (list &aux (index 0) (result (make-hash-table :test 'eq)))
+(defun gather-all-sublists (list &aux
+                                   (index 0)
+                                   (result (make-hash-table :test 'eq)))
   (labels ((impl (sublist)
              (when (consp sublist)
                (let ((new-index (ensure (gethash sublist result)
