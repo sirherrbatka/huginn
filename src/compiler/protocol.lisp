@@ -20,7 +20,7 @@
 
 (defgeneric cells-count (compilation-state))
 
-(defgeneric make-compilation-state (class head body))
+(defgeneric make-compilation-state (class content))
 
 (defgeneric body-pointer (compilation-state))
 

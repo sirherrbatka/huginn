@@ -44,7 +44,12 @@
 (defclass compilation-state (fundamental-compilation-state)
   ((%forms-table :initarg :forms-table
                  :reader forms-table)
-   (%list-input :initarg :list-input
-                :reader list-input))
+   (%content-size :initarg :content-size
+                  :reader read-content-size
+                  :reader cells-count)
+   (%head :initarg :head
+          :reader read-head)
+   (%body :initarg :body
+          :reader read-body))
   (:default-initargs
    :forms-table (make-hash-table :test 'eq)))
