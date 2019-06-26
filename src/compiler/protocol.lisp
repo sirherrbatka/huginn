@@ -1,20 +1,6 @@
 (cl:in-package #:huginn.compiler)
 
 
-(define-constant +categories-list+ '(:expression :fixnum :reference :variable)
-  :test 'equal)
-
-(defun category-p (list)
-  (and
-    (listp list)
-    (= (length (remove-duplicates list))
-       (length list))
-    (every (rcurry #'member +categories-list+)
-           list)))
-
-(deftype category ()
-  `(satisfies category-p))
-
 (defclass fundamental-compilation-state ()
   ())
 
@@ -28,11 +14,11 @@
 
 (defgeneric pointer-for-variable (compilation-state variable))
 
+(defgeneric pointer-for-expression (compilation-state expression))
+
 (defgeneric variable-bindings (compilation-state))
 
 (defgeneric variable-bindings-count (compilation-state))
-
-(defgeneric pointers (compilation-state category))
 
 (defgeneric variables (compilation-state))
 
