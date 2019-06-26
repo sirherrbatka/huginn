@@ -38,7 +38,7 @@
                                      index)))
                     (when (eql new-index index)
                       (incf index))))))
-  result)
+  (values result index))
 
 
 (defclass compilation-state (fundamental-compilation-state)
