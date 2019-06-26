@@ -11,11 +11,15 @@
        (char= #\? (aref (symbol-name variable) 0))))
 
 
+(defun expression-p (element)
+  (consp element))
+
+
 (defun gather-all-sublists (list &key
                                    (index 0)
                                    (result (make-hash-table :test 'eq)))
   (labels ((impl (sublist)
-             (when (consp sublist)
+             (when (expression-p sublist)
                (let ((new-index (ensure (gethash sublist result)
                                   index)))
                  (when (eql new-index index)
@@ -28,28 +32,43 @@
 (defun gather-all-variable-bindings
     (list &key
             (index 0)
-            (result (make-hash-table :test 'eq)))
-  (~>> list flatten
-       (remove-if (lambda (x)
-                    (or (variable-p x)
-                        (typep x 'huginn.m.r:word))))
-       (map nil (lambda (variable)
-                  (let ((new-index (ensure (gethash variable result)
-                                     index)))
-                    (when (eql new-index index)
-                      (incf index))))))
-  (values result index))
+            (result (make-hash-table :test 'eql)))
+  (labels ((impl (x)
+             (cond ((or (variable-p x)
+                        (typep x 'huginn.m.r:word))
+                    nil)
+                   ((expression-p x)
+                    (map nil #'impl x))
+                   (t (let ((new-index (ensure (gethash x result)
+                                         index)))
+                        (when (eql new-index index)
+                          (incf index)))))))
+    (values result index)))
 
 
 (defclass compilation-state (fundamental-compilation-state)
-  ((%forms-table :initarg :forms-table
-                 :reader forms-table)
-   (%content-size :initarg :content-size
-                  :reader read-content-size
-                  :reader cells-count)
+  ((%expressions-table :initarg :forms-table
+                       :reader read-expressions-table)
+   (%variables-table :initarg :variables-table
+                     :reader read-variables-table)
    (%head :initarg :head
           :reader read-head)
    (%body :initarg :body
           :reader read-body))
   (:default-initargs
    :forms-table (make-hash-table :test 'eq)))
+
+
+(defmethod expressions ((state compilation-state))
+  (~> state
+      read-expressions-table
+      cl-ds:whole-range
+      (cl-ds.alg:on-each #'car)))
+
+
+(defmethod pointer-for-expression ((state compilation-state)
+                                   expression)
+  (check-type expression list)
+  (~>> state
+       read-expressions-table
+       (gethash expression)))
