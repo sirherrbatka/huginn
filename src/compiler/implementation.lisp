@@ -22,7 +22,7 @@
                    (incf index (+ 2 (length sublist))))
                  (map nil #'impl sublist)))))
     (impl list)
-    result))
+    (values result index)))
 
 
 (defun gather-all-variable-bindings
