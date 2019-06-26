@@ -30,6 +30,8 @@
 
 (defgeneric variable-bindings (compilation-state))
 
+(defgeneric variable-bindings-count (compilation-state))
+
 (defgeneric pointers (compilation-state category))
 
 (defgeneric variables (compilation-state))
