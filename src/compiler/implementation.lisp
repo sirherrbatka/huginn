@@ -78,8 +78,8 @@
 (defclass compilation-state (fundamental-compilation-state)
   ((%expressions-table :initarg :forms-table
                        :reader read-expressions-table)
-   (%variables-table :initarg :variables-table
-                     :reader read-variables-table)
+   (%values-table :initarg :values-table
+                  :reader read-values-table)
    (%head :initarg :head
           :reader read-head)
    (%body :initarg :body
