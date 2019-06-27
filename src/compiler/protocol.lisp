@@ -4,11 +4,7 @@
 (defclass fundamental-compilation-state ()
   ())
 
-(defgeneric cells-count (compilation-state))
-
 (defgeneric make-compilation-state (class content))
-
-(defgeneric body-pointer (compilation-state))
 
 (defgeneric content (compilation-state))
 
@@ -18,8 +14,6 @@
 
 (defgeneric variable-bindings (compilation-state))
 
-(defgeneric variable-bindings-count (compilation-state))
-
 (defgeneric variables (compilation-state))
 
 (defgeneric expressions (compilation-state))
@@ -27,5 +21,7 @@
 (defgeneric head (compilation-state))
 
 (defgeneric body (compilation-state))
+
+(defgeneric body-pointer (compilation-state))
 
 (defgeneric predicate (compilation-state))

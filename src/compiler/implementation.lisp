@@ -135,10 +135,13 @@ Clause can contain the below:
                     :reader read-content-length
                     :reader cells-count)
    (%body-pointer :initarg :body-pointer
+                  :reader body-pointer
                   :reader read-body-pointer)
    (%head :initarg :head
+          :reader head
           :reader read-head)
    (%body :initarg :body
+          :reader body
           :reader read-body))
   (:default-initargs
    :forms-table (make-hash-table :test 'eq)))
@@ -274,3 +277,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
   (~>> state
        read-expressions-table
        (gethash expression)))
+
+
+(defmethod predicate ((state compilation-state))
+  (~> state head clause-head-predicate))
