@@ -5,10 +5,11 @@
   :name "huginn"
   :version "0.0.0"
   :author "Marek Kochanowicz"
-  :depends-on (:iterate :alexandria :rove :serapeum :cl-data-structures)
+  :depends-on (:iterate :alexandria :prove :prove-asdf
+               :serapeum :cl-data-structures)
   :serial T
   :pathname "src"
-  :defsystem-depends-on (:rove-asdf)
+  :defsystem-depends-on (:prove-asdf)
   :components ((:file "aux-package")
                (:module "machine"
                 :components ((:module "representation"
