@@ -73,6 +73,17 @@
   (values result index))
 
 
+(defun gather-all-variables
+    (list &key (result (make-hash-table :test 'eql)))
+  (flet ((callback (variable parent)
+           (ensure (gethash variable result)
+             (+ 2 (position variable parent)))))
+    (walk-expressions
+     list
+     :on-variable #'callback))
+  result)
+
+
 (defclass compilation-state (fundamental-compilation-state)
   ((%expressions-table :initarg :forms-table
                        :reader read-expressions-table)
