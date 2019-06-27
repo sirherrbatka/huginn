@@ -23,3 +23,9 @@
 (defgeneric variables (compilation-state))
 
 (defgeneric expressions (compilation-state))
+
+(defgeneric head (compilation-state))
+
+(defgeneric body (compilation-state))
+
+(defgeneric predicate (compilation-state))

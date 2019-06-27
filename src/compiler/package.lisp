@@ -4,5 +4,6 @@
 (defpackage #:huginn.compiler
   (:use #:cl #:huginn.aux-package)
   (:nicknames #:huginn.c)
+  (:shadow cl:variable)
   (:export
    ))
