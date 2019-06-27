@@ -43,7 +43,7 @@
                     (iterate
                       (for sub in elt)
                       (impl elt sub))))))
-    (impl expression)))
+    (impl expression nil)))
 
 
 (defun gather-all-expressions (list &key
