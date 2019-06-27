@@ -53,8 +53,7 @@
    list
    :on-expression (lambda (sublist parent)
                     (declare (ignore parent))
-                    (let ((new-index (ensure (gethash sublist result)
-                                       index)))
+                    (let ((new-index (ensure (gethash sublist result) index)))
                       (when (eql new-index index)
                         (incf index (+ 2 (length sublist)))))))
   (values result index))
@@ -68,8 +67,7 @@
    list
    :on-value (lambda (x parent)
                (declare (ignore parent))
-               (let ((new-index (ensure (gethash x result)
-                                  index)))
+               (let ((new-index (ensure (gethash x result) index)))
                  (when (eql new-index index)
                    (incf index)))))
   (values result index))
