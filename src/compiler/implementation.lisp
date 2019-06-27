@@ -56,8 +56,7 @@
                     (let ((new-index (ensure (gethash sublist result)
                                        index)))
                       (when (eql new-index index)
-                        (incf index (+ 2 (length sublist))))
-                      (map nil #'impl sublist))))
+                        (incf index (+ 2 (length sublist)))))))
   (values result index))
 
 
