@@ -38,7 +38,7 @@ Clause can contain the below:
 
 
 (deftype expression ()
-  `(satisfies expression))
+  `(satisfies expressionp))
 
 
 (deftype variable ()
@@ -47,81 +47,6 @@ Clause can contain the below:
 
 (deftype anonymus-variable ()
   `(satisfies anonymus-variable-p))
-
-
-(defun walk-expression (expression
-                         &key
-                           (on-expression #'identity)
-                           (on-value #'identity)
-                           (on-variable #'identity)
-                           (on-inlined-fixnum #'identity)
-                           (on-anonymus-variable on-variable))
-  "Scan expression, execute callbacks on expression elements. Needed for gather functions."
-  (labels ((impl (elt parent)
-             (cond ((anonymus-variable-p elt)
-                    (funcall on-anonymus-variable elt parent))
-                   ((variablep elt)
-                    (funcall on-variable elt parent))
-                   ((valuep elt)
-                    (funcall on-value elt parent))
-                   ((inlined-fixnum-p elt)
-                    (funcall on-inlined-fixnum elt parent))
-                   ((expressionp elt)
-                    (funcall on-expression elt parent)
-                    (iterate
-                      (for sub in elt)
-                      (impl elt sub))))))
-    (impl expression nil)))
-
-
-(defun gather-all-expressions (list &key
-                                      (index 0)
-                                      (result (make-hash-table :test 'eq)))
-  (check-type list list)
-  (check-type index huginn.m.r:pointer)
-  (check-type result hash-table)
-  (walk-expression
-   list
-   :on-expression (lambda (sublist parent)
-                    (declare (ignore parent))
-                    (let ((new-index (ensure (gethash sublist result) index)))
-                      (when (eql new-index index)
-                        (incf index (+ 2 (length sublist)))))))
-  (values result index))
-
-
-(defun gather-all-values
-    (list &key
-            (index 0)
-            (result (make-hash-table :test 'eql)))
-  (check-type list list)
-  (check-type index huginn.m.r:pointer)
-  (check-type result hash-table)
-  (walk-expression
-   list
-   :on-value (lambda (x parent)
-               (declare (ignore parent))
-               (let ((new-index (ensure (gethash x result) index)))
-                 (when (eql new-index index)
-                   (incf index)))))
-  (values result index))
-
-
-(defun gather-all-variables
-    (list expressions-table &key (result (make-hash-table :test 'eq)))
-  (check-type list list)
-  (check-type expressions-table hash-table)
-  (flet ((callback (variable parent)
-           (assert (not (null parent)))
-           (let ((expression-pointer (gethash parent expressions-table)))
-             (ensure (gethash variable result)
-               (+ 2 (position variable parent)
-                  expression-pointer)))))
-    (walk-expression
-     list
-     :on-anonymus-variable #'identity
-     :on-variable #'callback))
-  result)
 
 
 (defclass compilation-state (fundamental-compilation-state)
@@ -187,6 +112,30 @@ This representation is pretty much the same as one used by norvig in the PAIP.
      table)))
 
 
+(defstruct expression-marker (content))
+
+
+(defun flat-representation (expression &optional (result (vect)))
+  (check-type expression expression)
+  (labels ((impl (exp)
+             (when (and (expressionp exp)
+                        (not (find-if (lambda (x)
+                                        (and (expression-marker-p x)
+                                             (~> x expression-marker-content
+                                                 (eq exp))))
+                                      result)))
+               (vector-push-extend (make-expression-marker :content exp)
+                                   result)
+               (iterate
+                 (for e in exp)
+                 (vector-push-extend e result))
+               (iterate
+                 (for e in exp)
+                 (impl exp)))))
+    (impl expression)
+    result))
+
+
 (defmethod content ((state compilation-state))
   (bind ((result (make-array (cells-count state)
                              :element-type 'huginn.m.r:cell))
@@ -207,32 +156,20 @@ This representation is pretty much the same as one used by norvig in the PAIP.
                    (add (huginn.m.r:tag huginn.m.r:+reference+ pointer)))))
             ((inlined-fixnum-p elt)
              (add (huginn.m.r:tag huginn.m.r:+fixnum+ elt)))
-            ((expressionp elt)
-             (let ((pointer (pointer-for-expression state elt)))
+            ((expression-marker-p elt)
+             (let ((pointer (~>> elt expression-marker-content
+                                 (pointer-for-expression state))))
                (assert (not (null pointer)))
                (if (eql pointer index)
                    (progn
                      (add (huginn.m.r:tag huginn.m.r:+expression+ index))
-                     (add (length elt)))
+                     (add (~> elt expression-marker-content length)))
                    (add (huginn.m.r:tag huginn.m.r:+reference+ pointer)))))))
     result))
 
 
-(defun flat-representation (expression &optional (result (vect)))
-  (labels ((impl (exp)
-             (when (expressionp exp)
-               (iterate
-                 (for e in exp)
-                 (vector-push-extend e result))
-               (iterate
-                 (for e in exp)
-                 (impl exp)))))
-    (impl expression)
-    result))
-
-
 (defun flat-representation-cells-count (flat-form &key (end (length flat-form)))
-  (* end 2 (count-if #'expressionp flat-form :end end)))
+  (* end 2 (count-if #'expression-marker-content flat-form :end end)))
 
 
 (defmethod cells-count ((state compilation-state))
@@ -264,7 +201,13 @@ This representation is pretty much the same as one used by norvig in the PAIP.
                                    expression)
   (check-type expression list)
   (let* ((flat-form (expressions state))
-         (position (position expression flat-form :test 'eq)))
+         (position (iterate
+                     (for i from 0)
+                     (for elt in-vector flat-form)
+                     (finding i such-that
+                              (and (expression-marker-p elt)
+                                   (eq (expression-marker-content elt)
+                                       expression))))))
     (when (null position)
       (return-from pointer-for-expression nil))
     (flat-representation-cells-count flat-form :end (1+ position))))
