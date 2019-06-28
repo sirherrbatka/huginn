@@ -128,7 +128,8 @@ Clause can contain the below:
   ((%values-table :initarg :values-table
                   :reader read-values-table)
    (%flat-representation :initarg :flat-representation
-                         :reader read-flat-representation)
+                         :reader read-flat-representation
+                         :reader expressions)
    (%body-pointer :initarg :body-pointer
                   :reader body-pointer
                   :reader read-body-pointer)
@@ -186,65 +187,34 @@ This representation is pretty much the same as one used by norvig in the PAIP.
      table)))
 
 
-(defmethod cells-count ((state compilation-state))
-  (bind (((function table) (unique-index)))
-    (walk-expression (read-head state) :on-expression function)
-    (walk-expression (read-body state) :on-expression function)
-    (iterate
-      (for (key value) in-hashtable table)
-      (sum (+ 2 (length key))))))
-
-
 (defmethod content ((state compilation-state))
   (bind ((result (make-array (cells-count state)
                              :element-type 'huginn.m.r:cell))
-         ((:slots %head %body) state)
-         (expressions-table (make-hash-table :test 'eq))
-         (variables-table (make-hash-table :test 'eq))
-         (variables-index 0)
-         (values-table (unique-index :test 'eql))
-         (end 0)
-         ((:flet add (index item))
-          (setf (aref result index) item))
-         ((:labels scan (elt pointer))
-          (cond ((expressionp elt)
-                 (let ((length (length elt))
-                       (expression-pointer
-                         (ensure (gethash elt expressions-table)
-                           end))
-                       (old-end end))
-                   (when (= old-end expression-pointer)
-                     (incf end (+ 2 length))
-                     (add expression-pointer
-                          (huginn.m.r:tag huginn.m.r:+expression+
-                                          expression-pointer))
-                     (add (1+ expression-pointer) length)
-                     (iterate
-                       (for sub in elt)
-                       (for i from (+ expression-pointer 2))
-                       (add i (scan sub i))))
-                   (huginn.m.r:make-reference expression-pointer)))
-                ((anonymus-variable-p elt)
-                 (huginn.m.r:tag huginn.m.r:+variable+ 0))
-                ((variablep elt)
-                 (bind (((new-pointer new-index)
-                         (ensure (gethash variables-table elt)
-                           (list* pointer variables-index))))
-                   (declare (ignore new-index))
-                   (if (= new-pointer pointer)
-                     (prog1
-                       (huginn.m.r:tag huginn.m.r:+variable+
-                                       variables-index)
-                       (incf variables-index))
-                     (huginn.m.r:make-reference new-pointer))))
-                ((valuep elt)
-                 (huginn.m.r:tag huginn.m.r:+variable+
-                                 (funcall values-table elt)))
-                ((inlined-fixnum-p elt)
-                 (huginn.m.r:tag huginn.m.r:+fixnum+
-                                 elt)))))
-    (scan %head 0)
-    (scan %body end)
+         ((:slots %flat-representation) state)
+         (index 0)
+         ((:flet add (item))
+          (setf (aref result index) item)
+          (incf index)))
+    (iterate
+      (for elt in-vector %flat-representation)
+      (cond ((anonymus-variable-p elt)
+             (add (huginn.m.r:tag huginn.m.r:+variable+ 0)))
+            ((variablep elt)
+             (let ((pointer (pointer-for-variable state elt)))
+               (assert (not (null pointer)))
+               (if (eql pointer index)
+                   (add (huginn.m.r:tag huginn.m.r:+variable+ 0))
+                   (add (huginn.m.r:tag huginn.m.r:+reference+ pointer)))))
+            ((inlined-fixnum-p elt)
+             (add (huginn.m.r:tag huginn.m.r:+fixnum+ elt)))
+            ((expressionp elt)
+             (let ((pointer (pointer-for-expression state elt)))
+               (assert (not (null pointer)))
+               (if (eql pointer index)
+                   (progn
+                     (add (huginn.m.r:tag huginn.m.r:+expression+ index))
+                     (add (length elt)))
+                   (add (huginn.m.r:tag huginn.m.r:+reference+ pointer)))))))
     result))
 
 
@@ -261,6 +231,14 @@ This representation is pretty much the same as one used by norvig in the PAIP.
     result))
 
 
+(defun flat-representation-cells-count (flat-form &key (end (length flat-form)))
+  (* end 2 (count-if #'expressionp flat-form :end end)))
+
+
+(defmethod cells-count ((state compilation-state))
+  (~> state read-flat-representation flat-representation-cells-count))
+
+
 (defmethod make-compilation-state ((class (eql 'compilation-state))
                                    clause)
   (check-type clause clause)
@@ -273,8 +251,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
     (check-type head clause)
     (check-type body clause)
     (flat-representation head flat-form)
-    (setf body-pointer
-          (* (length flat-form) 2 (count-if #'expressionp flat-form)))
+    (setf body-pointer (flat-representation-cells-count flat-form))
     (flat-representation head flat-form)
     (make 'compilation-state
           :head head
@@ -283,19 +260,24 @@ This representation is pretty much the same as one used by norvig in the PAIP.
           :body-pointer body-pointer)))
 
 
-(defmethod expressions ((state compilation-state))
-  (~> state
-      read-expressions-table
-      cl-ds:whole-range
-      (cl-ds.alg:on-each #'car)))
-
-
 (defmethod pointer-for-expression ((state compilation-state)
                                    expression)
   (check-type expression list)
-  (~>> state
-       read-expressions-table
-       (gethash expression)))
+  (let* ((flat-form (expressions state))
+         (position (position expression flat-form :test 'eq)))
+    (when (null position)
+      (return-from pointer-for-expression nil))
+    (flat-representation-cells-count flat-form :end (1+ position))))
+
+
+(defmethod pointer-for-variable ((state compilation-state)
+                                 variable)
+  (check-type variable variable)
+  (let* ((flat-form (expressions state))
+         (position (position variable flat-form :test 'eq)))
+    (when (null position)
+      (return-from pointer-for-variable nil))
+    (flat-representation-cells-count flat-form :end (1+ position))))
 
 
 (defmethod predicate ((state compilation-state))
