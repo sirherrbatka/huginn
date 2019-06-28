@@ -10,13 +10,7 @@
 
 (defgeneric pointer-for-variable (compilation-state variable))
 
-(defgeneric pointer-for-expression (compilation-state expression))
-
 (defgeneric variable-bindings (compilation-state))
-
-(defgeneric variables (compilation-state))
-
-(defgeneric expressions (compilation-state))
 
 (defgeneric head (compilation-state))
 
