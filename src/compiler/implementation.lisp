@@ -248,41 +248,38 @@ This representation is pretty much the same as one used by norvig in the PAIP.
     result))
 
 
+(defun flat-representation (expression &optional (result (vect)))
+  (labels ((impl (exp)
+             (when (expressionp exp)
+               (iterate
+                 (for e in exp)
+                 (vector-push-extend e result))
+               (iterate
+                 (for e in exp)
+                 (impl exp)))))
+    (impl expression)
+    result))
+
+
 (defmethod make-compilation-state ((class (eql 'compilation-state))
                                    clause)
   (check-type clause clause)
   (let* ((head (clause-head clause))
          (body (clause-body clause))
-         (predicate (clause-predicate clause))
-         (expressions-table (make-hash-table :test 'eq))
-         (variables-table (make-hash-table :test 'eq))
-         (values-table (make-hash-table :test 'eql))
-         (body-pointer 0)
-         (content-length 0))
+         (predicate (clause-head-predicate clause))
+         (flat-form (vect))
+         (body-pointer 0))
     (check-type predicate predicate)
     (check-type head clause)
     (check-type body clause)
-    (setf body-pointer (nth-value 1 (gather-all-expressions
-                                     head :result expressions-table))
-          content-length (nth-value 1 (gather-all-expressions
-                                       body
-                                       :result expressions-table
-                                       :index body-pointer)))
-    (gather-all-values head :result values-table)
-    (gather-all-values body
-                       :result values-table
-                       :index (hash-table-count values-table))
-    (gather-all-variables head expressions-table
-                          :result variables-table)
-    (gather-all-variables body expressions-table
-                          :result variables-table)
+    (flat-representation head flat-form)
+    (setf body-pointer
+          (* (length flat-form) 2 (count-if #'expressionp flat-form)))
+    (flat-representation head flat-form)
     (make 'compilation-state
           :head head
           :body body
-          :variables-table variables-table
-          :values-table values-table
-          :expressions-table expressions-table
-          :content-length content-length
+          :flat-representation flat-form
           :body-pointer body-pointer)))
 
 
