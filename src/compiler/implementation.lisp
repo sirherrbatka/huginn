@@ -182,12 +182,22 @@ This representation is pretty much the same as one used by norvig in the PAIP.
   (let ((table (make-hash-table :test test))
         (index 0))
     (values
-     (lambda (elt)
+     (lambda (elt &rest all)
+       (declare (ignore all))
        (let* ((fresh-index (ensure (gethash elt table) index))
               (new (eql fresh-index index)))
          (when new (incf index))
          (values index new)))
      table)))
+
+
+(defmethod cells-count ((state compilation-state))
+  (bind (((function table) (unique-index)))
+    (walk-expression (read-head state) :on-expression function)
+    (walk-expression (read-body state) :on-expression function)
+    (iterate
+      (for (key value) in-hashtable table)
+      (sum (+ 2 (length key))))))
 
 
 (defmethod content ((state compilation-state))
