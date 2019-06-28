@@ -210,15 +210,14 @@ This representation is pretty much the same as one used by norvig in the PAIP.
                        (old-end end))
                    (when (= old-end expression-pointer)
                      (incf end (+ 2 length))
-                     (progn
-                       (add expression-pointer
-                            (huginn.m.r:tag huginn.m.r:+expression+
-                                            expression-pointer))
-                       (add (1+ expression-pointer) length)
-                       (iterate
-                         (for sub in elt)
-                         (for i from (+ expression-pointer 2))
-                         (add i (scan sub i)))))
+                     (add expression-pointer
+                          (huginn.m.r:tag huginn.m.r:+expression+
+                                          expression-pointer))
+                     (add (1+ expression-pointer) length)
+                     (iterate
+                       (for sub in elt)
+                       (for i from (+ expression-pointer 2))
+                       (add i (scan sub i))))
                    (huginn.m.r:make-reference expression-pointer)))
                 ((anonymus-variable-p elt)
                  (huginn.m.r:tag huginn.m.r:+variable+ 0))
