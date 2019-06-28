@@ -152,7 +152,7 @@
             (huginn.m.r:execution-stack-cell-goals execution-stack-cell) goals
 
             (huginn.m.r:execution-stack-cell-clauses execution-stack-cell)
-            (huginn.m.r:matching-clauses execution-state (first goals))
+            (matching-clauses execution-state (first goals))
 
             (huginn.m.r:execution-stack-cell-heap-fill-pointer
              execution-stack-cell)

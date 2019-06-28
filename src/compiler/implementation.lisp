@@ -178,51 +178,69 @@ This representation is pretty much the same as one used by norvig in the PAIP.
   (~> clause clause-head clause-head-predicate))
 
 
+(defun unique-index (&key (test 'eq))
+  (let ((table (make-hash-table :test test))
+        (index 0))
+    (values
+     (lambda (elt)
+       (let* ((fresh-index (ensure (gethash elt table) index))
+              (new (eql fresh-index index)))
+         (when new (incf index))
+         (values index new)))
+     table)))
+
+
 (defmethod content ((state compilation-state))
   (bind ((result (make-array (cells-count state)
                              :element-type 'huginn.m.r:cell))
-         ((:slots %expressions-table
-                  %values-table
-                  %variables-table
-                  %head
-                  %body
-                  %content-length) state)
-         (pointer 0)
-         ((:flet add (item &rest more-items))
-          (setf (aref result pointer) item)
-          (incf pointer)
-          (iterate
-            (for elt in more-items)
-            (setf (aref result pointer) elt)
-            (incf pointer))))
-    (walk-expression
-     %head
-     :on-expression (lambda (x parent)
-                      (if (null parent) ;; this is a top level expression
-                          (add (huginn.m.r:tag huginn.m.r:+expression+
-                                               pointer)
-                               (length x))
-                          (~> x ;; this is actually a reference
-                              (gethash %expressions-table)
-                              (huginn.m.r:tag huginn.m.r:+reference+ _)
-                              add)))
-     :on-value (lambda (x parent)
-                 (declare (ignore parent))
-                 (~> x
-                     (gethash %values-table)
-                     1+
-                     (huginn.m.r:tag huginn.m.r:+variable+ _)
-                     add))
-     :on-variable (lambda (x parent)
-                    (declare (ignore parent))
-                    (let ((variable-pointer (gethash x %variables-table)))
-                      (if (< variable-pointer pointer)
-                          (add (huginn.m.r:tag huginn.m.r:+variable+ 0))
-                          (add (huginn.m.r:tag huginn.m.r:+reference+
-                                               variable-pointer)))))
-     :on-anonymus-variable (lambda (x parent)
-                             (declare (ignore parent x))
-                             (add (huginn.m.r:tag huginn.m.r:+variable+ 0))))
+         ((:slots %head %body) state)
+         (expressions-table (make-hash-table :test 'eq))
+         (variables-table (make-hash-table :test 'eq))
+         (variables-index 0)
+         (values-table (unique-index :test 'eql))
+         (end 0)
+         ((:flet add (index item))
+          (setf (aref result index) item))
+         ((:labels scan (elt pointer))
+          (cond ((expressionp elt)
+                 (let ((length (length elt))
+                       (expression-pointer
+                         (ensure (gethash elt expressions-table)
+                           end))
+                       (old-end end))
+                   (when (= old-end expression-pointer)
+                     (incf end (+ 2 length))
+                     (progn
+                       (add expression-pointer
+                            (huginn.m.r:tag huginn.m.r:+expression+
+                                            expression-pointer))
+                       (add (1+ expression-pointer) length)
+                       (iterate
+                         (for sub in elt)
+                         (for i from (+ expression-pointer 2))
+                         (add i (scan sub i)))))
+                   (huginn.m.r:make-reference expression-pointer)))
+                ((anonymus-variable-p elt)
+                 (huginn.m.r:tag huginn.m.r:+variable+ 0))
+                ((variablep elt)
+                 (bind (((new-pointer new-index)
+                         (ensure (gethash variables-table elt)
+                           (list* pointer variables-index))))
+                   (declare (ignore new-index))
+                   (if (= new-pointer pointer)
+                     (prog1
+                       (huginn.m.r:tag huginn.m.r:+variable+
+                                       variables-index)
+                       (incf variables-index))
+                     (huginn.m.r:make-reference new-pointer))))
+                ((valuep elt)
+                 (huginn.m.r:tag huginn.m.r:+variable+
+                                 (funcall values-table elt)))
+                ((inlined-fixnum-p elt)
+                 (huginn.m.r:tag huginn.m.r:+fixnum+
+                                 elt)))))
+    (scan %head 0)
+    (scan %body end)
     result))
 
 
