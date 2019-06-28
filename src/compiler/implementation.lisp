@@ -125,15 +125,10 @@ Clause can contain the below:
 
 
 (defclass compilation-state (fundamental-compilation-state)
-  ((%expressions-table :initarg :forms-table
-                       :reader read-expressions-table)
-   (%values-table :initarg :values-table
+  ((%values-table :initarg :values-table
                   :reader read-values-table)
-   (%variables-table :initarg :variables-table
-                     :reader read-variables-table)
-   (%content-length :initarg :content-length
-                    :reader read-content-length
-                    :reader cells-count)
+   (%flat-representation :initarg :flat-representation
+                         :reader read-flat-representation)
    (%body-pointer :initarg :body-pointer
                   :reader body-pointer
                   :reader read-body-pointer)
