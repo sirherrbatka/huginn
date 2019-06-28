@@ -252,7 +252,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
     (check-type body clause)
     (flat-representation head flat-form)
     (setf body-pointer (flat-representation-cells-count flat-form))
-    (flat-representation head flat-form)
+    (flat-representation body flat-form)
     (make 'compilation-state
           :head head
           :body body
