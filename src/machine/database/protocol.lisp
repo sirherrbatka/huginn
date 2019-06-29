@@ -31,3 +31,8 @@
 (defgeneric make-database (class
                            &optional default
                            &rest more-options))
+
+(defgeneric clear* (database))
+
+(defun clear ()
+  (clear* (database)))

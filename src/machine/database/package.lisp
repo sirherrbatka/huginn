@@ -8,6 +8,7 @@
    #:add-clause
    #:matching-clauses
    #:matching-clauses*
+   #:clear
    #:clauses
    #:database
    #:fundamental-database

@@ -31,4 +31,8 @@
                              (:file "protocol")
                              (:file "implementation")
                              (:test-file "tests")))
-               ))
+               (:module "api"
+                :components ((:file "package")
+                             (:file "variables")
+                             (:file "macros")
+                             (:file "functions")))))

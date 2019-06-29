@@ -39,3 +39,6 @@
                       (declare (ignore clause-predicate goal-predicate))
                       ;; I need another tag type: predicate and index those indepenendtly from everything else
                       t)))))))))
+
+(defmethod clear* ((database database))
+  (setf (fill-pointer (clauses* database)) 0))
