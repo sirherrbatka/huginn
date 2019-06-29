@@ -26,4 +26,5 @@
                (:module "compiler"
                 :components ((:file "package")
                              (:file "protocol")
-                             (:file "implementation")))))
+                             (:file "implementation")
+                             (:file "tests")))))

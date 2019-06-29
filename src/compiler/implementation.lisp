@@ -63,9 +63,7 @@ Clause can contain the below:
           :reader read-head)
    (%body :initarg :body
           :reader body
-          :reader read-body))
-  (:default-initargs
-   :forms-table (make-hash-table :test 'eq)))
+          :reader read-body)))
 
 #|
 This representation is pretty much the same as one used by norvig in the PAIP.
@@ -131,9 +129,9 @@ This representation is pretty much the same as one used by norvig in the PAIP.
                  (vector-push-extend e result))
                (iterate
                  (for e in exp)
-                 (impl exp)))))
+                 (impl e)))))
     (impl expression)
-    result))
+    (cl-ds.utils:remove-fill-pointer result)))
 
 
 (defmethod content ((state compilation-state))
@@ -141,6 +139,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
                              :element-type 'huginn.m.r:cell))
          ((:slots %flat-representation) state)
          (index 0)
+         (value-index-function (unique-index :test 'eql))
          ((:flet add (item))
           (setf (aref result index) item)
           (incf index)))
@@ -164,12 +163,22 @@ This representation is pretty much the same as one used by norvig in the PAIP.
                    (progn
                      (add (huginn.m.r:tag huginn.m.r:+expression+ index))
                      (add (~> elt expression-marker-content length)))
-                   (add (huginn.m.r:tag huginn.m.r:+reference+ pointer)))))))
+                   (add (huginn.m.r:tag huginn.m.r:+reference+ pointer)))))
+            ((valuep elt)
+             (~>> elt
+                  (funcall value-index-function)
+                  (huginn.m.r:tag huginn.m.r:+variable+)
+                  add))))
     result))
 
 
-(defun flat-representation-cells-count (flat-form &key (end (length flat-form)))
-  (* end 2 (count-if #'expression-marker-content flat-form :end end)))
+(defun flat-representation-cells-count (flat-form
+                                        &key
+                                          (end (length flat-form))
+                                          (start 0))
+  (+ (- end start)
+     (count-if #'expression-marker-p flat-form :end end
+                                               :start start)))
 
 
 (defmethod cells-count ((state compilation-state))
@@ -181,10 +190,8 @@ This representation is pretty much the same as one used by norvig in the PAIP.
   (check-type clause clause)
   (let* ((head (clause-head clause))
          (body (clause-body clause))
-         (predicate (clause-head-predicate clause))
          (flat-form (vect))
          (body-pointer 0))
-    (check-type predicate predicate)
     (check-type head clause)
     (check-type body clause)
     (flat-representation head flat-form)
