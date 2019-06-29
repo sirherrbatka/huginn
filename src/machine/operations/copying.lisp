@@ -105,7 +105,10 @@
          (fill-pointer
            (huginn.m.r:execution-stack-cell-heap-fill-pointer
             execution-stack-cell))
-         (new-fill-pointer (+ fill-pointer body-length)))
+         (new-fill-pointer (+ fill-pointer body-length))
+         (database (ensure (huginn.m.r:execution-state-database
+                            execution-state)
+                     (huginn.m.d:database))))
     (declare (type fixnum new-fill-pointer))
     (huginn.m.r:expand-state-heap execution-state new-fill-pointer)
     (let* ((heap (huginn.m.r:execution-state-heap execution-state))
@@ -145,21 +148,18 @@
               (setf (aref heap i) (huginn.m.r:tag huginn.m.r:+variable+
                                                   index))
               (maxf bindings-fill-pointer index)))))
-      (let ((database (ensure (huginn.m.r:execution-state-database
-                               execution-state)
-                        (huginn.m.d:database))))
-        (setf (huginn.m.r:execution-stack-cell-bindings-fill-pointer
-               execution-stack-cell)
-              bindings-fill-pointer
+      (setf (huginn.m.r:execution-stack-cell-bindings-fill-pointer
+             execution-stack-cell)
+            bindings-fill-pointer
 
-              (huginn.m.r:execution-stack-cell-goals execution-stack-cell)
-              goals
+            (huginn.m.r:execution-stack-cell-goals execution-stack-cell)
+            goals
 
-              (huginn.m.r:execution-stack-cell-clauses execution-stack-cell)
-              (huginn.m.d:matching-clauses* database execution-state
-                                            (first goals))
+            (huginn.m.r:execution-stack-cell-clauses execution-stack-cell)
+            (huginn.m.d:matching-clauses* database execution-state
+                                          (first goals))
 
-              (huginn.m.r:execution-stack-cell-heap-fill-pointer
-               execution-stack-cell)
-              new-fill-pointer))
+            (huginn.m.r:execution-stack-cell-heap-fill-pointer
+             execution-stack-cell)
+            new-fill-pointer)
       nil)))
