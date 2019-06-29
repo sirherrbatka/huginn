@@ -190,10 +190,12 @@ This representation is pretty much the same as one used by norvig in the PAIP.
   (check-type clause clause)
   (let* ((head (clause-head clause))
          (body (clause-body clause))
+         (predicate (clause-head-predicate head))
          (flat-form (vect))
          (body-pointer 0))
     (check-type head clause)
     (check-type body clause)
+    (check-type predicate predicate)
     (flat-representation head flat-form)
     (setf body-pointer (flat-representation-cells-count flat-form))
     (flat-representation body flat-form)
@@ -204,19 +206,26 @@ This representation is pretty much the same as one used by norvig in the PAIP.
           :body-pointer body-pointer)))
 
 
+(defmethod pointer-for (flat-form predicate
+                        &key
+                          (start 0)
+                          (end (length flat-form)))
+  (iterate
+    (for i from start below end)
+    (for elt in-vector flat-form)
+    (finding pointer such-that (funcall predicate elt))
+    (sum (if (expression-marker-p elt) 2 1)
+         into pointer)))
+
+
 (defmethod pointer-for-expression ((state compilation-state)
                                    expression)
-  (check-type expression list)
-  (let* ((flat-form (read-flat-representation state)))
-    (iterate
-      (for i from 0)
-      (for elt in-vector flat-form)
-      (finding pointer such-that
-               (and (expression-marker-p elt)
-                    (eq (expression-marker-content elt)
-                        expression)))
-      (sum (if (expression-marker-p elt) 2 1)
-           into pointer))))
+  (check-type expression expression)
+  (pointer-for (read-flat-representation state)
+               (lambda (elt)
+                 (and (expression-marker-p elt)
+                      (eq (expression-marker-content elt)
+                          expression)))))
 
 
 (defmethod expressions ((compilation-state compilation-state) start end)
@@ -235,14 +244,8 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 (defmethod pointer-for-variable ((state compilation-state)
                                  variable)
   (check-type variable variable)
-  (let* ((flat-form (read-flat-representation state))
-         (position (position variable flat-form :test 'eq)))
-    (iterate
-      (for i from 0 to position)
-      (for elt in-vector flat-form)
-      (sum (if (expression-marker-p elt) 2 1)
-           into pointer)
-      (finally (return pointer)))))
+  (pointer-for (read-flat-representation state)
+               (lambda (elt) (eq elt variable))))
 
 
 (defmethod predicate ((state compilation-state))

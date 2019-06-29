@@ -1,12 +1,14 @@
 (cl:in-package #:huginn.compiler)
 
-(prove:plan 14)
+(prove:plan 15)
 
 (let* ((head '(a ?b))
        (compilation-state (make-compilation-state 'compilation-state
                                                   `(,head . (c ?b)))))
   (prove:is (body-pointer compilation-state)
             4)
+  (prove:is (predicate compilation-state)
+            'a)
   (let ((expressions (expressions compilation-state 0 4)))
     (prove:is (length expressions) 1)
     (prove:is (first expressions)
@@ -29,9 +31,7 @@
       (for expression in all-expressions)
       (for pointer = (pointer-for-expression compilation-state expression))
       (prove:is (huginn.m.r:tag-of (aref content pointer))
-                huginn.m.r:+expression+))
-    )
-  )
+                huginn.m.r:+expression+))))
 
 (let ((compilation-state (make-compilation-state 'compilation-state
                                                  '((a ?b) . (c (d ?b))))))
@@ -46,7 +46,6 @@
                 (aref 3)
                 expression-marker-p))
   (prove:is (cells-count compilation-state)
-            12)
-  )
+            12))
 
 (prove:finalize)
