@@ -23,8 +23,13 @@
                                            (:file "undo")
                                            (:file "unification")
                                            (:file "unfolding")))))
+               (:module "database"
+                :components ((:file "package")
+                             (:file "protocol")
+                             (:file "implementation")))
                (:module "compiler"
                 :components ((:file "package")
                              (:file "protocol")
                              (:file "implementation")
-                             (:test-file "tests")))))
+                             (:test-file "tests")))
+               ))
