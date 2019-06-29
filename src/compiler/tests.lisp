@@ -1,6 +1,6 @@
 (cl:in-package #:huginn.compiler)
 
-(prove:plan 13)
+(prove:plan 14)
 
 (let* ((head '(a ?b))
        (compilation-state (make-compilation-state 'compilation-state
@@ -23,6 +23,7 @@
             8)
   (let ((content (content compilation-state))
         (all-expressions (expressions compilation-state 0 8)))
+    (prove:is (length all-expressions) 2)
     (prove:is (length content) 8)
     (iterate
       (for expression in all-expressions)
