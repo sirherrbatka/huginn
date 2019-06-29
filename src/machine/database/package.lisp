@@ -6,6 +6,8 @@
   (:nicknames #:huginn.m.d)
   (:export
    #:add-clause
+   #:matching-clauses
+   #:matching-clauses*
    #:clauses
    #:database
    #:fundamental-database

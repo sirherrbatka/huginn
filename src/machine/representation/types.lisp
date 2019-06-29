@@ -54,7 +54,7 @@
 
 
 (defstruct execution-state
-  (clauses)
+  (database)
   ;; all clauses that can be selected for unfolding
   (objects-mapping (make-hash-table :test 'eq) :type hash-table)
   ;; translates instance into unique index

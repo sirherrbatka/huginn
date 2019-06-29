@@ -35,7 +35,7 @@
    #:execution-stack-cell-more-goals-p
    #:execution-stack-cell-previous-cell
    #:execution-state
-   #:execution-state-clauses
+   #:execution-state-database
    #:execution-state-heap
    #:execution-state-heap-size
    #:execution-state-objects-mapping

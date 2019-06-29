@@ -145,16 +145,21 @@
               (setf (aref heap i) (huginn.m.r:tag huginn.m.r:+variable+
                                                   index))
               (maxf bindings-fill-pointer index)))))
-      (setf (huginn.m.r:execution-stack-cell-bindings-fill-pointer
-             execution-stack-cell)
-            bindings-fill-pointer
+      (let ((database (ensure (huginn.m.r:execution-state-database
+                               execution-state)
+                        (huginn.m.d:database))))
+        (setf (huginn.m.r:execution-stack-cell-bindings-fill-pointer
+               execution-stack-cell)
+              bindings-fill-pointer
 
-            (huginn.m.r:execution-stack-cell-goals execution-stack-cell) goals
+              (huginn.m.r:execution-stack-cell-goals execution-stack-cell)
+              goals
 
-            (huginn.m.r:execution-stack-cell-clauses execution-stack-cell)
-            (matching-clauses execution-state (first goals))
+              (huginn.m.r:execution-stack-cell-clauses execution-stack-cell)
+              (huginn.m.d:matching-clauses* database execution-state
+                                            (first goals))
 
-            (huginn.m.r:execution-stack-cell-heap-fill-pointer
-             execution-stack-cell)
-            new-fill-pointer)
+              (huginn.m.r:execution-stack-cell-heap-fill-pointer
+               execution-stack-cell)
+              new-fill-pointer))
       nil)))

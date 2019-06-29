@@ -15,6 +15,11 @@
 
 (defgeneric clauses* (database))
 
+(defgeneric matching-clauses* (database execution-state goal-pointer))
+
+(defun matching-clauses (execution-state goal-pointer)
+  (matching-clauses* (database) execution-state goal-pointer))
+
 (defun clauses ()
   (clauses* (database)))
 
