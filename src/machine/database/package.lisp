@@ -7,7 +7,6 @@
   (:export
    #:add-clause
    #:matching-clauses
-   #:matching-clauses*
    #:clear
    #:clauses
    #:database

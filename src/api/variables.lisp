@@ -2,3 +2,5 @@
 
 
 (defvar *compiler* 'huginn.c:compilation-state)
+
+(defvar *database*)

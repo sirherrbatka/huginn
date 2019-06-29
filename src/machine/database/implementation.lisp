@@ -3,11 +3,11 @@
 
 (defclass database (fundamental-database)
   ((%clauses :initarg :clauses
-             :reader clauses*))
+             :reader clauses))
   (:default-initargs :clauses (vect)))
 
 
-(defmethod add-clause* ((database database) clause)
+(defmethod add-clause ((database database) clause)
   (vector-push-extend clause (clauses* database)))
 
 
@@ -18,7 +18,7 @@
     (when default (setf *database* result))))
 
 
-(defmethod matching-clauses* ((database database)
+(defmethod matching-clauses ((database database)
                               execution-state
                               goal-pointer)
   (declare (type huginn.m.r:execution-state execution-state)
@@ -40,5 +40,5 @@
                       ;; I need another tag type: predicate and index those indepenendtly from everything else
                       t)))))))))
 
-(defmethod clear* ((database database))
+(defmethod clear ((database database))
   (setf (fill-pointer (clauses* database)) 0))
