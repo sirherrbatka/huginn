@@ -1,4 +1,4 @@
-(cl:in-package #:huginn.database)
+(cl:in-package #:huginn.machine.database)
 
 
 (defclass database (fundamental-database)

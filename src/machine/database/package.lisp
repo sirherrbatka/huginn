@@ -1,9 +1,9 @@
 (cl:in-package #:cl-user)
 
 
-(defpackage #:huginn.database
+(defpackage #:huginn.machine.database
   (:use #:cl #:huginn.aux-package)
-  (:nicknames #:huginn.d)
+  (:nicknames #:huginn.m.d)
   (:export
    #:add-clause
    #:clauses

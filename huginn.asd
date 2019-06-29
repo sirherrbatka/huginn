@@ -16,6 +16,10 @@
                               :components ((:file "package")
                                            (:file "tags")
                                            (:file "types")))
+                             (:module "database"
+                              :components ((:file "package")
+                                           (:file "protocol")
+                                           (:file "implementation")))
                              (:module "operations"
                               :components ((:file "package")
                                            (:file "copying")
@@ -23,10 +27,6 @@
                                            (:file "undo")
                                            (:file "unification")
                                            (:file "unfolding")))))
-               (:module "database"
-                :components ((:file "package")
-                             (:file "protocol")
-                             (:file "implementation")))
                (:module "compiler"
                 :components ((:file "package")
                              (:file "protocol")
