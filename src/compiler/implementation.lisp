@@ -252,6 +252,6 @@ This representation is pretty much the same as one used by norvig in the PAIP.
   (~> state head clause-head-predicate))
 
 
-(defmethod print-object ((state compilation-state) stream)
+(defmethod print-object ((state fundamental-compilation-state) stream)
   (print-unreadable-object (state stream :type nil)
-    (format stream "<- ~a ~a" (read-head state) (read-body state))))
+    (format stream "<- ~a ~a" (head state) (body state))))
