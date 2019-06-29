@@ -207,19 +207,16 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 (defmethod pointer-for-expression ((state compilation-state)
                                    expression)
   (check-type expression list)
-  (let* ((flat-form (read-flat-representation state))
-         (position (iterate
-                     (for i from 0)
-                     (for elt in-vector flat-form)
-                     (finding pointer such-that
-                              (and (expression-marker-p elt)
-                                   (eq (expression-marker-content elt)
-                                       expression)))
-                     (sum (if (expression-marker-p elt) 2 1)
-                          into pointer))))
-    (when (null position)
-      (return-from pointer-for-expression nil))
-    (flat-representation-cells-count flat-form :end (1+ position))))
+  (let* ((flat-form (read-flat-representation state)))
+    (iterate
+      (for i from 0)
+      (for elt in-vector flat-form)
+      (finding pointer such-that
+               (and (expression-marker-p elt)
+                    (eq (expression-marker-content elt)
+                        expression)))
+      (sum (if (expression-marker-p elt) 2 1)
+           into pointer))))
 
 
 (defmethod expressions ((compilation-state compilation-state) start end)
@@ -238,11 +235,14 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 (defmethod pointer-for-variable ((state compilation-state)
                                  variable)
   (check-type variable variable)
-  (let* ((flat-form (expressions state))
+  (let* ((flat-form (read-flat-representation state))
          (position (position variable flat-form :test 'eq)))
-    (when (null position)
-      (return-from pointer-for-variable nil))
-    (flat-representation-cells-count flat-form :end (1+ position))))
+    (iterate
+      (for i from 0 to position)
+      (for elt in-vector flat-form)
+      (sum (if (expression-marker-p elt) 2 1)
+           into pointer)
+      (finally (return pointer)))))
 
 
 (defmethod predicate ((state compilation-state))
