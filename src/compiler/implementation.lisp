@@ -53,8 +53,7 @@ Clause can contain the below:
   ((%values-table :initarg :values-table
                   :reader read-values-table)
    (%flat-representation :initarg :flat-representation
-                         :reader read-flat-representation
-                         :reader expressions)
+                         :reader read-flat-representation)
    (%body-pointer :initarg :body-pointer
                   :reader body-pointer
                   :reader read-body-pointer)
@@ -145,30 +144,31 @@ This representation is pretty much the same as one used by norvig in the PAIP.
           (incf index)))
     (iterate
       (for elt in-vector %flat-representation)
-      (cond ((anonymus-variable-p elt)
-             (add (huginn.m.r:tag huginn.m.r:+variable+ 0)))
-            ((variablep elt)
-             (let ((pointer (pointer-for-variable state elt)))
-               (assert (not (null pointer)))
-               (if (eql pointer index)
-                   (add (huginn.m.r:tag huginn.m.r:+variable+ 0))
-                   (add (huginn.m.r:tag huginn.m.r:+reference+ pointer)))))
-            ((inlined-fixnum-p elt)
-             (add (huginn.m.r:tag huginn.m.r:+fixnum+ elt)))
-            ((expression-marker-p elt)
-             (let ((pointer (~>> elt expression-marker-content
-                                 (pointer-for-expression state))))
-               (assert (not (null pointer)))
-               (if (eql pointer index)
-                   (progn
-                     (add (huginn.m.r:tag huginn.m.r:+expression+ index))
-                     (add (~> elt expression-marker-content length)))
-                   (add (huginn.m.r:tag huginn.m.r:+reference+ pointer)))))
-            ((valuep elt)
-             (~>> elt
-                  (funcall value-index-function)
-                  (huginn.m.r:tag huginn.m.r:+variable+)
-                  add))))
+      (econd
+        ((anonymus-variable-p elt)
+         (add (huginn.m.r:tag huginn.m.r:+variable+ 0)))
+        ((variablep elt)
+         (let ((pointer (pointer-for-variable state elt)))
+           (assert (not (null pointer)))
+           (if (eql pointer index)
+               (add (huginn.m.r:tag huginn.m.r:+variable+ 0))
+               (add (huginn.m.r:tag huginn.m.r:+reference+ pointer)))))
+        ((inlined-fixnum-p elt)
+         (add (huginn.m.r:tag huginn.m.r:+fixnum+ elt)))
+        ((expression-marker-p elt)
+         (let ((pointer (~>> elt expression-marker-content
+                             (pointer-for-expression state))))
+           (assert (not (null pointer)))
+           (if (eql pointer index)
+               (progn
+                 (add (huginn.m.r:tag huginn.m.r:+expression+ index))
+                 (add (~> elt expression-marker-content length)))
+               (add (huginn.m.r:tag huginn.m.r:+reference+ pointer)))))
+        ((valuep elt)
+         (~>> elt
+              (funcall value-index-function)
+              (huginn.m.r:tag huginn.m.r:+variable+)
+              add))))
     result))
 
 
@@ -207,17 +207,32 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 (defmethod pointer-for-expression ((state compilation-state)
                                    expression)
   (check-type expression list)
-  (let* ((flat-form (expressions state))
+  (let* ((flat-form (read-flat-representation state))
          (position (iterate
                      (for i from 0)
                      (for elt in-vector flat-form)
-                     (finding i such-that
+                     (finding pointer such-that
                               (and (expression-marker-p elt)
                                    (eq (expression-marker-content elt)
-                                       expression))))))
+                                       expression)))
+                     (sum (if (expression-marker-p elt) 2 1)
+                          into pointer))))
     (when (null position)
       (return-from pointer-for-expression nil))
     (flat-representation-cells-count flat-form :end (1+ position))))
+
+
+(defmethod expressions ((compilation-state compilation-state) start end)
+  (check-type start non-negative-fixnum)
+  (check-type end non-negative-fixnum)
+  (assert (<= start end))
+  (iterate
+    (with flat-form = (read-flat-representation compilation-state))
+    (for elt in-vector flat-form)
+    (when (and (>= sum start) (expression-marker-p elt))
+      (collect (expression-marker-content elt)))
+    (sum (if (expression-marker-p elt) 2 1) into sum)
+    (while (< sum end))))
 
 
 (defmethod pointer-for-variable ((state compilation-state)

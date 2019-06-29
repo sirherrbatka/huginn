@@ -1,11 +1,16 @@
 (cl:in-package #:huginn.compiler)
 
-(prove:plan 8)
+(prove:plan 10)
 
-(let ((compilation-state (make-compilation-state 'compilation-state
-                                                 '((a ?b) . (c ?b)))))
+(let* ((head '(a ?b))
+       (compilation-state (make-compilation-state 'compilation-state
+                                                  `(,head . (c ?b)))))
   (prove:is (body-pointer compilation-state)
             4)
+  (let ((expressions (expressions compilation-state 0 4)))
+    (prove:is (length expressions) 1)
+    (prove:is (first expressions)
+              head))
   (prove:ok (~> compilation-state
                 read-flat-representation
                 (aref 0)

@@ -27,4 +27,4 @@
                 :components ((:file "package")
                              (:file "protocol")
                              (:file "implementation")
-                             (:file "tests")))))
+                             (:test-file "tests")))))

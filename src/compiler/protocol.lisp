@@ -12,6 +12,8 @@
 
 (defgeneric pointer-for-expression (compilation-state expression))
 
+(defgeneric expressions (compilation-state start end))
+
 (defgeneric variable-bindings (compilation-state))
 
 (defgeneric head (compilation-state))
