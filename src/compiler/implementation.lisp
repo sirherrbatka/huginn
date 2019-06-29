@@ -250,3 +250,8 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 
 (defmethod predicate ((state compilation-state))
   (~> state head clause-head-predicate))
+
+
+(defmethod print-object ((state compilation-state) stream)
+  (print-unreadable-object (state stream :type nil)
+    (format stream "<- ~a ~a" (read-head state) (read-body state))))
