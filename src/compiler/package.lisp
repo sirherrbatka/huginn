@@ -12,6 +12,7 @@
    #:content
    #:expression
    #:head
+   #:compile-clause
    #:pointer-for-expression
    #:pointer-for-variable
    #:predicate

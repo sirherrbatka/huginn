@@ -255,3 +255,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 (defmethod print-object ((state fundamental-compilation-state) stream)
   (print-unreadable-object (state stream :type nil)
     (format stream "<- ~a ~a" (head state) (body state))))
+
+
+(defmethod compile-clause ((compilation-state fundamental-compilation-state))
+  (huginn.m.r:make-clause))

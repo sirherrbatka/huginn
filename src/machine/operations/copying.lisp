@@ -106,9 +106,8 @@
            (huginn.m.r:execution-stack-cell-heap-fill-pointer
             execution-stack-cell))
          (new-fill-pointer (+ fill-pointer body-length))
-         (database (ensure (huginn.m.r:execution-state-database
-                            execution-state)
-                     (huginn.m.d:database))))
+         (database (huginn.m.r:execution-state-database
+                    execution-state)))
     (declare (type fixnum new-fill-pointer))
     (huginn.m.r:expand-state-heap execution-state new-fill-pointer)
     (let* ((heap (huginn.m.r:execution-state-heap execution-state))

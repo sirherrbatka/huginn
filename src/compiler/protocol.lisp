@@ -23,3 +23,5 @@
 (defgeneric body-pointer (compilation-state))
 
 (defgeneric predicate (compilation-state))
+
+(defgeneric compile-clause (compilation-state))
