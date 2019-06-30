@@ -1,10 +1,6 @@
 (cl:in-package #:huginn)
 
 
-(defmacro <- (&body clause)
-  `())
-
-
 (defmacro ?- (&body goals)
   `())
 

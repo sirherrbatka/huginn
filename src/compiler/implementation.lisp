@@ -259,3 +259,11 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 
 (defmethod compile-clause ((compilation-state fundamental-compilation-state))
   (huginn.m.r:make-clause))
+
+
+(defmethod variable-bindings ((compilation-state compilation-state))
+  (~>> compilation-state read-flat-representation
+       (remove-if (cl-ds.utils:or* #'variablep
+                                   #'inlined-fixnum-p
+                                   #'expression-marker-p))
+       delete-duplicates))

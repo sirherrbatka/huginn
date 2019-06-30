@@ -11,8 +11,10 @@
    #:compilation-state
    #:content
    #:expression
+   #:expressions
    #:head
    #:compile-clause
+   #:make-compilation-state
    #:pointer-for-expression
    #:pointer-for-variable
    #:predicate

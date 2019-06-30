@@ -25,3 +25,5 @@
 (defgeneric predicate (compilation-state))
 
 (defgeneric compile-clause (compilation-state))
+
+(defgeneric variable-bindings (compilation-state))
