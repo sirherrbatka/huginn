@@ -31,14 +31,18 @@
 (defun pop-stack-cell (execution-state execution-stack-cell)
   "Pop top stack-cell, adjust execution-state by clearing changes."
   (declare (type huginn.m.r:execution-stack-cell execution-stack-cell)
-           (type huginn.m.r:execution-state execution-state))
+           (type huginn.m.r:execution-state execution-state)
+           (optimize (debug 3)))
   (~>> execution-stack-cell
        huginn.m.r:execution-stack-cell-heap-cells-trail
        (unwind-heap-cells-trail execution-state))
-  (unbind-range execution-state
-                (~> execution-stack-cell
-                    huginn.m.r:execution-stack-cell-previous-cell
-                    huginn.m.r:execution-stack-cell-bindings-fill-pointer)
-                (~> execution-stack-cell
-                    huginn.m.r:execution-stack-cell-bindings-fill-pointer))
+  (let* ((prev-cell (huginn.m.r:execution-stack-cell-previous-cell execution-stack-cell))
+         (lower-bound (if (null prev-cell)
+                          0
+                          (huginn.m.r:execution-stack-cell-bindings-fill-pointer
+                           prev-cell))))
+    (unbind-range execution-state
+                  lower-bound
+                  (~> execution-stack-cell
+                      huginn.m.r:execution-stack-cell-bindings-fill-pointer)))
   (huginn.m.r:execution-stack-cell-previous-cell execution-stack-cell))

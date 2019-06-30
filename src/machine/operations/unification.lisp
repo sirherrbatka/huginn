@@ -96,7 +96,7 @@
     (declare (type huginn.m.r:execution-stack-cell stack-cell)
              (type huginn.m.r:execution-state execution-state)
              (type huginn.m.r:pointer goal-pointer)
-             (optimize (speed 3)))
+             (optimize (debug 3)))
     (with-unification-stack (execution-state)
       (uclear)
       (upush (huginn.m.r:execution-stack-cell-heap-pointer stack-cell)
@@ -141,13 +141,16 @@
                             second-expression-pointer
                             first-cell
                             second-cell)
-    (declare (optimize (speed 3))
+    (declare (optimize (debug 3))
              (type huginn.m.r:cell first-cell second-cell)
-             (type huginn.m.r:pointer first-expression-pointer
+             (type huginn.m.r:pointer
+                   first-expression-pointer
                    second-expression-pointer)
              (type huginn.m.r:execution-stack-cell execution-stack-cell)
              (type huginn.m.r:execution-state execution-state))
     (declare (ignore execution-stack-cell))
+    (assert (huginn.m.r:expression-cell-p first-cell))
+    (assert (huginn.m.r:expression-cell-p second-cell))
     (or (huginn.m.r:same-cells-p first-cell second-cell) ; first cell contains unique ID for the expression. If those matches it is the same expression so unification will succeed.
         (with-unification-stack (execution-state)
           (let ((first-arity (deref (1+ first-expression-pointer)))
@@ -158,11 +161,13 @@
             (iterate
               (declare (type fixnum i))
               (for i from 0 below first-arity)
-              (upush (the huginn.m.r:pointer
-                          (+ first-expression-pointer 2 i))
-                     (the huginn.m.r:pointer
-                          (+ second-expression-pointer 2 i))))
-            t))))
+              (upush
+               (the huginn.m.r:pointer
+                    (+ first-expression-pointer 2 i))
+               (the huginn.m.r:pointer
+                    (+ second-expression-pointer 2 i)))
+              ))
+          (done t))))
 
 
   (declaim (notinline unify-references))
@@ -191,7 +196,7 @@
                  (huginn.m.r:follow-pointer execution-state
                                             (huginn.m.r:detag ref2)
                                             t))
-          t)))
+          (done t))))
 
 
   (declaim (notinline unify-variable-fixnum))
@@ -234,7 +239,7 @@
                           pointer2
                           cell1
                           cell2)
-    (declare (optimize (speed 3))
+    (declare (optimize (debug 3))
              (type huginn.m.r:pointer pointer1 pointer2)
              (type huginn.m.r:cell cell1 cell2))
     (let ((first-unbound (huginn.m.r:variable-unbound-p cell1))
@@ -271,13 +276,15 @@
     (declare (type huginn.m.r:pointer variable-pointer reference-pointer)
              (ignore reference-pointer)
              (optimize (speed 3)))
-    (unify-pair execution-state
-                execution-stack-cell
-                variable-pointer
-                (huginn.m.r:follow-pointer execution-state
-                                           (huginn.m.r:detag reference-cell)
-                                           t)
-                variable-cell))
+    (when-let ((new-pointer (huginn.m.r:follow-pointer
+                             execution-state
+                             (huginn.m.r:detag reference-cell)
+                             t)))
+      (unify-pair execution-state
+                  execution-stack-cell
+                  variable-pointer
+                  new-pointer
+                  variable-cell)))
 
 
   (declaim (notinline unify-variable-expression))
@@ -314,18 +321,24 @@
       boolean)
   (defun unify-pair (execution-state execution-stack-cell pointer1 pointer2
                      &optional cell1 cell2)
-    (declare (optimize (speed 3))
+    (declare (optimize (debug 3))
              (type huginn.m.r:pointer pointer1 pointer2)
              (type huginn.m.r:execution-stack-cell execution-stack-cell)
              (type huginn.m.r:execution-state execution-state))
     (when (eql pointer1 pointer2)
       (return-from unify-pair t))
-    (let ((cell1 (or cell1
+    (bind ((cell1 (or cell1
                      (huginn.m.r:dereference-heap-pointer execution-state
                                                           pointer1)))
           (cell2 (or cell2
                      (huginn.m.r:dereference-heap-pointer execution-state
-                                                          pointer2))))
+                                                          pointer2)))
+           ((:flet follow-pointer (pointer))
+            (lret ((result (huginn.m.r:follow-pointer execution-state
+                                                      pointer
+                                                      t)))
+              (when (null result)
+                (return-from unify-pair nil)))))
       (declare (type huginn.m.r:cell cell1 cell2))
       (switch ((combine-tags cell1 cell2) :test 'eql)
         (+var-var+
@@ -347,12 +360,12 @@
          (unify-pair execution-state
                      execution-stack-cell
                      pointer1
-                     (huginn.m.r:follow-pointer execution-state pointer2 t)
+                     (follow-pointer (huginn.m.r:detag cell2))
                      cell1))
         (+ref-fixnum+
          (unify-pair execution-state
                      execution-stack-cell
-                     (huginn.m.r:follow-pointer execution-state pointer1 t)
+                     (follow-pointer (huginn.m.r:detag cell1))
                      pointer2
                      nil
                      cell2))
@@ -360,12 +373,12 @@
          (unify-pair execution-state
                      execution-stack-cell
                      pointer1
-                     (huginn.m.r:follow-pointer execution-state pointer2 t)
+                     (follow-pointer (huginn.m.r:detag cell2))
                      cell1))
         (+ref-var+
          (unify-pair execution-state
                      execution-stack-cell
-                     (huginn.m.r:follow-pointer execution-state pointer1 t)
+                     (follow-pointer (huginn.m.r:detag cell1))
                      pointer2
                      nil
                      cell2))
@@ -376,7 +389,8 @@
          (unify-variable-expression execution-state execution-stack-cell
                                     pointer2 pointer1 cell2 cell1))
         (+exp-exp+
-         (unify-expressions execution-state execution-stack-cell
+         (unify-expressions execution-state
+                            execution-stack-cell
                             pointer1 pointer2
                             cell1 cell2))
         (+fixnum-fixnum+
@@ -396,7 +410,7 @@
     (declare (type huginn.m.r:execution-stack-cell execution-stack-cell)
              (type huginn.m.r:execution-state execution-state)
              (type huginn.m.r:pointer goal-pointer)
-             (optimize (speed 3)))
+             (optimize (debug 3)))
     (prepare-unification-stack execution-state
                                execution-stack-cell
                                goal-pointer)

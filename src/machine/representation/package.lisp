@@ -36,10 +36,14 @@
    #:execution-stack-cell-previous-cell
    #:execution-state
    #:execution-state-database
+   #:clone-execution-state
+   #:clone-execution-stack-cell
+   #:make-initial-execution-stack-cell
    #:execution-state-heap
    #:execution-state-heap-size
    #:execution-state-objects-mapping
    #:execution-state-stack
+   #:clause-input
    #:execution-state-unification-stack
    #:execution-state-variable-bindings
    #:expand-state-heap

@@ -6,6 +6,8 @@
 
 (defgeneric make-compilation-state (class content))
 
+(defgeneric cells-count (compilation-state))
+
 (defgeneric content (compilation-state))
 
 (defgeneric pointer-for-variable (compilation-state variable))
@@ -13,6 +15,8 @@
 (defgeneric pointer-for-expression (compilation-state expression))
 
 (defgeneric expressions (compilation-state start end))
+
+(defgeneric variables (compilation-state start end))
 
 (defgeneric variable-bindings (compilation-state))
 

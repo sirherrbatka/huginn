@@ -12,6 +12,8 @@
    #:content
    #:expression
    #:expressions
+   #:variables
+   #:cells-count
    #:head
    #:compile-clause
    #:make-compilation-state

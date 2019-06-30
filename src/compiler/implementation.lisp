@@ -96,49 +96,51 @@ This representation is pretty much the same as one used by norvig in the PAIP.
   (~> clause clause-head clause-head-predicate))
 
 
-(defun unique-index (&key (test 'eq))
+(defun unique-index (&key (test 'eq) (start 0))
   (let ((table (make-hash-table :test test))
-        (index 0))
+        (index start))
     (values
      (lambda (elt &rest all)
        (declare (ignore all))
        (let* ((fresh-index (ensure (gethash elt table) index))
               (new (eql fresh-index index)))
          (when new (incf index))
-         (values index new)))
+         (values fresh-index new)))
      table)))
 
 
 (defstruct expression-marker (content))
 
-
 (defun flat-representation (expression &optional (result (vect)))
-  (check-type expression expression)
-  (labels ((impl (exp)
-             (when (and (expressionp exp)
-                        (not (find-if (lambda (x)
-                                        (and (expression-marker-p x)
-                                             (~> x expression-marker-content
-                                                 (eq exp))))
-                                      result)))
-               (vector-push-extend (make-expression-marker :content exp)
-                                   result)
-               (iterate
-                 (for e in exp)
-                 (vector-push-extend e result))
-               (iterate
-                 (for e in exp)
-                 (impl e)))))
-    (impl expression)
-    (cl-ds.utils:remove-fill-pointer result)))
+  (declare (optimize (debug 3)))
+  (unless (endp expression)
+    (check-type expression expression)
+    (labels ((impl (exp)
+               (when (and (expressionp exp)
+                          (not (find-if (lambda (x)
+                                          (and (expression-marker-p x)
+                                               (~> x expression-marker-content
+                                                   (eq exp))))
+                                        result)))
+                 (vector-push-extend (make-expression-marker :content exp)
+                                     result)
+                 (iterate
+                   (for e in exp)
+                   (vector-push-extend e result))
+                 (iterate
+                   (for e in exp)
+                   (impl e)))))
+      (impl expression)))
+  result)
 
 
 (defmethod content ((state compilation-state))
+  (declare (optimize (debug 3)))
   (bind ((result (make-array (cells-count state)
                              :element-type 'huginn.m.r:cell))
          ((:slots %flat-representation) state)
          (index 0)
-         (value-index-function (unique-index :test 'eql))
+         (value-index-function (unique-index :test 'eql :start 1))
          ((:flet add (item))
           (setf (aref result index) item)
           (incf index)))
@@ -198,7 +200,9 @@ This representation is pretty much the same as one used by norvig in the PAIP.
     (check-type predicate predicate)
     (flat-representation head flat-form)
     (setf body-pointer (flat-representation-cells-count flat-form))
-    (flat-representation body flat-form)
+    (iterate
+      (for b in body)
+      (flat-representation b flat-form))
     (make 'compilation-state
           :head head
           :body body
@@ -240,6 +244,18 @@ This representation is pretty much the same as one used by norvig in the PAIP.
     (sum (if (expression-marker-p elt) 2 1) into sum)
     (while (< sum end))))
 
+
+(defmethod variables ((compilation-state compilation-state) start end)
+  (check-type start non-negative-fixnum)
+  (check-type end non-negative-fixnum)
+  (assert (<= start end))
+  (iterate
+    (with flat-form = (read-flat-representation compilation-state))
+    (for elt in-vector flat-form)
+    (when (and (>= sum start) (variablep elt))
+      (collect elt))
+    (sum (if (expression-marker-p elt) 2 1) into sum)
+    (while (< sum end))))
 
 (defmethod pointer-for-variable ((state compilation-state)
                                  variable)

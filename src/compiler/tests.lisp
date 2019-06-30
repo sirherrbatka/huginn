@@ -4,7 +4,7 @@
 
 (let* ((head '(a ?b))
        (compilation-state (make-compilation-state 'compilation-state
-                                                  `(,head . (c ?b)))))
+                                                  `(,head . ((c ?b))))))
   (prove:is (body-pointer compilation-state)
             4)
   (prove:is (predicate compilation-state)
@@ -34,7 +34,7 @@
                 huginn.m.r:+expression+))))
 
 (let ((compilation-state (make-compilation-state 'compilation-state
-                                                 '((a ?b) . (c (d ?b))))))
+                                                 '((a ?b) . ((c (d ?b)))))))
   (prove:is (body-pointer compilation-state)
             4)
   (prove:ok (~> compilation-state

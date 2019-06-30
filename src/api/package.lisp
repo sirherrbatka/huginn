@@ -1,7 +1,7 @@
 (cl:in-package #:cl-user)
 
 
-(defpackage huginn
+(defpackage #:huginn
   (:use #:cl #:huginn.aux-package)
   (:export
    #:<-

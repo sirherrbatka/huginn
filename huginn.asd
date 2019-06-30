@@ -35,4 +35,5 @@
                 :components ((:file "package")
                              (:file "variables")
                              (:file "macros")
+                             (:file "internal")
                              (:file "functions")))))
