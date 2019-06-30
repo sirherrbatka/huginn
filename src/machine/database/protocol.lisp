@@ -14,8 +14,6 @@
 
 (defgeneric add-clause (database clause))
 
-(defgeneric make-database (class
-                           &optional default
-                           &rest more-options))
+(defgeneric make-database (class &rest more-options))
 
 (defgeneric clear (database))

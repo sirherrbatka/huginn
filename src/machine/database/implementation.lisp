@@ -12,10 +12,8 @@
 
 
 (defmethod make-database ((class (eql 'database))
-                          &optional default
                           &rest more-options)
-  (lret ((result (apply #'make 'database more-options)))
-    (when default (setf *database* result))))
+  (apply #'make 'database more-options))
 
 
 (defmethod matching-clauses ((database database)

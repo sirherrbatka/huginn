@@ -27,3 +27,8 @@
 
 (defun clear ()
   (huginn.m.d:clear (database)))
+
+(defun make-database (class &optional default &rest more-options)
+  (lret ((result (apply #'huginn.m.d:make-database class more-options)))
+    (when default
+      (setf *database* result))))
