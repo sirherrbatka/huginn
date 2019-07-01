@@ -45,6 +45,43 @@
       lookup-result)))
 
 
+(defun relocate-cells (execution-state source
+                       destination-start
+                       source-start source-end
+                       bindings-fill-pointer)
+  (huginn.m.r:expand-state-heap execution-state
+                                (+ destination-start
+                                   source-end
+                                   (- source-start)))
+  (iterate
+    (declare (type fixnum i j z))
+    (declare (type fixnum i j))
+    (with heap = (execution-state-heap execution-state))
+    (for i from destination-start)
+    (for j from source-start source-end)
+    (for z from 0)
+    (for cell = (aref content j))
+    (setf (aref heap i) cell)
+    (for word = (huginn.m.r:detag cell))
+    (huginn.m.r:tag-case (cell)
+      :expression
+      (setf (aref heap i) (huginn.m.r:tag huginn.m.r:+expression+ i))
+      :reference
+      (incf (aref heap i) source-start)
+      :variable
+      (unless (huginn.m.r:variable-unbound-p cell)
+        (let* ((object (aref variable-values word))
+               (new-index (1+ bindings-fill-pointer))
+               (index (index-object execution-state
+                                    object
+                                    new-index)))
+          (declare (type fixnum index new-index))
+          (setf (aref heap i) (huginn.m.r:tag huginn.m.r:+variable+
+                                              index))
+          (maxf bindings-fill-pointer index)))))
+  bindings-fill-pointer)
+
+
 (defun clause-head-to-heap (execution-state execution-stack-cell clause)
   (declare (optimize (speed 3))
            (type huginn.m.r:execution-state execution-state)
