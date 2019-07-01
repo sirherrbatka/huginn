@@ -74,7 +74,7 @@
     (for j from source-start below source-end)
     (for cell = (aref source j))
     (setf (aref heap i) cell)
-    (when (and (not (zerop i))
+    (when (and (not (first-iteration-p))
                (~>> (1- i)
                     (aref heap)
                     huginn.m.r:expression-cell-p))
