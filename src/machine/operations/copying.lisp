@@ -26,7 +26,8 @@
 ;; (declaim (inline index-object))
 (defun index-object (execution-state object bindings-fill-pointer)
   (declare (type huginn.m.r:execution-state execution-state)
-           (type fixnum bindings-fill-pointer))
+           (type fixnum bindings-fill-pointer)
+           (optimize (speed 3)))
   (let* ((objects-mapping (huginn.m.r:execution-state-objects-mapping
                            execution-state))
          (bindings (huginn.m.r:execution-state-variable-bindings
@@ -35,7 +36,7 @@
                           bindings-fill-pointer))
          (new (eql lookup-result bindings-fill-pointer)))
     (declare (type fixnum lookup-result)
-             (optimize (speed 3)))
+             (type simple-vector bindings))
     (when new
       (let ((bindings-length (length bindings)))
         (unless (< bindings-fill-pointer bindings-length)
