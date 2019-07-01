@@ -50,30 +50,33 @@
     lookup-result))
 
 
-(defun relocate-cells (execution-state source
+(defun relocate-cells (execution-state
+                       clause
                        destination-start
                        source-start source-end
                        bindings-fill-pointer)
   (declare (type huginn.m.r:pointer
                  destination-start source-start source-end
                  bindings-fill-pointer)
-           (type execution-state execution-state)
-           (type (simple-array cells (*)) source))
+           (type huginn.m.r:execution-state execution-state)
+           (type huginn.m.r:clause clause))
   (huginn.m.r:expand-state-heap execution-state
                                 (+ destination-start
-                                   source-end
-                                   (- source-start)))
+                                   (- source-end source-start)))
   (iterate
-    (declare (type fixnum i j z))
     (declare (type fixnum i j))
-    (with heap = (execution-state-heap execution-state))
+    (with heap = (huginn.m.r:execution-state-heap execution-state))
+    (with source = (huginn.m.r:clause-content clause))
+    (with variable-values = (huginn.m.r:clause-variable-values
+                             clause))
     (for i from destination-start)
-    (for j from source-start source-end)
-    (for z from 0)
-    (for cell = (aref content j))
+    (for j from source-start below source-end)
+    (for cell = (aref source j))
     (setf (aref heap i) cell)
-    (when (~> (aref heap (1- i))
-              huginn.m.r:expression-cell-p)
+    (when (and (not (zerop i))
+               (~>> (1- i)
+                    (aref heap)
+                    huginn.m.r:expression-cell-p))
       (next-iteration))
     (for word = (huginn.m.r:detag cell))
     (huginn.m.r:tag-case (cell)
@@ -101,50 +104,18 @@
            (type huginn.m.r:execution-state execution-state)
            (type huginn.m.r:execution-stack-cell execution-stack-cell)
            (type huginn.m.r:clause clause))
-  (let* ((content (huginn.m.r:clause-content clause))
-         (head-length (huginn.m.r:clause-body-pointer clause))
-         (variable-values (huginn.m.r:clause-variable-values clause))
-         (fill-pointer
-           (huginn.m.r:execution-stack-cell-heap-fill-pointer
-            execution-stack-cell))
-         (new-fill-pointer (+ fill-pointer head-length)))
-    (declare (type fixnum new-fill-pointer))
-    (huginn.m.r:expand-state-heap execution-state new-fill-pointer)
-    (let* ((heap (huginn.m.r:execution-state-heap execution-state))
-           (bindings-fill-pointer
-             (huginn.m.r:execution-stack-cell-bindings-fill-pointer
-              execution-stack-cell)))
-      (declare (type fixnum bindings-fill-pointer))
-      (iterate
-        (declare (type fixnum i j z))
-        (declare (type fixnum i j))
-        (for i from fill-pointer below new-fill-pointer)
-        (for j from 0)
-        (for z from 0)
-        (for cell = (aref content j))
-        (setf (aref heap i) cell)
-        (when (~> (aref heap (1- i))
-                  huginn.m.r:expression-cell-p)
-          (next-iteration))
-        (for word = (huginn.m.r:detag cell))
-        (huginn.m.r:tag-case (cell)
-          :expression
-          (setf (aref heap i) (huginn.m.r:tag huginn.m.r:+expression+ i))
-          :reference
-          (incf (aref heap i) fill-pointer)
-          :variable
-          (unless (huginn.m.r:variable-unbound-p cell)
-            (let* ((object (aref variable-values (1- word)))
-                   (new-index bindings-fill-pointer)
-                   (index (index-object execution-state
-                                        object
-                                        new-index)))
-              (declare (type fixnum index new-index))
-              (setf (aref heap i) (huginn.m.r:tag huginn.m.r:+variable+
-                                                  (1+ index)))
-              (when (eql index new-index)
-                (incf bindings-fill-pointer))))))
-      bindings-fill-pointer)))
+  (let ((head-length (huginn.m.r:clause-body-pointer clause))
+        (fill-pointer
+          (huginn.m.r:execution-stack-cell-heap-fill-pointer
+           execution-stack-cell))
+        (bindings-fill-pointer (huginn.m.r:execution-stack-cell-bindings-fill-pointer
+                                execution-stack-cell)))
+    (relocate-cells execution-state
+                    clause
+                    fill-pointer
+                    0
+                    head-length
+                    bindings-fill-pointer)))
 
 
 (defun clause-body-to-heap (execution-state execution-stack-cell)
@@ -154,9 +125,8 @@
            (type huginn.m.r:execution-stack-cell execution-stack-cell))
   (let* ((clause (huginn.m.r:execution-stack-cell-clause
                   execution-stack-cell))
+         (full-length (huginn.m.r:clause-length clause))
          (body-length (huginn.m.r:clause-body-length clause))
-         (content (huginn.m.r:clause-content clause))
-         (variable-values (huginn.m.r:clause-variable-values clause))
          (fill-pointer
            (huginn.m.r:execution-stack-cell-heap-fill-pointer
             execution-stack-cell))
@@ -169,63 +139,34 @@
                 previous-cell)))
          (new-fill-pointer (+ fill-pointer body-length))
          (database (huginn.m.r:execution-state-database
-                    execution-state)))
-    (declare (type fixnum new-fill-pointer))
-    (huginn.m.r:expand-state-heap execution-state new-fill-pointer)
-    (let* ((heap (huginn.m.r:execution-state-heap execution-state))
-           (body-pointer (~> execution-stack-cell
-                             huginn.m.r:execution-stack-cell-clause
-                             huginn.m.r:clause-body-pointer))
-           (bindings-fill-pointer
-             (huginn.m.r:execution-stack-cell-bindings-fill-pointer
-              execution-stack-cell))
-           (goals (~>> execution-stack-cell
-                       huginn.m.r:execution-stack-cell-goals
-                       rest
-                       (huginn.m.r:clause-goals clause
-                                                previous-fill-pointer))))
-      (declare (type fixnum bindings-fill-pointer))
-      (iterate
-        (declare (type fixnum i j z))
-        (declare (type fixnum i j))
-        (for i from fill-pointer below new-fill-pointer)
-        (for j from body-pointer)
-        (for z from 0)
-        (for cell = (aref content j))
-        (setf (aref heap i) cell)
-        (when (~> (aref heap (1- i))
-                  huginn.m.r:expression-cell-p)
-          (next-iteration))
-        (for word = (huginn.m.r:detag cell))
-        (huginn.m.r:tag-case (cell)
-          :expression
-          (setf (aref heap i) (huginn.m.r:tag huginn.m.r:+expression+ i))
-          :reference
-          (incf (aref heap i) previous-fill-pointer)
-          :variable
-          (unless (huginn.m.r:variable-unbound-p cell)
-            (let* ((object (aref variable-values (1- word)))
-                   (new-index bindings-fill-pointer)
-                   (index (index-object execution-state
-                                        object
-                                        new-index)))
-              (declare (type fixnum index new-index))
-              (setf (aref heap i) (huginn.m.r:tag huginn.m.r:+variable+
-                                                  (1+ index)))
-              (when (eql index new-index)
-                (incf bindings-fill-pointer))))))
-      (setf (huginn.m.r:execution-stack-cell-bindings-fill-pointer
-             execution-stack-cell)
-            bindings-fill-pointer
+                    execution-state))
+         (body-pointer (huginn.m.r:clause-body-pointer clause))
+         (bindings-fill-pointer
+           (huginn.m.r:execution-stack-cell-bindings-fill-pointer
+            execution-stack-cell))
+         (new-bindings-fill-pointer (relocate-cells execution-state
+                                                    clause
+                                                    fill-pointer
+                                                    body-pointer
+                                                    full-length
+                                                    bindings-fill-pointer))
+         (goals (~>> execution-stack-cell
+                     huginn.m.r:execution-stack-cell-goals
+                     rest
+                     (huginn.m.r:clause-goals clause
+                                              previous-fill-pointer))))
+    (setf (huginn.m.r:execution-stack-cell-bindings-fill-pointer
+           execution-stack-cell)
+          new-bindings-fill-pointer
 
-            (huginn.m.r:execution-stack-cell-goals execution-stack-cell)
-            goals
+          (huginn.m.r:execution-stack-cell-goals execution-stack-cell)
+          goals
 
-            (huginn.m.r:execution-stack-cell-heap-fill-pointer
-             execution-stack-cell)
-            new-fill-pointer)
-      (unless (endp goals)
-        (setf (huginn.m.r:execution-stack-cell-clauses execution-stack-cell)
-              (huginn.m.d:matching-clauses database execution-state
-                                           (first goals))))
-      nil)))
+          (huginn.m.r:execution-stack-cell-heap-fill-pointer
+           execution-stack-cell)
+          new-fill-pointer)
+    (unless (endp goals)
+      (setf (huginn.m.r:execution-stack-cell-clauses execution-stack-cell)
+            (huginn.m.d:matching-clauses database execution-state
+                                         (first goals))))
+    nil))
