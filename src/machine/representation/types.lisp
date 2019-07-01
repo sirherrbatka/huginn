@@ -21,6 +21,7 @@
 
 
 (defstruct clause
+  (input)
   (goal-pointers +placeholder-pointer-array+ :type (simple-array pointer (*)))
   (variable-values +placeholder-array+ :type simple-vector)
   (content +placeholder-array+ :type vector-representation)
@@ -53,10 +54,23 @@
   )
 
 
+(defun make-initial-execution-stack-cell (goal-pointers heap-fill-pointer
+                                          bindings-fill-pointer
+                                          clauses)
+  (declare (type list goal-pointers))
+  (assert (> heap-fill-pointer 0))
+  (assert (>= bindings-fill-pointer 0))
+  (make-execution-stack-cell
+   :clauses clauses
+   :heap-fill-pointer heap-fill-pointer
+   :bindings-fill-pointer bindings-fill-pointer
+   :goals goal-pointers))
+
+
 (defstruct execution-state
-  (clauses)
+  (database)
   ;; all clauses that can be selected for unfolding
-  (objects-mapping (make-hash-table :test 'eq) :type hash-table)
+  (objects-mapping (make-hash-table :test 'eql) :type hash-table)
   ;; translates instance into unique index
   (variable-bindings (make-array 64) :type (simple-array t (*)))
   ;; reverse mapping, maps unique index to instance
@@ -92,7 +106,8 @@
     (declare (type fixnum i))
     (with goals = (clause-goal-pointers clause))
     (for i from (1- (length goals)) downto 0)
-    (push (the pointer (+ (aref goals i) pointer-offset))
+    (push (the pointer (+ (aref goals i)
+                          pointer-offset))
           initial-list))
   initial-list)
 
@@ -124,9 +139,11 @@
   (declare (type execution-state state)
            (type cell cell)
            (optimize (speed 3)))
+  (assert (variable-cell-p cell))
   (let ((word (detag cell)))
     (assert (> word 0))
-    (aref (execution-state-variable-bindings state) (1- (detag cell)))))
+    (aref (execution-state-variable-bindings state)
+          (1- word))))
 
 
 (-> execution-state-heap-size (execution-state) fixnum)
@@ -147,25 +164,71 @@
 
 
 (declaim (inline follow-pointer))
-(-> follow-pointer (execution-state pointer &optional boolean) pointer)
+(-> follow-pointer (execution-state pointer &optional boolean) (or null pointer))
 (defun follow-pointer (execution-state pointer &optional recursive)
   (declare (type execution-state execution-state)
            (type pointer pointer)
            (optimize (speed 3) (safety 0)))
   (iterate
+    (with initial = pointer)
+    (with heap = (execution-state-heap execution-state))
     (declare (type pointer prev-pointer))
     (with prev-pointer = pointer)
-    (for heap-cell = (~> execution-state execution-state-heap (aref pointer)))
+    (for heap-cell = (aref heap pointer))
     (while (and recursive (reference-cell-p heap-cell)))
     (shiftf prev-pointer pointer (detag heap-cell))
+    (when (eql pointer initial)
+      (leave nil))
     (finally (return prev-pointer))))
 
 
 (declaim (inline dereference-heap-pointer))
 (-> dereference-heap-pointer (execution-state pointer &optional boolean) cell)
-(defun dereference-heap-pointer (execution-state pointer &optional follow-references)
+(defun dereference-heap-pointer (execution-state pointer
+                                 &optional follow-references)
   (declare (type execution-state execution-state)
            (type pointer pointer)
            (optimize (speed 3) (safety 0)))
   (~> execution-state execution-state-heap
       (aref (follow-pointer execution-state pointer follow-references))))
+
+
+(-> clone-execution-stack-cell ((or null execution-stack-cell))
+    (or null execution-stack-cell))
+(defun clone-execution-stack-cell (execution-stack-cell)
+  (when (null execution-stack-cell)
+    (return-from clone-execution-stack-cell nil))
+  (make-execution-stack-cell
+   :clauses (~> execution-stack-cell
+                execution-stack-cell-clauses
+                cl-ds:clone)
+   :clause (execution-stack-cell-clause execution-stack-cell)
+   :goals (execution-stack-cell-goals execution-stack-cell)
+   :heap-pointer (execution-stack-cell-heap-pointer execution-stack-cell)
+   :heap-cells-trail (execution-stack-cell-heap-cells-trail
+                      execution-stack-cell)
+   :bindings-fill-pointer (execution-stack-cell-bindings-fill-pointer
+                           execution-stack-cell)
+   :heap-fill-pointer (execution-stack-cell-heap-fill-pointer
+                       execution-stack-cell)
+   :previous-cell (~> execution-stack-cell
+                      execution-stack-cell-previous-cell
+                      clone-execution-stack-cell)))
+
+
+(-> clone-execution-state (execution-state) execution-state)
+(defun clone-execution-state (execution-state)
+  (make-execution-state
+   :database (execution-state-database execution-state)
+   :objects-mapping (~> execution-state
+                        execution-state-objects-mapping
+                        copy-hash-table)
+   :heap (~> execution-state
+             execution-state-heap
+             copy-array)
+   :variable-bindings (~> execution-state
+                          execution-state-variable-bindings
+                          copy-array)
+   :stack (~> execution-state
+              execution-state-stack
+              clone-execution-stack-cell)))

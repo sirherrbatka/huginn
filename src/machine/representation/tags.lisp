@@ -1,7 +1,8 @@
 (cl:in-package #:huginn.machine.representation)
 
 
-(define-constant +cell-size+ (integer-length most-positive-fixnum))
+(define-constant +cell-size+ (max (integer-length most-negative-fixnum)
+                                  (integer-length most-positive-fixnum)))
 (define-constant +tag-size+ 2)
 (define-constant +word-size+ (- +cell-size+ +tag-size+))
 

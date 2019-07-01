@@ -16,14 +16,24 @@
                               :components ((:file "package")
                                            (:file "tags")
                                            (:file "types")))
+                             (:module "database"
+                              :components ((:file "package")
+                                           (:file "protocol")
+                                           (:file "implementation")))
                              (:module "operations"
                               :components ((:file "package")
                                            (:file "copying")
-                                           (:file "match-clauses")
                                            (:file "undo")
                                            (:file "unification")
                                            (:file "unfolding")))))
                (:module "compiler"
                 :components ((:file "package")
                              (:file "protocol")
-                             (:file "implementation")))))
+                             (:file "implementation")
+                             (:test-file "tests")))
+               (:module "api"
+                :components ((:file "package")
+                             (:file "variables")
+                             (:file "macros")
+                             (:file "internal")
+                             (:file "functions")))))
