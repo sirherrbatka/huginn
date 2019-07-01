@@ -54,6 +54,11 @@
                        destination-start
                        source-start source-end
                        bindings-fill-pointer)
+  (declare (type huginn.m.r:pointer
+                 destination-start source-start source-end
+                 bindings-fill-pointer)
+           (type execution-state execution-state)
+           (type (simple-array cells (*)) source))
   (huginn.m.r:expand-state-heap execution-state
                                 (+ destination-start
                                    source-end
@@ -67,6 +72,9 @@
     (for z from 0)
     (for cell = (aref content j))
     (setf (aref heap i) cell)
+    (when (~> (aref heap (1- i))
+              huginn.m.r:expression-cell-p)
+      (next-iteration))
     (for word = (huginn.m.r:detag cell))
     (huginn.m.r:tag-case (cell)
       :expression
@@ -75,15 +83,16 @@
       (incf (aref heap i) source-start)
       :variable
       (unless (huginn.m.r:variable-unbound-p cell)
-        (let* ((object (aref variable-values word))
-               (new-index (1+ bindings-fill-pointer))
+        (let* ((object (aref variable-values (1- word)))
+               (new-index bindings-fill-pointer)
                (index (index-object execution-state
                                     object
                                     new-index)))
           (declare (type fixnum index new-index))
           (setf (aref heap i) (huginn.m.r:tag huginn.m.r:+variable+
-                                              index))
-          (maxf bindings-fill-pointer index)))))
+                                              (1+ index)))
+          (when (eql index new-index)
+            (incf bindings-fill-pointer))))))
   bindings-fill-pointer)
 
 
