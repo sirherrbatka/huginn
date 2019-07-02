@@ -1,7 +1,8 @@
 (cl:in-package #:huginn)
 
 
-(defclass answers-stream (cl-ds:fundamental-forward-range)
+(defclass answers-stream (cl-ds:chunking-mixin
+                          cl-ds:fundamental-forward-range)
   ((%variables :initarg :variables
                :type list
                :reader read-variables)
@@ -27,6 +28,24 @@
                        :execution-state execution-state-clone-1)))
     (setf (access-execution-state range) execution-state-clone-2)
     result))
+
+
+(defmethod cl-ds:peek-front ((range answers-stream))
+  (~> range cl-ds:clone cl-ds:consume-front))
+
+
+(defmethod cl-ds:traverse ((range answers-stream) function)
+  (ensure-functionf function)
+  (iterate
+    (for (values data more) = (cl-ds:consume-front range))
+    (while more)
+    (funcall function data))
+  range)
+
+
+(defmethod cl-ds:across ((range answers-stream) function)
+  (cl-ds:traverse (cl-ds:clone range) function)
+  range)
 
 
 (defun dereference-variable-pointer (execution-state pointer)
