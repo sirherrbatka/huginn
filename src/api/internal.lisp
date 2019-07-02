@@ -48,13 +48,17 @@
   range)
 
 
+(defun expression-from-heap (execution-state pointer)
+  cl-ds.utils:todo)
+
+
 (defun dereference-variable-pointer (execution-state pointer)
   (declare (optimize (debug 3)))
   (let ((result (huginn.m.r:dereference-heap-pointer
                  execution-state
                  pointer t)))
     (cond ((huginn.m.r:expression-cell-p result)
-           :todo)
+           (expression-from-heap execution-state pointer))
           ((huginn.m.r:variable-cell-p result)
            (huginn.m.r:dereference-variable execution-state
                                             result))
