@@ -65,6 +65,13 @@
                                        pointers))))
 
 
+(defmethod cl-ds:reset! ((range answers-stream))
+  (setf (access-execution-state range)
+        (~> range read-initial-execution-state
+            huginn.m.r:clone-execution-state))
+  range)
+
+
 (defun wrap-into-answers-range (execution-state compilation-state)
   (let* ((variables (~>> compilation-state
                          huginn.c:cells-count
