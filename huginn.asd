@@ -28,6 +28,7 @@
                                            (:file "unfolding")))))
                (:module "compiler"
                 :components ((:file "package")
+                             (:file "types")
                              (:file "conditions")
                              (:file "protocol")
                              (:file "implementation")

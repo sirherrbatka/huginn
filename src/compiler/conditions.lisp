@@ -6,7 +6,10 @@
 
 
 (defun goalp (expression)
-  cl-ds.utils:todo)
+  (and (expressionp expression)
+       (let ((predicate
+               (clause-head-predicate expression)))
+         (typep predicate predicate))))
 
 
 (define-condition compiler-error (program-error)
