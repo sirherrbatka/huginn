@@ -17,20 +17,8 @@
           :reader read-body)))
 
 
-(defun unique-index (&key (test 'eq) (start 0))
-  (let ((table (make-hash-table :test test))
-        (index start))
-    (values
-     (lambda (elt &rest all)
-       (declare (ignore all))
-       (let* ((fresh-index (ensure (gethash elt table) index))
-              (new (eql fresh-index index)))
-         (when new (incf index))
-         (values fresh-index new)))
-     table)))
-
-
 (defstruct expression-marker (content))
+
 
 (defun flat-representation (expression &optional (result (vect)))
   (declare (optimize (debug 3)))
@@ -153,30 +141,28 @@
                           expression)))))
 
 
-(defmethod expressions ((compilation-state compilation-state) start end)
+(defun collect-range (compilation-state start end &key (key #'identity) (predicate (constantly t)))
   (check-type start non-negative-fixnum)
   (check-type end non-negative-fixnum)
   (assert (<= start end))
   (iterate
     (with flat-form = (read-flat-representation compilation-state))
     (for elt in-vector flat-form)
-    (when (and (>= sum start) (expression-marker-p elt))
-      (collect (expression-marker-content elt)))
+    (when (and (>= sum start) (funcall predicate elt))
+      (collect (funcall key elt)))
     (sum (if (expression-marker-p elt) 2 1) into sum)
     (while (< sum end))))
+
+
+(defmethod expressions ((compilation-state compilation-state) start end)
+  (collect-range compilation-state start end
+                 :key #'expression-marker-content
+                 :predicate #'expresion-marker-p))
 
 
 (defmethod variables ((compilation-state compilation-state) start end)
-  (check-type start non-negative-fixnum)
-  (check-type end non-negative-fixnum)
-  (assert (<= start end))
-  (iterate
-    (with flat-form = (read-flat-representation compilation-state))
-    (for elt in-vector flat-form)
-    (when (and (>= sum start) (variablep elt))
-      (collect elt))
-    (sum (if (expression-marker-p elt) 2 1) into sum)
-    (while (< sum end))))
+  (collect-range compilation-state start end
+                 :predicate #'variablep))
 
 (defmethod pointer-for-variable ((state compilation-state)
                                  variable)
