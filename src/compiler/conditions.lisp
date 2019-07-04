@@ -8,9 +8,15 @@
     (typep predicate predicate)))
 
 
+(defun has-at-least-one-argument (expression)
+  (and (> (length expression) 2)
+       (some #'variablep (rest expression))))
+
+
 (defun goalp (expression)
   (and (expressionp expression)
-       (has-predicate-p expression)))
+       (has-predicate-p expression)
+       (has-at-least-one-argument expression)))
 
 
 (define-condition compiler-error (program-error)
