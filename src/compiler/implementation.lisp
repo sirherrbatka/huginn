@@ -159,7 +159,7 @@
 (defmethod expressions ((compilation-state compilation-state) start end)
   (collect-range compilation-state start end
                  :key #'expression-marker-content
-                 :predicate #'expresion-marker-p))
+                 :predicate #'expression-marker-p))
 
 
 (defmethod variables ((compilation-state compilation-state) start end)
@@ -180,10 +180,6 @@
 (defmethod print-object ((state fundamental-compilation-state) stream)
   (print-unreadable-object (state stream :type nil)
     (format stream "<- ~a ~a" (head state) (body state))))
-
-
-(defmethod compile-clause ((compilation-state fundamental-compilation-state))
-  (huginn.m.r:make-clause))
 
 
 (defmethod variable-bindings ((compilation-state compilation-state))

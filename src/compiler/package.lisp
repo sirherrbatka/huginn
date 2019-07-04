@@ -15,7 +15,6 @@
    #:variables
    #:cells-count
    #:head
-   #:compile-clause
    #:make-compilation-state
    #:pointer-for-expression
    #:invalid-goal
