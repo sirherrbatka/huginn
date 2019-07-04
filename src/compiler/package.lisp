@@ -18,6 +18,8 @@
    #:compile-clause
    #:make-compilation-state
    #:pointer-for-expression
+   #:invalid-goal
+   #:invalid-predicate
    #:pointer-for-variable
    #:predicate
    #:variable-bindings

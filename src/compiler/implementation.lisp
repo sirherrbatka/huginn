@@ -111,6 +111,8 @@
     (setf body-pointer (flat-representation-cells-count flat-form))
     (iterate
       (for b in body)
+      (unless (goalp b)
+        (error 'invalid-goal :form b))
       (flat-representation b flat-form))
     (make 'compilation-state
           :head head
