@@ -2,14 +2,15 @@
 
 
 (defun has-predicate-p (expression)
-  cl-ds.utils:todo)
+  (check-type expression clause)
+  (let ((predicate
+          (clause-head-predicate expression)))
+    (typep predicate predicate)))
 
 
 (defun goalp (expression)
   (and (expressionp expression)
-       (let ((predicate
-               (clause-head-predicate expression)))
-         (typep predicate predicate))))
+       (has-predicate-p expression)))
 
 
 (define-condition compiler-error (program-error)
