@@ -166,6 +166,7 @@
   (collect-range compilation-state start end
                  :predicate #'variablep))
 
+
 (defmethod pointer-for-variable ((state compilation-state)
                                  variable)
   (check-type variable variable)
