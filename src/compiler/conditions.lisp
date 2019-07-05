@@ -5,7 +5,7 @@
   (check-type expression clause)
   (let ((predicate
           (clause-head-predicate expression)))
-    (typep predicate predicate)))
+    (typep predicate 'predicate)))
 
 
 (defun has-at-least-one-argument (expression)
