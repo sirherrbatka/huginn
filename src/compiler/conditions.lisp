@@ -36,10 +36,3 @@
   (:report (lambda (condition stream)
              (format stream "Invalid predicate ~a."
                      (read-form condition)))))
-
-#|
-
-* TODO Validated if predicate is present, signal condition if not.
-* TODO Validate if each goal is proper.
-
-|#
