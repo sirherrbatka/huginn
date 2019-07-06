@@ -48,10 +48,9 @@
            (let ((content (huginn.m.r:clause-content clause)))
              (and (eql (aref content 1) arity) ; same arity
                   (let ((clause-predicate (aref content 2))
-                        (goal-predicate (aref buffer 1)))
-                    (declare (ignore clause-predicate goal-predicate))
-                    ;; I need another tag type: predicate and index those indepenendtly from everything else
-                    t))))))))
+                        (goal-predicate (aref buffer 0)))
+                    (or (huginn.m.r:predicate-unbound-p goal-predicate)
+                        (huginn.m.r:same-cells-p goal-predicate clause-predicate))))))))))
 
 (defmethod clear ((database database))
   (setf (fill-pointer (clauses database)) 0

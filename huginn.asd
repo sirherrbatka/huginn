@@ -12,6 +12,10 @@
   :defsystem-depends-on (:prove-asdf)
   :components ((:file "aux-package")
                (:module "machine"
+                :around-compile (lambda (thunk)
+                                  (proclaim
+                                   '(optimize (safety 1) (speed 3) (debug 0) (space 0)))
+                                  (funcall thunk))
                 :components ((:module "representation"
                               :components ((:file "package")
                                            (:file "tags")
@@ -22,6 +26,7 @@
                                            (:file "implementation")))
                              (:module "operations"
                               :components ((:file "package")
+                                           (:file "macros")
                                            (:file "copying")
                                            (:file "undo")
                                            (:file "unification")
