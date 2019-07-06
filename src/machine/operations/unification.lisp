@@ -43,7 +43,7 @@
 (with-compilation-unit ()
   (defun combine-tags (first-cell second-cell)
     (declare (type huginn.m.r:cell first-cell second-cell)
-             (optimize (speed 3)))
+             (optimize (speed 3) (safety 0)))
     (logior (ash (the fixnum (1- (huginn.m.r:tag-of first-cell)))
                  (1+ huginn.m.r:+tag-size+))
             (the fixnum (1- (huginn.m.r:tag-of second-cell)))))
@@ -101,7 +101,7 @@
     (declare (type huginn.m.r:execution-stack-cell stack-cell)
              (type huginn.m.r:execution-state execution-state)
              (type huginn.m.r:pointer goal-pointer)
-             (optimize (debug 3)))
+             (optimize (speed 3) (safety 0)))
     (with-unification-stack (execution-state)
       (uclear)
       (upush (huginn.m.r:execution-stack-cell-heap-pointer stack-cell)
@@ -118,7 +118,7 @@
                      execution-stack-cell
                      pointer
                      new-value)
-    (declare (optimize (speed 3))
+    (declare (optimize (speed 3) (safety 0))
              (type huginn.m.r:execution-state execution-state)
              (type huginn.m.r:execution-stack-cell execution-stack-cell)
              (type huginn.m.r:pointer pointer)
@@ -146,7 +146,7 @@
                             second-expression-pointer
                             first-cell
                             second-cell)
-    (declare (optimize (debug 3))
+    (declare (optimize (speed 3) (safety 0))
              (type huginn.m.r:cell first-cell second-cell)
              (type huginn.m.r:pointer
                    first-expression-pointer
@@ -189,7 +189,7 @@
              (type huginn.m.r:cell ref1 ref2)
              (type huginn.m.r:execution-state execution-state)
              (type huginn.m.r:execution-stack-cell execution-stack-cell)
-             (optimize (speed 3))
+             (optimize (speed 3) (safety 0))
              (ignore pointer1 pointer2 execution-stack-cell))
     (if (huginn.m.r:same-cells-p ref1 ref2) ; same reference, unification succesfull
         t
@@ -243,7 +243,7 @@
                           pointer2
                           cell1
                           cell2)
-    (declare (optimize (debug 3))
+    (declare (optimize (speed 3) (safety 0))
              (type huginn.m.r:pointer pointer1 pointer2)
              (type huginn.m.r:cell cell1 cell2))
     (let ((first-unbound (huginn.m.r:variable-unbound-p cell1))
@@ -279,7 +279,7 @@
                                    reference-cell)
     (declare (type huginn.m.r:pointer variable-pointer reference-pointer)
              (ignore reference-pointer)
-             (optimize (speed 3)))
+             (optimize (speed 3) (safety 0)))
     (when-let ((new-pointer (huginn.m.r:follow-pointer
                              execution-state
                              (huginn.m.r:detag reference-cell)
@@ -336,7 +336,7 @@
                                     variable-cell
                                     expression-cell)
     (declare (ignore expression-cell)
-             (optimize (speed 3)))
+             (optimize (speed 3) (safety 0)))
     (unless (huginn.m.r:variable-unbound-p variable-cell) ; can't change bound variable
       (return-from unify-variable-expression nil))
     (alter-cell execution-state
@@ -356,7 +356,7 @@
       boolean)
   (defun unify-pair (execution-state execution-stack-cell pointer1 pointer2
                      &optional cell1 cell2)
-    (declare (optimize (debug 3))
+    (declare (optimize (speed 3) (safety 0))
              (type huginn.m.r:pointer pointer1 pointer2)
              (type huginn.m.r:execution-stack-cell execution-stack-cell)
              (type huginn.m.r:execution-state execution-state))
@@ -461,7 +461,7 @@
     (declare (type huginn.m.r:execution-stack-cell execution-stack-cell)
              (type huginn.m.r:execution-state execution-state)
              (type huginn.m.r:pointer goal-pointer)
-             (optimize (debug 3)))
+             (optimize (speed 3) (safety 0)))
     (prepare-unification-stack execution-state
                                execution-stack-cell
                                goal-pointer)

@@ -14,3 +14,7 @@
    #:make-database
    #:with-database
    #:clauses))
+
+
+(cl:defpackage #:huginn-user
+  (:use #:huginn #:cl))
