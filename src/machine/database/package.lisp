@@ -10,6 +10,7 @@
    #:clear
    #:clauses
    #:database
+   #:index-predicate
    #:fundamental-database
    #:make-database
    #:with-database

@@ -20,30 +20,39 @@
 (defstruct expression-marker (content))
 
 
+(defstruct predicate-marker (content))
+
+
 (defun flat-representation (expression &optional (result (vect)))
   (declare (optimize (debug 3)))
   (unless (endp expression)
     (check-type expression expression)
-    (labels ((impl (exp)
-               (when (and (expressionp exp)
-                          (not (find-if (lambda (x)
-                                          (and (expression-marker-p x)
-                                               (~> x expression-marker-content
-                                                   (eq exp))))
-                                        result)))
-                 (vector-push-extend (make-expression-marker :content exp)
-                                     result)
-                 (iterate
-                   (for e in exp)
-                   (vector-push-extend e result))
-                 (iterate
-                   (for e in exp)
-                   (impl e)))))
-      (impl expression)))
+    (bind (((:labels impl (exp))
+            (when (and (expressionp exp)
+                       (not (find-if (lambda (x)
+                                       (and (expression-marker-p x)
+                                            (~> x expression-marker-content
+                                                (eq exp))))
+                                     result)))
+              (vector-push-extend (make-expression-marker :content exp)
+                                  result)
+              (iterate
+                (for e in exp)
+                (vector-push-extend e result))
+              (iterate
+                (for e in exp)
+                (impl e))))
+           (initial-size (length result)))
+      (impl expression)
+      (iterate
+        (for i from (1+ initial-size) below (length result))
+        (when (~>> (1- i) (aref result) expression-marker-p)
+          (setf #1=(aref result i) (make-predicate-marker :content #1#))))))
   result)
 
 
-(defmethod content ((state compilation-state))
+(defmethod content ((state compilation-state)
+                    (database huginn.m.d:database))
   (declare (optimize (debug 3)))
   (bind ((result (make-array (cells-count state)
                              :element-type 'huginn.m.r:cell))
@@ -56,6 +65,20 @@
     (iterate
       (for elt in-vector %flat-representation)
       (econd
+        ((predicate-marker-p elt)
+         (let ((predicate (predicate-marker-content elt)))
+           (cond ((anonymus-variable-p predicate)
+                  (add (huginn.m.r:tag huginn.m.r:+predicate+ 0)))
+                 ((variablep predicate)
+                  (let ((pointer (pointer-for-predicate state predicate)))
+                    (assert (not (null pointer)))
+                    (if (eql pointer index)
+                        (add (huginn.m.r:tag huginn.m.r:+predicate+ 0))
+                        (add (huginn.m.r:tag huginn.m.r:+reference+ pointer)))))
+                 (t (~>> predicate
+                         (huginn.m.d:index-predicate database)
+                         (huginn.m.r:tag huginn.m.r:+predicate+)
+                         add)))))
         ((anonymus-variable-p elt)
          (add (huginn.m.r:tag huginn.m.r:+variable+ 0)))
         ((variablep elt)
@@ -174,6 +197,22 @@
                (lambda (elt) (eq elt variable))))
 
 
+(defmethod pointer-for-predicate ((state compilation-state)
+                                  predicate)
+  (check-type predicate predicate)
+  (pointer-for (read-flat-representation state)
+               (lambda (elt) (and (predicate-marker-p elt)
+                                  (eq (predicate-marker-content elt)
+                                      predicate)))))
+
+
+(defmethod predicates ((state compilation-state)
+                       start end)
+  (collect-range compilation-state start end
+                 :predicate #'predicate-marker-p
+                 :key #'predicate-marker-content))
+
+
 (defmethod predicate ((state compilation-state))
   (~> state head clause-head-predicate))
 
@@ -187,5 +226,6 @@
   (~>> compilation-state read-flat-representation
        (remove-if (cl-ds.utils:or* #'variablep
                                    #'inlined-fixnum-p
-                                   #'expression-marker-p))
+                                   #'expression-marker-p
+                                   #'predicate-marker-p))
        delete-duplicates))

@@ -40,7 +40,6 @@
                 ,!start
                 ,@body))))))
 
-
 (with-compilation-unit ()
   (defun combine-tags (first-cell second-cell)
     (declare (type huginn.m.r:cell first-cell second-cell)
@@ -53,6 +52,12 @@
   (flet ((combine-tags (first-tag second-tag)
            (combine-tags (huginn.m.r:tag first-tag 0)
                          (huginn.m.r:tag second-tag 0))))
+    (define-constant +predicate-predicate+ (combine-tags huginn.m.r:+predicate+
+                                                         huginn.m.r:+predicate+))
+    (define-constant +predicate-reference+ (combine-tags huginn.m.r:+predicate+
+                                                         huginn.m.r:+reference+))
+    (define-constant +reference-predicate+ (combine-tags huginn.m.r:+reference+
+                                                         huginn.m.r:+predicate+))
     (define-constant +var-var+ (combine-tags huginn.m.r:+variable+
                                              huginn.m.r:+variable+))
     (define-constant +var-ref+ (combine-tags huginn.m.r:+variable+
@@ -286,6 +291,37 @@
                   variable-cell)))
 
 
+  (declaim (notinline unify-predicates))
+  (-> unify-predicates
+      (huginn.m.r:execution-state
+       huginn.m.r:execution-stack-cell
+       huginn.m.r:pointer huginn.m.r:pointer
+       huginn.m.r:cell huginn.m.r:cell)
+      boolean)
+  (defun unify-predicates (execution-state
+                           execution-stack-cell
+                           pointer1
+                           pointer2
+                           cell1
+                           cell2)
+    (let ((first-unbound (huginn.m.r:predicate-unbound-p cell1))
+          (second-unbound (huginn.m.r:predicate-unbound-p cell2)))
+      (cond ((nor first-unbound second-unbound)
+             (huginn.m.r:same-cells-p cell1 cell2))
+            ((and first-unbound second-unbound)
+             (alter-cell execution-state execution-stack-cell
+                         pointer1 (huginn.m.r:make-reference pointer2))
+             t)
+            (first-unbound
+             (alter-cell execution-state execution-stack-cell
+                         pointer1 cell2)
+             t)
+            (second-unbound
+             (alter-cell execution-state execution-stack-cell
+                         pointer2 cell1)
+             t))))
+
+
   (declaim (notinline unify-variable-expression))
   (-> unify-variable-expression
       (huginn.m.r:execution-state
@@ -340,6 +376,22 @@
                 (return-from unify-pair nil)))))
       (declare (type huginn.m.r:cell cell1 cell2))
       (switch ((combine-tags cell1 cell2) :test 'eql)
+        (+predicate-predicate+
+         (unify-predicates execution-state
+                           execution-stack-cell
+                           pointer1 pointer2
+                           cell1 cell2))
+        (+predicate-reference+
+         (unify-pair execution-state
+                     execution-stack-cell
+                     pointer1
+                     (follow-pointer (huginn.m.r:detag cell2))
+                     cell1))
+        (+reference-predicate+
+         (unify-pair execution-state
+                     execution-stack-cell
+                     (follow-pointer (huginn.m.r:detag cell1))
+                     pointer2))
         (+var-var+
          (unify-variables execution-state
                           execution-stack-cell

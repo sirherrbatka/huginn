@@ -12,6 +12,8 @@
 
 (defgeneric matching-clauses (database execution-state goal-pointer))
 
+(defgeneric index-predicate (database predicate))
+
 (defgeneric add-clause (database clause))
 
 (defgeneric make-database (class &rest more-options))

@@ -3,8 +3,15 @@
 
 (defclass database (fundamental-database)
   ((%clauses :initarg :clauses
-             :reader clauses))
-  (:default-initargs :clauses (vect)))
+             :reader clauses)
+   (%predicates :initarg :predicates
+                :accessor access-predicates)
+   (%predicates-index :initarg :predicates-index
+                      :accessor access-predicates-index))
+  (:default-initargs
+   :clauses (vect)
+   :predicates-index 1
+   :predicates (make-hash-table)))
 
 
 (defmethod add-clause ((database database) clause)
@@ -47,4 +54,14 @@
                     t))))))))
 
 (defmethod clear ((database database))
-  (setf (fill-pointer (clauses database)) 0))
+  (setf (fill-pointer (clauses database)) 0
+        (access-predicates-index database) 1
+        (access-predicates database) (make-hash-table)))
+
+
+(defmethod index-predicate ((database database) predicate)
+  (check-type predicate symbol)
+  (lret ((result (ensure (gethash predicate (access-predicates database))
+                   #1=(access-predicates-index database))))
+    (when (= result #1#)
+      (incf #1#))))

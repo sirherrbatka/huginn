@@ -43,7 +43,7 @@
 
 (defun <- (head &rest goals)
   (let* ((compilation (make-compilation-state (list* head goals)))
-         (content (huginn.c:content compilation))
+         (content (huginn.c:content compilation (database)))
          (total-size (length content))
          (body-pointer (huginn.c:body-pointer compilation))
          (variable-bindings (huginn.c:variable-bindings compilation)))
@@ -63,7 +63,7 @@
 
 (defun ?- (&rest goals)
   (bind ((compilation (make-compilation-state (list* nil goals)))
-         (content (huginn.c:content compilation))
+         (content (huginn.c:content compilation (database)))
          (total-size (length content))
          (variable-bindings (huginn.c:variable-bindings compilation))
          (bindings-fill-pointer (length variable-bindings))

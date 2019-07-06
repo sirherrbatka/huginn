@@ -109,6 +109,14 @@
   (~> cell detag zerop))
 
 
+(declaim (inline predicate-unbound-p))
+(defun predicate-unbound-p (cell)
+  (declare (type cell cell)
+           (optimize (speed 3)))
+  (assert (eql +predicate+ (tag-of cell)))
+  (~> cell detag zerop))
+
+
 (declaim (inline same-cells-p))
 (defun same-cells-p (first-cell second-cell)
   (eql first-cell second-cell))

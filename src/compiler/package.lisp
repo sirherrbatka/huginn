@@ -16,6 +16,8 @@
    #:cells-count
    #:head
    #:make-compilation-state
+   #:pointer-for-predicate
+   #:predicates
    #:pointer-for-expression
    #:invalid-goal
    #:invalid-predicate
