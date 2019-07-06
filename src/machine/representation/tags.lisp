@@ -3,7 +3,7 @@
 
 (define-constant +cell-size+ (max (integer-length most-negative-fixnum)
                                   (integer-length most-positive-fixnum)))
-(define-constant +tag-size+ 2)
+(define-constant +tag-size+ 3)
 (define-constant +word-size+ (- +cell-size+ +tag-size+))
 
 
@@ -16,7 +16,7 @@
 
 
 (deftype tag ()
-  `(integer 1 ,(1+ (ash 1 +tag-size+))))
+  `(integer 1 ,(ash 1 +tag-size+)))
 
 
 (declaim (inline tag))
@@ -65,12 +65,13 @@
   +variable+ ; just a variable pointer (either bound or free depending on the variable-bindings)
   +reference+ ; variable pointing to expression. This tag simplifies unification algorithm implementation and allows filtering of clauses by scanining head alone. Dereferencing is more complicated then in the case of variable, first jump to the expression, next obtain word out of the expresion cell and use it as index for variable-bindings array.
   +fixnum+ ; integer small enough to fit in the word
-  +expression+ ; complex expression, word in this cell designates arity, following cells are arguments to the expression.
+  +expression+ ; complex expression, word in next cell designates arity, following cells are arguments to the expression.
+  +predicate+ ; like variable but indexed during clause creation
   )
 
 
 (defmacro tag-case ((cell) &body cases)
-  (assert (every (rcurry #'member '(:variable :reference :expression :fixnum))
+  (assert (every (rcurry #'member '(:variable :reference :expression :fixnum :predicate))
                  (mapcar #'first (plist-alist cases))))
   (with-gensyms (!tag)
     `(let ((,!tag (tag-of ,cell)))
@@ -85,6 +86,9 @@
                 (when-let ((form (getf cases :expression)))
                  `((eql ,!tag +expression+)
                    ,form))
+                (when-let ((form (getf cases :predicate)))
+                  `((eql ,!tag +predicate+)
+                    ,form))
                 (when-let ((form (getf cases :fixnum)))
                   `((eql ,!tag +fixnum+)
                     ,form)))

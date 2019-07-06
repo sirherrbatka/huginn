@@ -54,6 +54,8 @@
    #:make-clause
    #:make-clause
    #:make-execution-stack-cell
+   #:predicate-cell-p
+   #:+predicate+
    #:make-execution-state
    #:make-reference
    #:pointer
