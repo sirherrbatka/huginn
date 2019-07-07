@@ -179,7 +179,8 @@
       (declare (type pointer prev-pointer))
       (with prev-pointer = pointer)
       (for heap-cell = (aref heap pointer))
-      (while (and recursive (reference-cell-p heap-cell)))
+      (while (and recursive
+                  (reference-cell-p heap-cell)))
       (shiftf prev-pointer pointer (detag heap-cell))
       (when (eql pointer initial)
         (leave nil))

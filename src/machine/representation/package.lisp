@@ -56,6 +56,7 @@
    #:index-object
    #:list-end-cell-p
    #:list-rest-cell-p
+   #:list-rest-unbound-p
    #:list-start-cell-p
    #:make-clause
    #:make-clause

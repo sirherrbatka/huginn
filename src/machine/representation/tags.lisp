@@ -74,7 +74,8 @@
 
 
 (defmacro tag-case ((cell) &body cases)
-  (assert (every (rcurry #'member '(:variable :reference :expression :fixnum :predicate))
+  (assert (every (rcurry #'member '(:variable :reference :expression :fixnum :predicate
+                                    :list-start :list-end :list-rest))
                  (mapcar #'first (plist-alist cases))))
   (with-gensyms (!tag)
     `(let ((,!tag (tag-of ,cell)))
@@ -82,6 +83,15 @@
          ,@(~> (list
                 (when-let ((form (getf cases :variable)))
                   `((eql ,!tag +variable+)
+                    ,form))
+                (when-let ((form (getf cases :list-start)))
+                  `((eql ,!tag +list-start+)
+                    ,form))
+                (when-let ((form (getf cases :list-end)))
+                  `((eql ,!tag +list-end+)
+                    ,form))
+                (when-let ((form (getf cases :list-rest)))
+                  `((eql ,!tag +list-rest+)
                     ,form))
                 (when-let ((form (getf cases :reference)))
                   `((eql ,!tag +reference+)
@@ -130,3 +140,11 @@
   (declare (type pointer pointer)
            (optimize (speed 3)))
   (tag +reference+ pointer))
+
+
+(declaim (inline list-rest-unbound-p))
+(defun list-rest-unbound-p (cell)
+  (declare (type cell cell)
+           (optimize (speed 3)))
+  (assert (eql +list-rest+ (tag-of cell)))
+  (~> cell detag zerop))

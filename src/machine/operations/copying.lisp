@@ -86,6 +86,11 @@
         (setf (aref heap i) (huginn.m.r:tag huginn.m.r:+expression+ i))
         :reference
         (incf (aref heap i) source-start)
+        :list-start
+        (incf (aref heap i) source-start)
+        :list-rest
+        (unless (huginn.m.r:list-rest-unbound-p cell)
+          (incf (aref heap i) source-start))
         :variable
         (unless (huginn.m.r:variable-unbound-p cell)
           (let* ((object (aref variable-values (1- word)))
