@@ -7,6 +7,9 @@
   (:export
    #:+expression+
    #:+fixnum+
+   #:+list-end+
+   #:+list-rest+
+   #:+list-start+
    #:+predicate+
    #:+reference+
    #:+tag-size+
@@ -33,7 +36,6 @@
    #:execution-stack-cell-clauses
    #:execution-stack-cell-clausese
    #:execution-stack-cell-goals
-   #:predicate-unbound-p
    #:execution-stack-cell-heap-cells-trail
    #:execution-stack-cell-heap-fill-pointer
    #:execution-stack-cell-heap-pointer
@@ -52,6 +54,9 @@
    #:fixnum-cell-p
    #:follow-pointer
    #:index-object
+   #:list-end-cell-p
+   #:list-rest-cell-p
+   #:list-start-cell-p
    #:make-clause
    #:make-clause
    #:make-execution-stack-cell
@@ -60,6 +65,7 @@
    #:make-reference
    #:pointer
    #:predicate-cell-p
+   #:predicate-unbound-p
    #:reference-cell-p
    #:same-cells-p
    #:tag

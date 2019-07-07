@@ -67,6 +67,9 @@
   +fixnum+ ; integer small enough to fit in the word
   +expression+ ; complex expression, word in next cell designates arity, following cells are arguments to the expression.
   +predicate+ ; like variable but indexed during clause creation
+  +list-start+
+  +list-rest+
+  +list-end+
   )
 
 

@@ -29,8 +29,9 @@
   (declare (type huginn.m.r:execution-state execution-state)
            (type huginn.m.r:pointer goal-pointer)
            (optimize (debug 3)))
-  (bind (((:flet deref (i))
-          (aref (huginn.m.r:execution-state-heap execution-state) i))
+  (bind ((heap (huginn.m.r:execution-state-heap execution-state))
+         ((:flet deref (i))
+          (aref heap i))
          (arity (deref (1+ goal-pointer)))
          (id (deref goal-pointer))
          (buffer (make-array arity
@@ -50,7 +51,9 @@
                   (let ((clause-predicate (aref content 2))
                         (goal-predicate (aref buffer 0)))
                     (or (huginn.m.r:predicate-unbound-p goal-predicate)
-                        (huginn.m.r:same-cells-p goal-predicate clause-predicate))))))))))
+                        (huginn.m.r:same-cells-p goal-predicate
+                                                 clause-predicate))))))))))
+
 
 (defmethod clear ((database database))
   (setf (fill-pointer (clauses database)) 0
