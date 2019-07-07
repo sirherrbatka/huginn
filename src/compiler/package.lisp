@@ -16,6 +16,8 @@
    #:cells-count
    #:head
    #:make-compilation-state
+   #:list-input
+   #:pointer-for-list
    #:pointer-for-predicate
    #:predicates
    #:pointer-for-expression

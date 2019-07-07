@@ -78,3 +78,26 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 (defun clause-predicate (clause)
   (check-type clause clause)
   (~> clause clause-head clause-head-predicate))
+
+
+(defstruct list-input
+  (content))
+
+
+(defstruct list-marker
+  (content))
+
+
+(defstruct list-end-marker)
+
+
+(defstruct list-rest-marker
+  (content))
+
+
+(defun list-input (&rest content)
+  (make-list-marker :content content))
+
+
+(defun list-rest-marker ()
+  (make-list-rest-marker))

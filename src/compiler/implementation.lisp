@@ -23,25 +23,61 @@
 (defstruct predicate-marker (content))
 
 
+(defun list-needs-rest-marker-p (list)
+  (check-type list list)
+  (~> list last rest null not))
+
+
+(defun list-input-end (input)
+  (~> input list-input-content last rest))
+
+
+(defvar *list-end-marker* (make-list-end-marker))
+
+
 (defun flat-representation (expression &optional (result (vect)))
-  (declare (optimize (debug 3)))
+  (declare (optimize (speed 1) (debug 3)))
   (unless (endp expression)
     (check-type expression expression)
     (bind (((:labels impl (exp))
-            (when (and (expressionp exp)
-                       (not (find-if (lambda (x)
-                                       (and (expression-marker-p x)
-                                            (~> x expression-marker-content
-                                                (eq exp))))
-                                     result)))
-              (vector-push-extend (make-expression-marker :content exp)
-                                  result)
-              (iterate
-                (for e in exp)
-                (vector-push-extend e result))
-              (iterate
-                (for e in exp)
-                (impl e))))
+            (cond ((and (expressionp exp)
+                        (not (find-if (lambda (x)
+                                        (and (expression-marker-p x)
+                                             (~> x expression-marker-content
+                                                 (eq exp))))
+                                      result)))
+                   (vector-push-extend (make-expression-marker :content exp)
+                                       result)
+                   (iterate
+                     (for e in exp)
+                     (vector-push-extend e result))
+                   (iterate
+                     (for e in exp)
+                     (impl e)))
+                  ((and (list-input-p exp)
+                        (not (find-if (lambda (x)
+                                        (and (list-marker-p x)
+                                             (~> x list-marker-content
+                                                 (eq (list-input-content exp)))))
+                                      result)))
+                   (vector-push-extend (make-list-marker
+                                        :content (list-input-content exp))
+                                       result)
+                   (let ((content (list-input-content exp))
+                         (old-size (length result)))
+                     (iterate
+                       (for e on content)
+                       (while (consp e))
+                       (vector-push-extend (first e) result))
+                     (if (list-needs-rest-marker-p content)
+                         (vector-push-extend (make-list-rest-marker
+                                              :content (list-input-end exp))
+                                             result)
+                         (vector-push-extend *list-end-marker* result))
+                     (iterate
+                       (for i from old-size below (length result))
+                       (for e = (aref result i))
+                       (impl e))))))
            (initial-size (length result)))
       (impl expression)
       (iterate
@@ -53,7 +89,7 @@
 
 (defmethod content ((state compilation-state)
                     (database huginn.m.d:database))
-  (declare (optimize (debug 3)))
+  (declare (optimize (speed 1) (debug 3)))
   (bind ((result (make-array (cells-count state)
                              :element-type 'huginn.m.r:cell))
          ((:slots %flat-representation) state)
@@ -89,6 +125,24 @@
                (add (huginn.m.r:tag huginn.m.r:+reference+ pointer)))))
         ((inlined-fixnum-p elt)
          (add (huginn.m.r:tag huginn.m.r:+fixnum+ elt)))
+        ((list-marker-p elt)
+         ;; This will not be placed into the byte code.
+         nil)
+        ((list-rest-marker-p elt)
+         (let ((pointer (pointer-for-variable
+                         state (list-rest-marker-content elt))))
+           (assert (not (null pointer)))
+           (if (eql pointer index)
+               (add (huginn.m.r:tag huginn.m.r:+list-rest-variable+ 0))
+               (add (huginn.m.r:tag huginn.m.r:+list-rest-reference+
+                                    pointer)))))
+        ((list-end-marker-p elt)
+         (add (huginn.m.r:tag huginn.m.r:+list-end+ 0)))
+        ((list-input-p elt)
+         (let ((pointer (pointer-for-list state elt)))
+           (assert (not (null pointer)))
+           (assert (not (eql pointer index)))
+           (add (huginn.m.r:tag huginn.m.r:+list-start+ pointer))))
         ((expression-marker-p elt)
          (let ((pointer (~>> elt expression-marker-content
                              (pointer-for-expression state))))
@@ -110,9 +164,12 @@
                                         &key
                                           (end (length flat-form))
                                           (start 0))
+  (declare (optimize (speed 1)))
   (+ (- end start)
      (count-if #'expression-marker-p flat-form :end end
-                                               :start start)))
+                                               :start start)
+     (- (count-if #'list-marker-p flat-form :end end
+                                            :start start))))
 
 
 (defmethod cells-count ((state compilation-state))
@@ -152,8 +209,19 @@
     (for i from start below end)
     (for elt in-vector flat-form)
     (finding pointer such-that (funcall predicate elt))
-    (sum (if (expression-marker-p elt) 2 1)
+    (sum (cond ((expression-marker-p elt) 2)
+               ((list-marker-p elt) 0)
+               (t 1))
          into pointer)))
+
+
+(defmethod pointer-for-list ((state compilation-state)
+                             (list list-input))
+  (pointer-for (read-flat-representation state)
+               (lambda (elt)
+                 (and (list-marker-p elt)
+                      (eq (list-marker-content elt)
+                          (list-input-content list))))))
 
 
 (defmethod pointer-for-expression ((state compilation-state)
@@ -186,15 +254,25 @@
 
 
 (defmethod variables ((compilation-state compilation-state) start end)
-  (collect-range compilation-state start end
-                 :predicate #'variablep))
+  (~> (collect-range compilation-state start end
+                     :predicate (cl-ds.utils:or* #'variablep
+                                                 #'list-rest-marker-p)
+                     :key (lambda (x)
+                            (if (list-rest-marker-p x)
+                                (list-rest-marker-content x)
+                                x)))
+      remove-duplicates))
 
 
 (defmethod pointer-for-variable ((state compilation-state)
                                  variable)
   (check-type variable variable)
   (pointer-for (read-flat-representation state)
-               (lambda (elt) (eq elt variable))))
+               (lambda (elt)
+                 (or (eq elt variable)
+                     (and (list-rest-marker-p elt)
+                          (eq (list-rest-marker-content elt)
+                              variable))))))
 
 
 (defmethod pointer-for-predicate ((state compilation-state)

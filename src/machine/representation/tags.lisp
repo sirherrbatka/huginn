@@ -3,7 +3,7 @@
 
 (define-constant +cell-size+ (max (integer-length most-negative-fixnum)
                                   (integer-length most-positive-fixnum)))
-(define-constant +tag-size+ 3)
+(define-constant +tag-size+ 4)
 (define-constant +word-size+ (- +cell-size+ +tag-size+))
 
 
@@ -68,14 +68,17 @@
   +expression+ ; complex expression, word in next cell designates arity, following cells are arguments to the expression.
   +predicate+ ; like variable but indexed during clause creation
   +list-start+
-  +list-rest+
   +list-end+
+  +list-rest-variable+
+  +list-rest-reference+
   )
 
 
 (defmacro tag-case ((cell) &body cases)
-  (assert (every (rcurry #'member '(:variable :reference :expression :fixnum :predicate
-                                    :list-start :list-end :list-rest))
+  (assert (every (rcurry #'member '(:variable :reference :expression
+                                    :fixnum :predicate :list-start
+                                    :list-end :list-rest-variable
+                                    :list-rest-reference))
                  (mapcar #'first (plist-alist cases))))
   (with-gensyms (!tag)
     `(let ((,!tag (tag-of ,cell)))
@@ -90,8 +93,11 @@
                 (when-let ((form (getf cases :list-end)))
                   `((eql ,!tag +list-end+)
                     ,form))
-                (when-let ((form (getf cases :list-rest)))
-                  `((eql ,!tag +list-rest+)
+                (when-let ((form (getf cases :list-rest-variable)))
+                  `((eql ,!tag +list-rest-variable+)
+                    ,form))
+                (when-let ((form (getf cases :list-rest-reference)))
+                  `((eql ,!tag +list-rest-reference+)
                     ,form))
                 (when-let ((form (getf cases :reference)))
                   `((eql ,!tag +reference+)

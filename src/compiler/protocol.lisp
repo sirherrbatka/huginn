@@ -16,6 +16,8 @@
 
 (defgeneric pointer-for-predicate (compilation-state predicate))
 
+(defgeneric pointer-for-list (compilation-state list-input))
+
 (defgeneric expressions (compilation-state start end))
 
 (defgeneric variables (compilation-state start end))
