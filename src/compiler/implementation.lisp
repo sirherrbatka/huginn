@@ -129,8 +129,8 @@
          ;; This will not be placed into the byte code.
          nil)
         ((list-rest-marker-p elt)
-         (let ((pointer (pointer-for-variable
-                         state (list-rest-marker-content elt))))
+         (let ((pointer (~>> elt list-rest-marker-content
+                             (pointer-for-variable state))))
            (assert (not (null pointer)))
            (if (eql pointer index)
                (add (huginn.m.r:tag huginn.m.r:+list-rest-variable+ 0))
