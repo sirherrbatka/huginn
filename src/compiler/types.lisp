@@ -95,7 +95,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
   (content))
 
 
-(defun list-input (&rest content)
+(defun list-input (content)
   (make-list-marker :content content))
 
 

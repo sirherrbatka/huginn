@@ -88,9 +88,20 @@
         (incf (aref heap i) source-start)
         :list-start
         (incf (aref heap i) source-start)
-        :list-rest
+        :list-rest-variable
         (unless (huginn.m.r:list-rest-unbound-p cell)
-          (incf (aref heap i) source-start))
+          (let* ((object (aref variable-values (1- word)))
+                 (new-index bindings-fill-pointer)
+                 (index (index-object execution-state
+                                      object
+                                      new-index)))
+            (declare (type fixnum index new-index))
+            (setf (aref heap i) (huginn.m.r:tag huginn.m.r:+list-rest-variable+
+                                                (1+ index)))
+            (when (eql index new-index)
+              (incf bindings-fill-pointer))))
+        :list-rest-reference
+        (incf (aref heap i) source-start)
         :variable
         (unless (huginn.m.r:variable-unbound-p cell)
           (let* ((object (aref variable-values (1- word)))
