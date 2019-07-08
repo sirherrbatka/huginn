@@ -14,59 +14,59 @@
   (flet ((combine-tags (first-tag second-tag)
            (combine-tags (huginn.m.r:tag first-tag 0)
                          (huginn.m.r:tag second-tag 0))))
-    (define-constant +predicate-predicate+ (combine-tags huginn.m.r:+predicate+
+    (define-constant +predicate/predicate+ (combine-tags huginn.m.r:+predicate+
                                                          huginn.m.r:+predicate+))
-    (define-constant +predicate-reference+ (combine-tags huginn.m.r:+predicate+
+    (define-constant +predicate/reference+ (combine-tags huginn.m.r:+predicate+
                                                          huginn.m.r:+reference+))
-    (define-constant +reference-predicate+ (combine-tags huginn.m.r:+reference+
+    (define-constant +reference/predicate+ (combine-tags huginn.m.r:+reference+
                                                          huginn.m.r:+predicate+))
-    (define-constant +var-var+ (combine-tags huginn.m.r:+variable+
+    (define-constant +var/var+ (combine-tags huginn.m.r:+variable+
                                              huginn.m.r:+variable+))
-    (define-constant +var-ref+ (combine-tags huginn.m.r:+variable+
+    (define-constant +var/ref+ (combine-tags huginn.m.r:+variable+
                                              huginn.m.r:+reference+))
-    (define-constant +var-exp+ (combine-tags huginn.m.r:+variable+
+    (define-constant +var/exp+ (combine-tags huginn.m.r:+variable+
                                              huginn.m.r:+expression+))
-    (define-constant +var-fixnum+ (combine-tags huginn.m.r:+variable+
+    (define-constant +var/fixnum+ (combine-tags huginn.m.r:+variable+
                                                 huginn.m.r:+fixnum+))
-    (define-constant +ref-var+ (combine-tags huginn.m.r:+reference+
+    (define-constant +ref/var+ (combine-tags huginn.m.r:+reference+
                                              huginn.m.r:+variable+))
-    (define-constant +ref-ref+ (combine-tags huginn.m.r:+reference+
+    (define-constant +ref/ref+ (combine-tags huginn.m.r:+reference+
                                              huginn.m.r:+reference+))
-    (define-constant +ref-exp+ (combine-tags huginn.m.r:+reference+
+    (define-constant +ref/exp+ (combine-tags huginn.m.r:+reference+
                                              huginn.m.r:+expression+))
-    (define-constant +ref-fixnum+ (combine-tags huginn.m.r:+reference+
+    (define-constant +ref/fixnum+ (combine-tags huginn.m.r:+reference+
                                                 huginn.m.r:+fixnum+))
-    (define-constant +exp-var+ (combine-tags huginn.m.r:+expression+
+    (define-constant +exp/var+ (combine-tags huginn.m.r:+expression+
                                              huginn.m.r:+variable+))
-    (define-constant +exp-ref+ (combine-tags huginn.m.r:+expression+
+    (define-constant +exp/ref+ (combine-tags huginn.m.r:+expression+
                                              huginn.m.r:+reference+))
-    (define-constant +exp-exp+ (combine-tags huginn.m.r:+expression+
+    (define-constant +exp/exp+ (combine-tags huginn.m.r:+expression+
                                              huginn.m.r:+expression+))
-    (define-constant +exp-fixnum+ (combine-tags huginn.m.r:+expression+
+    (define-constant +exp/fixnum+ (combine-tags huginn.m.r:+expression+
                                                 huginn.m.r:+fixnum+))
-    (define-constant +fixnum-var+ (combine-tags huginn.m.r:+fixnum+
+    (define-constant +fixnum/var+ (combine-tags huginn.m.r:+fixnum+
                                                 huginn.m.r:+variable+))
-    (define-constant +fixnum-ref+ (combine-tags huginn.m.r:+fixnum+
+    (define-constant +fixnum/ref+ (combine-tags huginn.m.r:+fixnum+
                                                 huginn.m.r:+reference+))
-    (define-constant +fixnum-exp+ (combine-tags huginn.m.r:+fixnum+
+    (define-constant +fixnum/exp+ (combine-tags huginn.m.r:+fixnum+
                                                 huginn.m.r:+expression+))
-    (define-constant +fixnum-fixnum+ (combine-tags huginn.m.r:+fixnum+
+    (define-constant +fixnum/fixnum+ (combine-tags huginn.m.r:+fixnum+
                                                    huginn.m.r:+fixnum+))
-    (define-constant +list-start-variable+ (combine-tags huginn.m.r:+list-start+
+    (define-constant +list-start/variable+ (combine-tags huginn.m.r:+list-start+
                                                          huginn.m.r:+variable+))
-    (define-constant +list-start-list-start+ (combine-tags huginn.m.r:+list-start+
+    (define-constant +list-start/list-start+ (combine-tags huginn.m.r:+list-start+
                                                            huginn.m.r:+list-start+))
-    (define-constant +variable-list-start+ (combine-tags huginn.m.r:+variable+
+    (define-constant +variable/list-start+ (combine-tags huginn.m.r:+variable+
                                                          huginn.m.r:+list-start+))
-    (define-constant +list-end-list-end+ (combine-tags huginn.m.r:+list-end+
+    (define-constant +list-end/list-end+ (combine-tags huginn.m.r:+list-end+
                                                        huginn.m.r:+list-end+))
-    (define-constant +list-rest-variable-reference+ (combine-tags huginn.m.r:+list-rest-variable+
+    (define-constant +list-rest-variable/reference+ (combine-tags huginn.m.r:+list-rest-variable+
                                                                   huginn.m.r:+reference+))
-    (define-constant +list-rest-reference-reference+ (combine-tags huginn.m.r:+list-rest-reference+
+    (define-constant +list-rest-reference/reference+ (combine-tags huginn.m.r:+list-rest-reference+
                                                                    huginn.m.r:+reference+))
-    (define-constant +reference-list-rest-variable+ (combine-tags huginn.m.r:+reference+
+    (define-constant +reference-list-rest/variable+ (combine-tags huginn.m.r:+reference+
                                                                   huginn.m.r:+list-rest-variable+))
-    (define-constant +reference-list-rest-reference+ (combine-tags huginn.m.r:+reference+
+    (define-constant +reference/list-rest-reference+ (combine-tags huginn.m.r:+reference+
                                                                    huginn.m.r:+list-rest-reference+))
     )
 
@@ -348,78 +348,78 @@
                 (return-from unify-pair nil)))))
       (declare (type huginn.m.r:cell cell1 cell2))
       (switch ((combine-tags cell1 cell2) :test 'eql)
-        (+predicate-predicate+
+        (+predicate/predicate+
          (unify-predicates execution-state
                            execution-stack-cell
                            pointer1 pointer2
                            cell1 cell2))
-        (+predicate-reference+
+        (+predicate/reference+
          (unify-pair execution-state
                      execution-stack-cell
                      pointer1
                      (follow-pointer (huginn.m.r:detag cell2))
                      cell1))
-        (+reference-predicate+
+        (+reference/predicate+
          (unify-pair execution-state
                      execution-stack-cell
                      pointer2
                      (follow-pointer (huginn.m.r:detag cell1))
                      cell2))
-        (+var-var+
+        (+var/var+
          (unify-variables execution-state
                           execution-stack-cell
                           pointer1 pointer2
                           cell1 cell2))
-        (+var-fixnum+
+        (+var/fixnum+
          (unify-variable-fixnum execution-state
                                 execution-stack-cell
                                 pointer1 pointer2
                                 cell1 cell2))
-        (+fixnum-var+
+        (+fixnum/var+
          (unify-variable-fixnum execution-state
                                 execution-stack-cell
                                 pointer2 pointer1
                                 cell2 cell1))
-        (+var-ref+
+        (+var/ref+
          (unify-pair execution-state
                      execution-stack-cell
                      pointer1
                      (follow-pointer (huginn.m.r:detag cell2))
                      cell1))
-        (+ref-fixnum+
+        (+ref/fixnum+
          (unify-pair execution-state
                      execution-stack-cell
                      (follow-pointer (huginn.m.r:detag cell1))
                      pointer2
                      nil
                      cell2))
-        (+fixnum-ref+
+        (+fixnum/ref+
          (unify-pair execution-state
                      execution-stack-cell
                      pointer1
                      (follow-pointer (huginn.m.r:detag cell2))
                      cell1))
-        (+ref-var+
+        (+ref/var+
          (unify-pair execution-state
                      execution-stack-cell
                      (follow-pointer (huginn.m.r:detag cell1))
                      pointer2
                      nil
                      cell2))
-        (+var-exp+
+        (+var/exp+
          (unify-variable-expression execution-state execution-stack-cell
                                     pointer1 pointer2 cell1 cell2))
-        (+exp-var+
+        (+exp/var+
          (unify-variable-expression execution-state execution-stack-cell
                                     pointer2 pointer1 cell2 cell1))
-        (+exp-exp+
+        (+exp/exp+
          (unify-expressions execution-state
                             execution-stack-cell
                             pointer1 pointer2
                             cell1 cell2))
-        (+fixnum-fixnum+
+        (+fixnum/fixnum+
          (huginn.m.r:same-cells-p cell1 cell2))
-        (+ref-ref+
+        (+ref/ref+
          (unify-references execution-state
                            execution-stack-cell
                            pointer1 pointer2
