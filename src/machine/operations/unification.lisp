@@ -54,6 +54,8 @@
                                                    huginn.m.r:+fixnum+))
     (define-constant +list-start-variable+ (combine-tags huginn.m.r:+list-start+
                                                          huginn.m.r:+variable+))
+    (define-constant +list-start-list-start+ (combine-tags huginn.m.r:+list-start+
+                                                           huginn.m.r:+list-start+))
     (define-constant +variable-list-start+ (combine-tags huginn.m.r:+variable+
                                                          huginn.m.r:+list-start+))
     (define-constant +list-end-list-end+ (combine-tags huginn.m.r:+list-end+
