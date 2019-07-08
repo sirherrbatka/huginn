@@ -64,7 +64,7 @@
                                                                   huginn.m.r:+reference+))
     (define-constant +list-rest-reference/reference+ (combine-tags huginn.m.r:+list-rest-reference+
                                                                    huginn.m.r:+reference+))
-    (define-constant +reference-list-rest/variable+ (combine-tags huginn.m.r:+reference+
+    (define-constant +reference/list-rest-variable+ (combine-tags huginn.m.r:+reference+
                                                                   huginn.m.r:+list-rest-variable+))
     (define-constant +reference/list-rest-reference+ (combine-tags huginn.m.r:+reference+
                                                                    huginn.m.r:+list-rest-reference+))
