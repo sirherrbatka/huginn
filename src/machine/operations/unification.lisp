@@ -178,14 +178,14 @@
           (done t))))
 
 
-  (declaim (inline unify-variable-fixnum))
-  (-> unify-variable-fixnum
+  (declaim (inline unify-variable/fixnum))
+  (-> unify-variable/fixnum
       (huginn.m.r:execution-state
        huginn.m.r:execution-stack-cell
        huginn.m.r:pointer huginn.m.r:pointer
        huginn.m.r:cell huginn.m.r:cell)
       boolean)
-  (defun unify-variable-fixnum (execution-state
+  (defun unify-variable/fixnum (execution-state
                                 execution-stack-cell
                                 variable-pointer
                                 fixnum-pointer
@@ -197,7 +197,7 @@
              (type huginn.m.r:pointer variable-pointer fixnum-pointer)
              (type huginn.m.r:cell fixnum-cell variable-cell))
     (unless (huginn.m.r:variable-unbound-p variable-cell)
-      (return-from unify-variable-fixnum nil))
+      (return-from unify-variable/fixnum nil))
     (alter-cell execution-state
                 execution-stack-cell
                 variable-pointer
@@ -238,14 +238,14 @@
              t))))
 
 
-  (declaim (inline unify-variable-reference))
-  (-> unify-variable-reference
+  (declaim (inline unify-variable/reference))
+  (-> unify-variable/reference
       (huginn.m.r:execution-state
        huginn.m.r:execution-stack-cell
        huginn.m.r:pointer huginn.m.r:pointer
        huginn.m.r:cell huginn.m.r:cell)
       boolean)
-  (defun unify-variable-reference (execution-state
+  (defun unify-variable/reference (execution-state
                                    execution-stack-cell
                                    variable-pointer
                                    reference-pointer
@@ -295,14 +295,14 @@
              t))))
 
 
-  (declaim (inline unify-variable-expression))
-  (-> unify-variable-expression
+  (declaim (inline unify-variable/expression))
+  (-> unify-variable/expression
       (huginn.m.r:execution-state
        huginn.m.r:execution-stack-cell
        huginn.m.r:pointer huginn.m.r:pointer
        huginn.m.r:cell huginn.m.r:cell)
       boolean)
-  (defun unify-variable-expression (execution-state
+  (defun unify-variable/expression (execution-state
                                     execution-stack-cell
                                     variable-pointer
                                     expression-pointer
@@ -310,7 +310,7 @@
                                     expression-cell)
     (declare (ignore expression-cell))
     (unless (huginn.m.r:variable-unbound-p variable-cell) ; can't change bound variable
-      (return-from unify-variable-expression nil))
+      (return-from unify-variable/expression nil))
     (alter-cell execution-state
                 execution-stack-cell
                 variable-pointer
@@ -371,12 +371,12 @@
                           pointer1 pointer2
                           cell1 cell2))
         (+var/fixnum+
-         (unify-variable-fixnum execution-state
+         (unify-variable/fixnum execution-state
                                 execution-stack-cell
                                 pointer1 pointer2
                                 cell1 cell2))
         (+fixnum/var+
-         (unify-variable-fixnum execution-state
+         (unify-variable/fixnum execution-state
                                 execution-stack-cell
                                 pointer2 pointer1
                                 cell2 cell1))
@@ -407,10 +407,10 @@
                      nil
                      cell2))
         (+var/exp+
-         (unify-variable-expression execution-state execution-stack-cell
+         (unify-variable/expression execution-state execution-stack-cell
                                     pointer1 pointer2 cell1 cell2))
         (+exp/var+
-         (unify-variable-expression execution-state execution-stack-cell
+         (unify-variable/expression execution-state execution-stack-cell
                                     pointer2 pointer1 cell2 cell1))
         (+exp/exp+
          (unify-expressions execution-state
