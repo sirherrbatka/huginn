@@ -201,7 +201,7 @@
           :body-pointer body-pointer)))
 
 
-(defmethod pointer-for (flat-form predicate
+(defun pointer-for (flat-form predicate
                         &key
                           (start 0)
                           (end (length flat-form)))
