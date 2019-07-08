@@ -51,7 +51,22 @@
     (define-constant +fixnum-exp+ (combine-tags huginn.m.r:+fixnum+
                                                 huginn.m.r:+expression+))
     (define-constant +fixnum-fixnum+ (combine-tags huginn.m.r:+fixnum+
-                                                   huginn.m.r:+fixnum+)))
+                                                   huginn.m.r:+fixnum+))
+    (define-constant +list-start-variable+ (combine-tags huginn.m.r:+list-start+
+                                                         huginn.m.r:+variable+))
+    (define-constant +variable-list-start+ (combine-tags huginn.m.r:+variable+
+                                                         huginn.m.r:+list-start+))
+    (define-constant +list-end-list-end+ (combine-tags huginn.m.r:+list-end+
+                                                       huginn.m.r:+list-end+))
+    (define-constant +list-rest-variable-reference+ (combine-tags huginn.m.r:+list-rest-variable+
+                                                                  huginn.m.r:+reference+))
+    (define-constant +list-rest-reference-reference+ (combine-tags huginn.m.r:+list-rest-reference+
+                                                                   huginn.m.r:+reference+))
+    (define-constant +reference-list-rest-variable+ (combine-tags huginn.m.r:+reference+
+                                                                  huginn.m.r:+list-rest-variable+))
+    (define-constant +reference-list-rest-reference+ (combine-tags huginn.m.r:+reference+
+                                                                   huginn.m.r:+list-rest-reference+))
+    )
 
 
   (-> prepare-unification-stack
