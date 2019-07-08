@@ -36,11 +36,10 @@
 
 (define-tag-combinations
   huginn.m.r:+expression+
-  huginn.m.r:+list-end+
-  huginn.m.r:+list-rest-reference+
-  huginn.m.r:+list-rest-variable+
-  huginn.m.r:+list-start+
   huginn.m.r:+fixnum+
+  huginn.m.r:+list-end+
+  huginn.m.r:+list-rest+
+  huginn.m.r:+list-start+
   huginn.m.r:+predicate+
   huginn.m.r:+reference+
   huginn.m.r:+variable+)
@@ -402,7 +401,6 @@
                            cell1 cell2))
         (+fixnum/fixnum+
          (huginn.m.r:same-cells-p cell1 cell2))
-
         (+list-end/list-end+
          t)
         (+variable/list-start+
@@ -425,39 +423,22 @@
                                      execution-stack-cell
                                      pointer2 pointer1
                                      cell2 cell1))
-        (+list-rest-reference/variable+
-         (unify-list-rest-reference/variable execution-state
-                                             execution-stack-cell
-                                             pointer1 pointer2
-                                             cell1 cell2))
-        (+variable/list-rest-reference+
-         (unify-list-rest-reference/variable execution-state
-                                             execution-stack-cell
-                                             pointe2 pointer1
-                                             cell2 cell1))
-        (+list-rest-reference/reference+
-         (unify-list-rest-reference/variable execution-state
-                                             execution-stack-cell
-                                             pointer1 pointer2
-                                             cell1 cell2))
-        (+reference/list-rest-reference+
-         (unify-list-rest-reference/variable execution-state
-                                             execution-stack-cell
-                                             pointe2 pointer1
-                                             cell2 cell1))
-        (+list-rest-variable/reference+
-         (unify-list-rest-variable/reference execution-state
-                                             execution-stack-cell
-                                             pointer1 pointer2
-                                             cell1 cell2))
-        (+reference/list-rest-variable+
-         (unify-list-rest-variable/reference execution-state
-                                            execution-stack-cell
-                                            pointe2 pointer1
-                                            cell2 cell1))
-
-
-
+        (+list-rest/variable+
+         (unify-list-rest/variable execution-state
+                                   execution-stack-cell
+                                   pointer1 pointer2
+                                   cell1 cell2))
+        (+variable/list-rest+
+         (unify-list-rest/variable execution-state
+                                   execution-stack-cell
+                                   pointe2 pointer1
+                                   cell2 cell1))
+        (+list-rest/reference+
+         cl-ds.utils:todo)
+        (+reference/list-rest+
+         cl-ds.utils:todo)
+        (+list-rest/list-rest+
+         cl-ds.utils:todo)
         )))
 
 

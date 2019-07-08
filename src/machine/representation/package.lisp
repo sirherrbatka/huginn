@@ -8,8 +8,7 @@
    #:+expression+
    #:+fixnum+
    #:+list-end+
-   #:+list-rest-reference+
-   #:+list-rest-variable+
+   #:+list-rest+
    #:+list-start+
    #:+predicate+
    #:+reference+
@@ -56,8 +55,7 @@
    #:follow-pointer
    #:index-object
    #:list-end-cell-p
-   #:list-rest-reference-cell-p
-   #:list-rest-variable-cell-p
+   #:list-rest-cell-p
    #:list-rest-unbound-p
    #:list-start-cell-p
    #:make-clause

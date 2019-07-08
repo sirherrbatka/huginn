@@ -267,12 +267,14 @@
 (defmethod pointer-for-variable ((state compilation-state)
                                  variable)
   (check-type variable variable)
-  (pointer-for (read-flat-representation state)
-               (lambda (elt)
-                 (or (eq elt variable)
+  (or (pointer-for (read-flat-representation state)
+                   (lambda (elt)
                      (and (list-rest-marker-p elt)
                           (eq (list-rest-marker-content elt)
-                              variable))))))
+                              variable))))
+      (pointer-for (read-flat-representation state)
+                   (lambda (elt)
+                     (eq elt variable)))))
 
 
 (defmethod pointer-for-predicate ((state compilation-state)

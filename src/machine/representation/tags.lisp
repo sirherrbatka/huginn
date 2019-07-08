@@ -69,16 +69,13 @@
   +predicate+ ; like variable but indexed during clause creation
   +list-start+
   +list-end+
-  +list-rest-variable+
-  +list-rest-reference+
-  )
+  +list-rest+)
 
 
 (defmacro tag-case ((cell) &body cases)
   (assert (every (rcurry #'member '(:variable :reference :expression
                                     :fixnum :predicate :list-start
-                                    :list-end :list-rest-variable
-                                    :list-rest-reference))
+                                    :list-end :list-rest))
                  (mapcar #'first (plist-alist cases))))
   (with-gensyms (!tag)
     `(let ((,!tag (tag-of ,cell)))
@@ -93,11 +90,8 @@
                 (when-let ((form (getf cases :list-end)))
                   `((eql ,!tag +list-end+)
                     ,form))
-                (when-let ((form (getf cases :list-rest-variable)))
-                  `((eql ,!tag +list-rest-variable+)
-                    ,form))
-                (when-let ((form (getf cases :list-rest-reference)))
-                  `((eql ,!tag +list-rest-reference+)
+                (when-let ((form (getf cases :list-rest)))
+                  `((eql ,!tag +list-rest+)
                     ,form))
                 (when-let ((form (getf cases :reference)))
                   `((eql ,!tag +reference+)
