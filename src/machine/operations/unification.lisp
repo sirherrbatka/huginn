@@ -580,8 +580,10 @@
         (+reference/list-rest+
          cl-ds.utils:todo)
         (+list-rest/list-rest+
-         cl-ds.utils:todo)
-        )))
+         (unify-list-rests execution-state
+                           execution-stack-cell
+                           pointer1 pointer2
+                           cell1 cell2)))))
 
 
   (-> unify (huginn.m.r:execution-state
