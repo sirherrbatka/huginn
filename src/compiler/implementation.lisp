@@ -133,9 +133,8 @@
                              (pointer-for-variable state))))
            (assert (not (null pointer)))
            (if (eql pointer index)
-               (add (huginn.m.r:tag huginn.m.r:+list-rest-variable+ 0))
-               (add (huginn.m.r:tag huginn.m.r:+list-rest-reference+
-                                    pointer)))))
+               (add (huginn.m.r:tag huginn.m.r:+list-rest+ 0))
+               (add (huginn.m.r:tag huginn.m.r:+reference+ pointer)))))
         ((list-end-marker-p elt)
          (add (huginn.m.r:tag huginn.m.r:+list-end+ 0)))
         ((list-input-p elt)
