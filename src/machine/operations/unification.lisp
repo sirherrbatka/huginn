@@ -87,6 +87,128 @@
        heap-trail)))
 
 
+  (declaim (inline unify-variable/list-start))
+  (-> unify-variable/list-start
+      (huginn.m.r:execution-state
+       huginn.m.r:execution-stack-cell
+       huginn.m.r:pointer huginn.m.r:pointer
+       huginn.m.r:cell huginn.m.r:cell)
+      boolean)
+  (defun unify-variable/list-start (execution-state
+                                    execution-stack-cell
+                                    variable-pointer
+                                    list-start-pointer
+                                    variable-cell
+                                    list-start-cell)
+    (declare (type huginn.m.r:cell variable-cell list-start-cell)
+             (type huginn.m.r:pointer
+                   list-start-pointer
+                   variable-cell)
+             (type huginn.m.r:execution-stack-cell execution-stack-cell)
+             (type huginn.m.r:execution-state execution-state)
+             (ignore list-start-pointer))
+    (unless (huginn.m.r:variable-unbound-p variable-cell)
+      (return-from unify-variable/list-start nil))
+    (alter-cell execution-state execution-stack-cell
+                variable-pointer list-start-cell)
+    t)
+
+
+  (declaim (inline unify-variable/list-start))
+  (-> unify-variable/list-start
+      (huginn.m.r:execution-state
+       huginn.m.r:execution-stack-cell
+       huginn.m.r:pointer huginn.m.r:pointer
+       huginn.m.r:cell huginn.m.r:cell)
+      boolean)
+  (defun unify-variable/list-start (execution-state
+                                    execution-stack-cell
+                                    variable-pointer
+                                    list-start-pointer
+                                    variable-cell
+                                    list-start-cell)
+    (declare (type huginn.m.r:cell variable-cell list-start-cell)
+             (type huginn.m.r:pointer
+                   list-start-pointer
+                   variable-pointer)
+             (type huginn.m.r:execution-stack-cell execution-stack-cell)
+             (type huginn.m.r:execution-state execution-state)
+             (ignore list-start-pointer))
+    (unless (huginn.m.r:variable-unbound-p variable-cell)
+      (return-from unify-variable/list-start nil))
+    (alter-cell execution-state execution-stack-cell
+                variable-pointer list-start-cell)
+    t)
+
+
+  (declaim (inline unify-variable/list-start))
+  (-> unify-list-rest/variable
+      (huginn.m.r:execution-state
+       huginn.m.r:execution-stack-cell
+       huginn.m.r:pointer huginn.m.r:pointer
+       huginn.m.r:cell huginn.m.r:cell)
+      boolean)
+  (defun unify-list-rest/variable (execution-state
+                                   execution-stack-cell
+                                   list-rest-pointer
+                                   variable-pointer
+                                   list-rest-cell
+                                   variable-cell)
+    (declare (type huginn.m.r:cell variable-cell list-rest-cell)
+             (type huginn.m.r:pointer
+                   list-rest-pointer
+                   variable-pointer)
+             (type huginn.m.r:execution-stack-cell execution-stack-cell)
+             (type huginn.m.r:execution-state execution-state)
+             (ignore list-rest-pointer))
+    (unless (huginn.m.r:variable-unbound-p variable-cell)
+      (return-from unify-list-rest/variable nil))
+    (alter-cell execution-state execution-stack-cell variable-pointer
+                (huginn.m.r:tag huginn.m.r:+list-start+ list-rest-cell))
+    t)
+
+
+  (declaim (inline unify-lists))
+  (-> unify-lists
+      (huginn.m.r:execution-state
+       huginn.m.r:execution-stack-cell
+       huginn.m.r:pointer
+       huginn.m.r:pointer)
+      boolean)
+  (defun unify-lists (execution-state execution-stack-cell
+                      first-pointer second-pointer)
+    cl-ds.utils:todo)
+
+
+  (declaim (inline unify-list-rest/list-start))
+  (-> unify-list-rest/list-start
+      (huginn.m.r:execution-state
+       huginn.m.r:execution-stack-cell
+       huginn.m.r:pointer huginn.m.r:pointer
+       huginn.m.r:cell huginn.m.r:cell)
+      boolean)
+  (defun unify-list-rest/list-start (execution-state
+                                     execution-stack-cell
+                                     list-rest-pointer
+                                     list-start-pointer
+                                     list-rest-cell
+                                     list-start-cell)
+    (declare (type huginn.m.r:cell
+                   list-start-cell list-rest-cell)
+             (type huginn.m.r:pointer
+                   list-rest-pointer list-start-pointer)
+             (type huginn.m.r:execution-stack-cell execution-stack-cell)
+             (type huginn.m.r:execution-state execution-state)
+             (ignore list-start-pointer))
+    (when (huginn.m.r:list-rest-unbound-p list-rest-cell)
+      (alter-cell execution-state execution-stack-cell list-rest-pointer
+                  (huginn.m.r:tag huginn.m.r:+list-rest+ list-start-cell))
+      (return-from unify-list-rest/list-start t))
+    (unify-lists execution-state execution-stack-cell
+                 (huginn.m.r:detag list-start-cell)
+                 (huginn.m.r:detag list-rest-cell)))
+
+
   (declaim (inline unify-expressions))
   (-> unify-expressions
       (huginn.m.r:execution-state
@@ -414,15 +536,17 @@
                                     pointer2 pointer1
                                     cell2 cell1))
         (+reference/list-start+
-         (unify-reference/list-start execution-state
-                                     execution-stack-cell
-                                     pointer1 pointer2
-                                     cell1 cell2))
+         (unify-pair execution-state
+                     execution-stack-cell
+                     pointer2
+                     (follow-pointer (huginn.m.r:detag cell1))
+                     cell2))
         (+list-start/reference+
-         (unify-reference/list-start execution-state
-                                     execution-stack-cell
-                                     pointer2 pointer1
-                                     cell2 cell1))
+         (unify-pair execution-state
+                     execution-stack-cell
+                     pointer1
+                     (follow-pointer (huginn.m.r:detag cell2))
+                     cell1))
         (+list-rest/variable+
          (unify-list-rest/variable execution-state
                                    execution-stack-cell
@@ -431,7 +555,7 @@
         (+variable/list-rest+
          (unify-list-rest/variable execution-state
                                    execution-stack-cell
-                                   pointe2 pointer1
+                                   pointer2 pointer1
                                    cell2 cell1))
         (+list-rest/reference+
          cl-ds.utils:todo)
