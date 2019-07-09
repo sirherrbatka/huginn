@@ -547,6 +547,10 @@
                      pointer1
                      (follow-pointer (huginn.m.r:detag cell2))
                      cell1))
+        (+list-start/list-start+
+         (unify-lists execution-state execution-stack-cell
+                      (huginn.m.r:detag cell1)
+                      (huginn.m.r:detag cell2)))
         (+list-rest/variable+
          (unify-list-rest/variable execution-state
                                    execution-stack-cell
