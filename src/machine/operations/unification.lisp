@@ -220,9 +220,23 @@
                              p2 (huginn.m.r:make-reference p1))
                  (leave t)))))
       (when cell1-rest-p
-        cl-ds.utils:todo)
+        (when (huginn.m.r:list-rest-unbound-p cell1)
+          (alter-cell execution-state execution-stack-cell
+                      p1 (huginn.m.r:tag huginn.m.r:+list-rest+ p2))
+          (leave t))
+        (setf p1 (huginn.m.r:follow-pointer execution-state
+                                            (huginn.m.r:detag cell1)
+                                            t))
+        (next-iteration))
       (when cell2-rest-p
-        cl-ds.utils:todo)))
+        (when (huginn.m.r:list-rest-unbound-p cell2)
+          (alter-cell execution-state execution-stack-cell
+                      p2 (huginn.m.r:tag huginn.m.r:+list-rest+ p1))
+          (leave t))
+        (setf p2 (huginn.m.r:follow-pointer execution-state
+                                            (huginn.m.r:detag cell2)
+                                            t))
+        (next-iteration))))
 
 
   (declaim (notinline unify-list-rest/list-start))
