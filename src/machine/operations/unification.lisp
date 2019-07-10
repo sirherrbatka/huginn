@@ -218,7 +218,11 @@
                 (unbound2
                  (alter-cell execution-state execution-stack-cell
                              p2 (huginn.m.r:make-reference p1))
-                 (leave t)))))))
+                 (leave t)))))
+      (when cell1-rest-p
+        cl-ds.utils:todo)
+      (when cell2-rest-p
+        cl-ds.utils:todo)))
 
 
   (declaim (notinline unify-list-rest/list-start))
