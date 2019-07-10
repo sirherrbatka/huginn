@@ -204,7 +204,17 @@
       (for cell2 = (huginn.m.r:follow-pointer execution-state p2 t))
       (for cell1-rest-p (huginn.m.r:list-rest-cell-p cell1))
       (for cell2-rest-p (huginn.m.r:list-rest-cell-p cell2))
-      (when (xor cell1-rest-p cell2-rest-p))
+      (when (and cell1-rest-p cell2-rest-p)
+        (let ((unbound1 (huginn.m.r:list-rest-unbound-p cell1))
+              (unbound2 (huginn.m.r:list-rest-unbound-p cell2)))
+          (cond ((nand unbound1 unbound2)
+                 (setf p1 (huginn.m.r:detag cell1)
+                       p2 (huginn.m.r:detag cell2))
+                 (next-iteration))
+                (unbound1
+                 cl-ds.utils:todo)
+                (unbound2
+                 cl-ds.utils:todo))))
       ))
 
 
