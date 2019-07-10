@@ -212,10 +212,13 @@
                        p2 (huginn.m.r:detag cell2))
                  (next-iteration))
                 (unbound1
-                 cl-ds.utils:todo)
+                 (alter-cell execution-state execution-stack-cell
+                             p1 (huginn.m.r:make-reference p2))
+                 (leave t))
                 (unbound2
-                 cl-ds.utils:todo))))
-      ))
+                 (alter-cell execution-state execution-stack-cell
+                             p2 (huginn.m.r:make-reference p1))
+                 (leave t)))))))
 
 
   (declaim (notinline unify-list-rest/list-start))
