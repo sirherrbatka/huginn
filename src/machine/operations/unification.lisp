@@ -195,7 +195,8 @@
              (type huginn.m.r:execution-state execution-state)
              (type huginn.m.r:execution-stack-cell execution-stack-cell))
     (iterate
-      (declare (type huginn.m.r:pointer p1 p2))
+      (declare (type huginn.m.r:pointer p1 p2)
+               (type huginn.m.r:cell cell1 cell2))
       (with p1 = first-pointer)
       (with p2 = second-pointer)
       (when (= p1 p2)
@@ -627,9 +628,17 @@
                                    pointer2 pointer1
                                    cell2 cell1))
         (+list-rest/reference+
-         cl-ds.utils:todo)
+         (unify-pair execution-state
+                     execution-stack-cell
+                     (follow-pointer pointer1)
+                     pointer2
+                     cell1))
         (+reference/list-rest+
-         cl-ds.utils:todo)
+         (unify-pair execution-state
+                     execution-stack-cell
+                     pointer2
+                     (follow-pointer pointer1)
+                     cell2))
         (+list-rest/list-rest+
          (unify-list-rests execution-state
                            execution-stack-cell
