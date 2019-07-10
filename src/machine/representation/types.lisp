@@ -168,13 +168,13 @@
 
 
   (declaim (inline follow-pointer))
-  (-> follow-pointer (execution-state pointer &optional boolean) (or null pointer))
+  (-> follow-pointer (execution-state pointer &optional boolean) pointer)
   (defun follow-pointer (execution-state pointer &optional recursive)
     (declare (type execution-state execution-state)
              (type pointer pointer)
              (optimize (speed 3) (safety 0)))
     (iterate
-      (with initial = pointer)
+      ;; (with initial = pointer)
       (with heap = (execution-state-heap execution-state))
       (declare (type pointer prev-pointer))
       (with prev-pointer = pointer)
@@ -182,8 +182,6 @@
       (while (and recursive
                   (reference-cell-p heap-cell)))
       (shiftf prev-pointer pointer (detag heap-cell))
-      (when (eql pointer initial)
-        (leave nil))
       (finally (return prev-pointer))))
 
 

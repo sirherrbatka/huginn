@@ -146,5 +146,5 @@
 (defun list-rest-unbound-p (cell)
   (declare (type cell cell)
            (optimize (speed 3)))
-  (assert (eql +list-rest-variable+ (tag-of cell)))
+  (assert (eql +list-rest+ (tag-of cell)))
   (~> cell detag zerop))
