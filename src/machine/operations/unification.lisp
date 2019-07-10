@@ -163,7 +163,8 @@
     (let ((first-unbound (huginn.m.r:list-rest-unbound-p cell1))
           (second-unbound (huginn.m.r:list-rest-unbound-p cell2)))
       (cond ((nor first-unbound second-unbound)
-             (or (huginn.m.r:same-cells-p first-unbound second-unbound)
+             (if (huginn.m.r:same-cells-p cell1 cell2)
+                 t
                  (unify-lists execution-state execution-stack-cell
                               (huginn.m.r:detag cell1)
                               (huginn.m.r:detag cell2))))
