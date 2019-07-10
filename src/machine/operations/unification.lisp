@@ -191,7 +191,21 @@
       boolean)
   (defun unify-lists (execution-state execution-stack-cell
                       first-pointer second-pointer)
-    cl-ds.utils:todo)
+    (declare (type huginn.m.r:pointer first-pointer second-pointer)
+             (type huginn.m.r:execution-state execution-state)
+             (type huginn.m.r:execution-stack-cell execution-stack-cell))
+    (iterate
+      (declare (type huginn.m.r:pointer p1 p2))
+      (with p1 = first-pointer)
+      (with p2 = second-pointer)
+      (when (= p1 p2)
+        (leave t))
+      (for cell1 = (huginn.m.r:follow-pointer execution-state p1 t))
+      (for cell2 = (huginn.m.r:follow-pointer execution-state p2 t))
+      (for cell1-rest-p (huginn.m.r:list-rest-cell-p cell1))
+      (for cell2-rest-p (huginn.m.r:list-rest-cell-p cell2))
+      (when (xor cell1-rest-p cell2-rest-p))
+      ))
 
 
   (declaim (notinline unify-list-rest/list-start))
