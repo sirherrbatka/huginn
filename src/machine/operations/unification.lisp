@@ -138,7 +138,7 @@
     (alter-cell execution-state execution-stack-cell variable-pointer
                 (if (huginn.m.r:list-rest-unbound-p list-rest-cell)
                     (huginn.m.r:make-reference list-rest-pointer)
-                    list-rest-cell))
+                    (huginn.m.r:tag huginn.m.r:+list-start+ list-rest-cell)))
     t)
 
 
