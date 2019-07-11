@@ -8,22 +8,22 @@
   (:export
    #:body
    #:body-pointer
+   #:cells-count
    #:compilation-state
    #:content
    #:expression
    #:expressions
-   #:variables
-   #:cells-count
+   #:fundamental-compilation-state
    #:head
-   #:make-compilation-state
-   #:list-input
-   #:pointer-for-list
-   #:pointer-for-predicate
-   #:predicates
-   #:pointer-for-expression
    #:invalid-goal
    #:invalid-predicate
+   #:list-input
+   #:make-compilation-state
+   #:pointer-for-expression
+   #:pointer-for-list
+   #:pointer-for-predicate
    #:pointer-for-variable
    #:predicate
+   #:predicates
    #:variable-bindings
-   #:fundamental-compilation-state))
+   #:variables))

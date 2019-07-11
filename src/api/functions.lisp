@@ -97,3 +97,8 @@
     (setf (huginn.m.r:execution-state-stack execution-state) stack)
     (wrap-into-answers-range execution-state
                              compilation)))
+
+
+(defun li (content)
+  (check-type content list)
+  (huginn.c:list-input content))

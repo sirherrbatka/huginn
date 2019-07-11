@@ -9,3 +9,8 @@
 (defparameter *answer* (?- '(lubi zuzia ?cos)))
 
 (print (cl-ds:consume-front *answer*))
+
+(<- `(member ?item ,(li '(?item . ?rest))))
+
+(<- `(member ?item ,(li '(? . ?rest)))
+    '(member ?item ?rest))

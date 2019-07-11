@@ -99,5 +99,5 @@ This representation is pretty much the same as one used by norvig in the PAIP.
   (make-list-marker :content content))
 
 
-(defun list-rest-marker ()
-  (make-list-rest-marker))
+(defun list-rest-marker (content)
+  (make-list-rest-marker :content content))

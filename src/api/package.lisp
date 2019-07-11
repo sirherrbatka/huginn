@@ -9,6 +9,7 @@
    #:add-clause
    #:clauses
    #:clear
+   #:li
    #:compiler
    #:database
    #:make-database
