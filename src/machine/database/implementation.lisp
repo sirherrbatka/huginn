@@ -23,6 +23,10 @@
   (apply #'make 'database more-options))
 
 
+(defun yield (value)
+  value)
+
+
 (defmethod matching-clauses ((database database)
                               execution-state
                               goal-pointer)
@@ -52,7 +56,8 @@
                         (goal-predicate (aref buffer 0)))
                     (or (huginn.m.r:predicate-unbound-p goal-predicate)
                         (huginn.m.r:same-cells-p goal-predicate
-                                                 clause-predicate))))))))))
+                                                 clause-predicate)))))))
+        (cl-ds.alg:on-each #'yield))))
 
 
 (defmethod clear ((database database))

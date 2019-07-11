@@ -5,6 +5,7 @@
   (declare (optimize (speed 3) (debug 0) (safety 0) (space 0)))
   ;; this should be performed only after clause was already proven (and therefore copied to heap.
   ;; Code assumes that next stack cell is located DIRECTLY after the current one on the heap
+  (declaim (notinline push-stack-cell))
   (defun push-stack-cell (execution-stack-cell clause
                           bindings-fill-pointer)
     "Constructs new stack-cell based on the clause, trail and execution-stack-cell assuming that this cell is constructed from the first goal of the execution-stack-cell after data was already placed to the heap."
@@ -166,6 +167,7 @@
                                                       full-length
                                                       bindings-fill-pointer))
            (goals (~>> execution-stack-cell
+                       huginn.m.r:execution-stack-cell-previous-cell
                        huginn.m.r:execution-stack-cell-goals
                        rest
                        (huginn.m.r:clause-goals clause

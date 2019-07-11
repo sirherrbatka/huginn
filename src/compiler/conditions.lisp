@@ -11,7 +11,7 @@
 (defun has-at-least-one-argument-p (expression)
   (and (> (length expression) 1)
        (or (some #'variablep (rest expression))
-           (some #'list-marker-p (rest expression)))))
+           (some #'list-input-p (rest expression)))))
 
 
 (defun goalp (expression)

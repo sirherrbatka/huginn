@@ -90,7 +90,7 @@
 
 
   (-> execution-stack-cell-more-goals-p (execution-stack-cell) boolean)
-  (declaim (inline execution-stack-cell-more-goals-p))
+  (declaim (notinline execution-stack-cell-more-goals-p))
   (defun execution-stack-cell-more-goals-p (execution-stack-cell)
     (declare (optimize (speed 3) (safety 0)))
     (~> execution-stack-cell execution-stack-cell-goals endp not))

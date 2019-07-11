@@ -15,4 +15,9 @@
 (<- `(member ?item ,(li '(? . ?rest)))
     '(member ?item ?rest))
 
-(defparameter *answer* (?- `(member zuzia ,(li '(nie-zuzia nie-zuzia zuzia)))))
+(<- '(= ?item ?item))
+
+(defparameter *answer* (?- `(member ?zuzia ,(li `(nie-zuzia zuzia)))
+                           '(= ?zuzia zuzia)))
+
+(print (cl-ds:consume-front *answer*))

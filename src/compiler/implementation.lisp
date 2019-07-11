@@ -177,6 +177,7 @@
 
 (defmethod make-compilation-state ((class (eql 'compilation-state))
                                    clause)
+  (declare (optimize (debug 3)))
   (check-type clause clause)
   (let* ((head (clause-head clause))
          (body (clause-body clause))
