@@ -167,7 +167,7 @@
     (setf (fill-pointer vector) 0))
 
 
-  (declaim (inline follow-pointer))
+  (declaim (notinline follow-pointer))
   (-> follow-pointer (execution-state pointer &optional boolean) pointer)
   (defun follow-pointer (execution-state pointer &optional recursive)
     (declare (type execution-state execution-state)
@@ -176,13 +176,11 @@
     (iterate
       ;; (with initial = pointer)
       (with heap = (execution-state-heap execution-state))
-      (declare (type pointer prev-pointer))
-      (with prev-pointer = pointer)
       (for heap-cell = (aref heap pointer))
-      (while (and recursive
-                  (reference-cell-p heap-cell)))
-      (shiftf prev-pointer pointer (detag heap-cell))
-      (finally (return prev-pointer))))
+      (if (and recursive (reference-cell-p heap-cell))
+          (setf pointer (detag heap-cell))
+          (finish))
+      (finally (return pointer))))
 
 
   (declaim (inline dereference-heap-pointer))

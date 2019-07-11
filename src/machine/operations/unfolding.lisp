@@ -41,5 +41,4 @@
 (defun find-answer (execution-state)
   (if (~> execution-state huginn.m.r:execution-state-stack null)
       nil
-      (not (null (setf (huginn.m.r:execution-state-stack execution-state)
-                       (unfold-all execution-state))))))
+      (not (null (unfold-all execution-state)))))

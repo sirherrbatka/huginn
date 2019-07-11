@@ -46,7 +46,7 @@
 
 
 (with-compilation-unit (:override nil)
-  (declare (optimize (speed 3) (debug 0) (safety 0) (space 0)))
+  (declare (optimize (speed 0) (debug 3) (safety 3) (space 2)))
 
   (-> prepare-unification-stack
       (huginn.m.r:execution-state
@@ -195,6 +195,8 @@
     (declare (type huginn.m.r:pointer first-pointer second-pointer)
              (type huginn.m.r:execution-state execution-state)
              (type huginn.m.r:execution-stack-cell execution-stack-cell))
+    (unless (< first-pointer second-pointer)
+      (rotatef first-pointer second-pointer))
     (iterate
       (declare (type huginn.m.r:pointer p1 p2)
                (type huginn.m.r:cell cell1 cell2))
@@ -215,13 +217,13 @@
                  (setf p1 (huginn.m.r:detag cell1)
                        p2 (huginn.m.r:detag cell2))
                  (next-iteration))
-                (unbound1
-                 (alter-cell execution-state execution-stack-cell
-                             p1 (huginn.m.r:make-reference p2))
-                 (leave t))
                 (unbound2
                  (alter-cell execution-state execution-stack-cell
                              p2 (huginn.m.r:make-reference p1))
+                 (leave t))
+                (unbound1
+                 (alter-cell execution-state execution-stack-cell
+                             p1 (huginn.m.r:make-reference p2))
                  (leave t)))))
       (when cell1-rest-p
         (when (huginn.m.r:list-rest-unbound-p cell1)
@@ -306,13 +308,14 @@
             (unless (huginn.m.r:same-cells-p first-arity second-arity)
               (done nil))
             (iterate
-              (declare (type fixnum i))
-              (for i from 0 below first-arity)
+              (declare (type fixnum i j))
+              (for j from 0 below first-arity)
+              (for i from 2)
               (upush
                (the huginn.m.r:pointer
-                    (+ first-expression-pointer 2 i))
+                    (+ first-expression-pointer i))
                (the huginn.m.r:pointer
-                    (+ second-expression-pointer 2 i)))))
+                    (+ second-expression-pointer i)))))
           (done t))))
 
 
@@ -386,13 +389,16 @@
                           cell2)
     (declare (type huginn.m.r:pointer pointer1 pointer2)
              (type huginn.m.r:cell cell1 cell2))
+    (unless (< pointer1 pointer2)
+      (rotatef pointer1 pointer2)
+      (rotatef cell1 cell2))
     (let ((first-unbound (huginn.m.r:variable-unbound-p cell1))
           (second-unbound (huginn.m.r:variable-unbound-p cell2)))
       (cond ((nor first-unbound second-unbound)
              (huginn.m.r:same-cells-p cell1 cell2))
             ((and first-unbound second-unbound)
              (alter-cell execution-state execution-stack-cell
-                         pointer1 (huginn.m.r:make-reference pointer2))
+                         pointer2 (huginn.m.r:make-reference pointer1))
              t)
             (first-unbound
              (alter-cell execution-state execution-stack-cell
@@ -514,7 +520,7 @@
               (when (null result)
                 (return-from unify-pair nil)))))
       (declare (type huginn.m.r:cell cell1 cell2))
-      (switch ((combine-tags cell1 cell2) :test 'eql)
+      (switch ((print (combine-tags cell1 cell2)) :test 'eql)
         (+predicate/predicate+
          (unify-predicates execution-state
                            execution-stack-cell
@@ -570,9 +576,7 @@
          (unify-pair execution-state
                      execution-stack-cell
                      (follow-pointer (huginn.m.r:detag cell1))
-                     pointer2
-                     nil
-                     cell2))
+                     pointer2))
         (+variable/expression+
          (unify-variable/expression execution-state execution-stack-cell
                                     pointer1 pointer2 cell1 cell2))
@@ -656,6 +660,7 @@
     (declare (type huginn.m.r:execution-stack-cell execution-stack-cell)
              (type huginn.m.r:execution-state execution-state)
              (type huginn.m.r:pointer goal-pointer))
+    (break)
     (prepare-unification-stack execution-state
                                execution-stack-cell
                                goal-pointer)

@@ -52,6 +52,10 @@
   cl-ds.utils:todo)
 
 
+(define-condition variable-binding-failed ()
+  ())
+
+
 (defun dereference-variable-pointer (execution-state pointer)
   (declare (optimize (debug 3)))
   (let ((result (huginn.m.r:dereference-heap-pointer
@@ -60,8 +64,10 @@
     (cond ((huginn.m.r:expression-cell-p result)
            (expression-from-heap execution-state pointer))
           ((huginn.m.r:variable-cell-p result)
-           (huginn.m.r:dereference-variable execution-state
-                                            result))
+           (if (huginn.m.r:variable-unbound-p result)
+               (error 'variable-binding-failed)
+               (huginn.m.r:dereference-variable execution-state
+                                                result)))
           ((huginn.m.r:fixnum-cell-p result)
            (huginn.m.r:detag result))
           (t (assert nil)))))
@@ -79,13 +85,18 @@
 (defmethod cl-ds:consume-front ((range answers-stream))
   (let* ((execution-state (access-execution-state range))
          (variables (read-variables range))
-         (pointers (read-pointers range))
-         (answer-found-p (huginn.m.o:find-answer execution-state)))
-    (unless answer-found-p
-      (return-from cl-ds:consume-front (values nil nil)))
-    (values (extrack-variable-bindings execution-state
-                                       variables
-                                       pointers))))
+         (pointers (read-pointers range)))
+    (iterate
+      (for answer-found-p = (huginn.m.o:find-answer execution-state))
+      (unless answer-found-p
+        (return-from cl-ds:consume-front (values nil nil)))
+      (handler-case
+          (let ((result (extrack-variable-bindings execution-state
+                                                   variables
+                                                   pointers)))
+            (return-from cl-ds:consume-front (values result t)))
+        (variable-binding-failed (e) (declare (ignore e))
+          (break))))))
 
 
 (defmethod cl-ds:reset! ((range answers-stream))
