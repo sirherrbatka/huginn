@@ -9,8 +9,9 @@
 
 
 (defun has-at-least-one-argument-p (expression)
-  (and (> (length expression) 2)
-       (some #'variablep (rest expression))))
+  (and (> (length expression) 1)
+       (or (some #'variablep (rest expression))
+           (some #'list-marker-p (rest expression)))))
 
 
 (defun goalp (expression)

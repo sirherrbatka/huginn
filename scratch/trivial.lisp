@@ -14,3 +14,5 @@
 
 (<- `(member ?item ,(li '(? . ?rest)))
     '(member ?item ?rest))
+
+(defparameter *answer* (?- `(member zuzia ,(li '(nie-zuzia nie-zuzia zuzia)))))
