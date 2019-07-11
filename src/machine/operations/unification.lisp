@@ -225,15 +225,6 @@
                  (alter-cell execution-state execution-stack-cell
                              p1 (huginn.m.r:make-reference p2))
                  (leave t)))))
-      (when cell1-rest-p
-        (when (huginn.m.r:list-rest-unbound-p cell1)
-          (alter-cell execution-state execution-stack-cell
-                      p1 (huginn.m.r:tag huginn.m.r:+list-rest+ p2))
-          (leave t))
-        (setf p1 (huginn.m.r:follow-pointer execution-state
-                                            (huginn.m.r:detag cell1)
-                                            t))
-        (next-iteration))
       (when cell2-rest-p
         (when (huginn.m.r:list-rest-unbound-p cell2)
           (alter-cell execution-state execution-stack-cell
@@ -241,6 +232,15 @@
           (leave t))
         (setf p2 (huginn.m.r:follow-pointer execution-state
                                             (huginn.m.r:detag cell2)
+                                            t))
+        (next-iteration))
+      (when cell1-rest-p
+        (when (huginn.m.r:list-rest-unbound-p cell1)
+          (alter-cell execution-state execution-stack-cell
+                      p1 (huginn.m.r:tag huginn.m.r:+list-rest+ p2))
+          (leave t))
+        (setf p1 (huginn.m.r:follow-pointer execution-state
+                                            (huginn.m.r:detag cell1)
                                             t))
         (next-iteration))
       (always (unify-pair execution-state execution-stack-cell
@@ -311,11 +311,14 @@
               (declare (type fixnum i j))
               (for j from 0 below first-arity)
               (for i from 2)
-              (upush
-               (the huginn.m.r:pointer
-                    (+ first-expression-pointer i))
-               (the huginn.m.r:pointer
-                    (+ second-expression-pointer i)))))
+              (unless
+                  (unify-pair execution-state execution-stack-cell
+                              (the huginn.m.r:pointer
+                                   (+ first-expression-pointer i))
+                              (the huginn.m.r:pointer
+                                   (+ second-expression-pointer i)))
+                (break)
+                (done nil))))
           (done t))))
 
 
@@ -395,6 +398,7 @@
     (let ((first-unbound (huginn.m.r:variable-unbound-p cell1))
           (second-unbound (huginn.m.r:variable-unbound-p cell2)))
       (cond ((nor first-unbound second-unbound)
+             (break)
              (huginn.m.r:same-cells-p cell1 cell2))
             ((and first-unbound second-unbound)
              (alter-cell execution-state execution-stack-cell
@@ -520,7 +524,7 @@
               (when (null result)
                 (return-from unify-pair nil)))))
       (declare (type huginn.m.r:cell cell1 cell2))
-      (switch ((print (combine-tags cell1 cell2)) :test 'eql)
+      (switch ((combine-tags cell1 cell2) :test 'eql)
         (+predicate/predicate+
          (unify-predicates execution-state
                            execution-stack-cell
@@ -660,7 +664,6 @@
     (declare (type huginn.m.r:execution-stack-cell execution-stack-cell)
              (type huginn.m.r:execution-state execution-state)
              (type huginn.m.r:pointer goal-pointer))
-    (break)
     (prepare-unification-stack execution-state
                                execution-stack-cell
                                goal-pointer)

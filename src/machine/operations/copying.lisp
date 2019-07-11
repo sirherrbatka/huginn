@@ -2,10 +2,9 @@
 
 
 (with-compilation-unit (:override nil)
-  (declare (optimize (speed 3) (debug 0) (safety 0) (space 0)))
+  (declare (optimize (speed 0) (debug 3) (safety 3) (space 3)))
   ;; this should be performed only after clause was already proven (and therefore copied to heap.
   ;; Code assumes that next stack cell is located DIRECTLY after the current one on the heap
-  (declaim (notinline push-stack-cell))
   (defun push-stack-cell (execution-stack-cell clause
                           bindings-fill-pointer)
     "Constructs new stack-cell based on the clause, trail and execution-stack-cell assuming that this cell is constructed from the first goal of the execution-stack-cell after data was already placed to the heap."
@@ -86,21 +85,12 @@
         :expression
         (setf (aref heap i) (huginn.m.r:tag huginn.m.r:+expression+ i))
         :reference
-        (incf (aref heap i) source-start)
+        (incf (aref heap i) destination-start)
         :list-start
-        (incf (aref heap i) source-start)
+        (incf (aref heap i) destination-start)
         :list-rest
         (unless (huginn.m.r:list-rest-unbound-p cell)
-          (let* ((object (aref variable-values (1- word)))
-                 (new-index bindings-fill-pointer)
-                 (index (index-object execution-state
-                                      object
-                                      new-index)))
-            (declare (type fixnum index new-index))
-            (setf (aref heap i) (huginn.m.r:tag huginn.m.r:+list-rest+
-                                                (1+ index)))
-            (when (eql index new-index)
-              (incf bindings-fill-pointer))))
+          (incf (aref heap i) destination-start))
         :variable
         (unless (huginn.m.r:variable-unbound-p cell)
           (let* ((object (aref variable-values (1- word)))
