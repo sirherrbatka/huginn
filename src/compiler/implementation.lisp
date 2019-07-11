@@ -306,6 +306,9 @@
   (~>> compilation-state read-flat-representation
        (remove-if (cl-ds.utils:or* #'variablep
                                    #'inlined-fixnum-p
+                                   #'list-input-p
+                                   #'list-end-marker-p
+                                   #'list-marker-p
                                    #'expression-marker-p
                                    #'predicate-marker-p))
        delete-duplicates))

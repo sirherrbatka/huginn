@@ -1,23 +1,21 @@
 (cl:in-package #:huginn-user)
 
 (defparameter *data* (make-database 'huginn.m.d:database t))
-(clear)
 
-(<- '(lubi zuzia ?cos) '(jest ?cos kot))
-(<- '(jest sansa kot))
+(progn
+  (clear)
+  (<- '(lubi zuzia ?cos) '(jest ?cos kot))
+  (<- '(jest sansa kot))
+  (defparameter *answer* (?- '(lubi zuzia ?cos)))
+  (print (cl-ds:consume-front *answer*)))
 
-(defparameter *answer* (?- '(lubi zuzia ?cos)))
+(progn
+  (clear)
+  (<- `(member ?item ,(li '(?item . ?rest))))
+  (<- `(member ?item ,(li '(? . ?rest)))
+      '(member ?item ?rest))
+  (<- '(= ?item ?item))
 
-(print (cl-ds:consume-front *answer*))
-
-(<- `(member ?item ,(li '(?item . ?rest))))
-
-(<- `(member ?item ,(li '(? . ?rest)))
-    '(member ?item ?rest))
-
-(<- '(= ?item ?item))
-
-(defparameter *answer* (?- `(member ?zuzia ,(li `(nie-zuzia zuzia)))
-                           '(= ?zuzia zuzia)))
-
-(print (cl-ds:consume-front *answer*))
+  (defparameter *answer* (?- `(member ?zuzia ,(li `(nie-zuzia zuzia)))
+                             '(= ?zuzia zuzia)))
+  (print (cl-ds:consume-front *answer*)))
