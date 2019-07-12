@@ -68,11 +68,12 @@
          (variable-bindings (huginn.c:variable-bindings compilation))
          (bindings-fill-pointer (length variable-bindings))
          (objects-mapping (iterate
-                           (with table = (make-hash-table :test 'eql))
-                           (for i from 0)
-                           (for v in-vector variable-bindings)
-                           (setf (gethash v table) i)
-                           (finally (return table))))
+                            (with table = (make-hash-table :test 'eql))
+                            (break)
+                            (for i from 0)
+                            (for v in-vector variable-bindings)
+                            (setf (gethash v table) i)
+                            (finally (return table))))
          (expressions (huginn.c:expressions compilation
                                             0 total-size))
          (goals

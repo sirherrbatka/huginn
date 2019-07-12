@@ -165,6 +165,7 @@
             :variable (s #\v)
             :list-start (s #\l)
             :list-rest (s #\m)
+            :list-end (s #\t)
             :reference (s #\r)
             :expression (s #\e)
             :predicate (s #\p))

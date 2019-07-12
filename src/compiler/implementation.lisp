@@ -311,4 +311,4 @@
                                    #'list-marker-p
                                    #'expression-marker-p
                                    #'predicate-marker-p))
-       delete-duplicates))
+       (delete-duplicates _ :from-end t)))

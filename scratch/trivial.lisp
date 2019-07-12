@@ -21,7 +21,7 @@
   (<- '(= ?item ?item))
 
   (defparameter *answer* (?- `(member ?zuzia ,(li `(nie-zuzia zuzia)))
-                             '(= ?zuzia nie-zuzia)))
+                             '(= ?zuzia zuzia)))
 
   (print (cl-ds:consume-front *answer*))
   )

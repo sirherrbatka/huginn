@@ -77,6 +77,8 @@
              (type huginn.m.r:execution-stack-cell execution-stack-cell)
              (type huginn.m.r:pointer pointer)
              (type huginn.m.r:cell new-value))
+    (when (= pointer 5)
+      (break))
     (let ((heap-trail (huginn.m.r:execution-stack-cell-heap-cells-trail
                        execution-stack-cell)))
       (vector-push-extend pointer heap-trail 2)
@@ -204,8 +206,10 @@
       (with p2 = second-pointer)
       (when (= p1 p2)
         (leave t))
-      (for cell1 = (huginn.m.r:follow-pointer execution-state p1 t))
-      (for cell2 = (huginn.m.r:follow-pointer execution-state p2 t))
+      (for cell1 = (huginn.m.r:dereference-heap-pointer execution-state
+                                                        p1 t))
+      (for cell2 = (huginn.m.r:dereference-heap-pointer execution-state
+                                                        p2 t))
       (until (and (huginn.m.r:list-end-cell-p cell1)
                   (huginn.m.r:list-end-cell-p cell2)))
       (for cell1-rest-p = (huginn.m.r:list-rest-cell-p cell1))
@@ -243,8 +247,10 @@
                                             (huginn.m.r:detag cell1)
                                             t))
         (next-iteration))
-      (always (unify-pair execution-state execution-stack-cell
-                          p1 p2 cell1 cell2))
+      (for unified-p = (unify-pair execution-state execution-stack-cell
+                                   p1 p2))
+      (break)
+      (always unified-p)
       (incf p1)
       (incf p2)))
 
@@ -297,7 +303,6 @@
                    second-expression-pointer)
              (type huginn.m.r:execution-stack-cell execution-stack-cell)
              (type huginn.m.r:execution-state execution-state))
-    (declare (ignore execution-stack-cell))
     (assert (huginn.m.r:expression-cell-p first-cell))
     (assert (huginn.m.r:expression-cell-p second-cell))
     (or (huginn.m.r:same-cells-p first-cell second-cell) ; first cell contains unique ID for the expression. If those matches it is the same expression so unification will succeed.
@@ -391,9 +396,9 @@
                           cell2)
     (declare (type huginn.m.r:pointer pointer1 pointer2)
              (type huginn.m.r:cell cell1 cell2))
-    (unless (< pointer1 pointer2)
-      (rotatef pointer1 pointer2)
-      (rotatef cell1 cell2))
+    (assert (huginn.m.r:variable-cell-p cell1))
+    (assert (huginn.m.r:variable-cell-p cell2))
+    (break)
     (let ((first-unbound (huginn.m.r:variable-unbound-p cell1))
           (second-unbound (huginn.m.r:variable-unbound-p cell2)))
       (cond ((nor first-unbound second-unbound)
@@ -506,6 +511,7 @@
     (declare (type huginn.m.r:pointer pointer1 pointer2)
              (type huginn.m.r:execution-stack-cell execution-stack-cell)
              (type huginn.m.r:execution-state execution-state))
+    (break)
     (when (eql pointer1 pointer2)
       (return-from unify-pair t))
     (bind ((cell1 (or cell1

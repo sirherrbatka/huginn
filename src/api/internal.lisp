@@ -64,6 +64,7 @@
     (cond ((huginn.m.r:expression-cell-p result)
            (expression-from-heap execution-state pointer))
           ((huginn.m.r:variable-cell-p result)
+           (break)
            (if (huginn.m.r:variable-unbound-p result)
                (error 'variable-binding-failed)
                (huginn.m.r:dereference-variable execution-state
