@@ -66,7 +66,8 @@
     (huginn.m.r:expand-state-heap execution-state
                                   (the fixnum
                                        (+ destination-start
-                                          (the fixnum (- source-end source-start)))))
+                                          (the fixnum
+                                               (- source-end source-start)))))
     (iterate
       (declare (type fixnum i j))
       (with heap = (huginn.m.r:execution-state-heap execution-state))
@@ -102,7 +103,7 @@
                                       new-index)))
             (declare (type fixnum index new-index))
             (setf (aref heap i) (huginn.m.r:tag huginn.m.r:+variable+
-                                                index))
+                                                (1+ index)))
             (when (eql index new-index)
               (incf bindings-fill-pointer))))))
     bindings-fill-pointer)

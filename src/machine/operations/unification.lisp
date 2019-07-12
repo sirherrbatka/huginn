@@ -77,7 +77,6 @@
              (type huginn.m.r:execution-stack-cell execution-stack-cell)
              (type huginn.m.r:pointer pointer)
              (type huginn.m.r:cell new-value))
-    (break)
     (let ((heap-trail (huginn.m.r:execution-stack-cell-heap-cells-trail
                        execution-stack-cell)))
       (vector-push-extend pointer heap-trail 2)
@@ -318,7 +317,6 @@
                                    (+ first-expression-pointer i))
                               (the huginn.m.r:pointer
                                    (+ second-expression-pointer i)))
-                (break)
                 (done nil))))
           (done t))))
 
@@ -399,19 +397,16 @@
     (let ((first-unbound (huginn.m.r:variable-unbound-p cell1))
           (second-unbound (huginn.m.r:variable-unbound-p cell2)))
       (cond ((nor first-unbound second-unbound)
-             (break)
              (huginn.m.r:same-cells-p cell1 cell2))
             ((and first-unbound second-unbound)
              (alter-cell execution-state execution-stack-cell
                          pointer2 (huginn.m.r:make-reference pointer1))
              t)
             (first-unbound
-             (break)
              (alter-cell execution-state execution-stack-cell
                          pointer1 cell2)
              t)
             (second-unbound
-             (break)
              (alter-cell execution-state execution-stack-cell
                          pointer2 cell1)
              t))))
