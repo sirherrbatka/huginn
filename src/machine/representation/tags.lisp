@@ -170,17 +170,3 @@
             :predicate (s #\p))
           (s #\a))))
   vector)
-
-
-(defmethod print-object ((object clause) stream)
-  (print-unreadable-object (object stream :type t)
-    (print-byte-code (clause-content object) stream)))
-
-
-(defmethod print-object ((object execution-state) stream)
-  (print-unreadable-object (object stream :type t)
-    (print-byte-code (execution-state-heap object) stream
-                     (let ((stack (execution-state-stack object)))
-                       (if (null stack)
-                           0
-                           (execution-stack-cell-heap-fill-pointer stack))))))
