@@ -77,6 +77,7 @@
              (type huginn.m.r:execution-stack-cell execution-stack-cell)
              (type huginn.m.r:pointer pointer)
              (type huginn.m.r:cell new-value))
+    (break)
     (let ((heap-trail (huginn.m.r:execution-stack-cell-heap-cells-trail
                        execution-stack-cell)))
       (vector-push-extend pointer heap-trail 2)
@@ -405,10 +406,12 @@
                          pointer2 (huginn.m.r:make-reference pointer1))
              t)
             (first-unbound
+             (break)
              (alter-cell execution-state execution-stack-cell
                          pointer1 cell2)
              t)
             (second-unbound
+             (break)
              (alter-cell execution-state execution-stack-cell
                          pointer2 cell1)
              t))))

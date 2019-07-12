@@ -55,9 +55,11 @@
                          clause
                          destination-start
                          source-start source-end
-                         bindings-fill-pointer)
+                         bindings-fill-pointer
+                         offset)
     (declare (type huginn.m.r:pointer
                    destination-start source-start source-end
+                   offset
                    bindings-fill-pointer)
              (type huginn.m.r:execution-state execution-state)
              (type huginn.m.r:clause clause))
@@ -81,16 +83,18 @@
                       huginn.m.r:expression-cell-p))
         (next-iteration))
       (for word = (huginn.m.r:detag cell))
+      (when (= i 13)
+        (break))
       (huginn.m.r:tag-case (cell)
         :expression
         (setf (aref heap i) (huginn.m.r:tag huginn.m.r:+expression+ i))
         :reference
-        (incf (aref heap i) destination-start)
+        (incf (aref heap i) offset)
         :list-start
-        (incf (aref heap i) destination-start)
+        (incf (aref heap i) offset)
         :list-rest
         (unless (huginn.m.r:list-rest-unbound-p cell)
-          (incf (aref heap i) destination-start))
+          (incf (aref heap i) offset))
         :variable
         (unless (huginn.m.r:variable-unbound-p cell)
           (let* ((object (aref variable-values (1- word)))
@@ -100,7 +104,7 @@
                                       new-index)))
             (declare (type fixnum index new-index))
             (setf (aref heap i) (huginn.m.r:tag huginn.m.r:+variable+
-                                                (1+ index)))
+                                                index))
             (when (eql index new-index)
               (incf bindings-fill-pointer))))))
     bindings-fill-pointer)
@@ -122,7 +126,8 @@
                       fill-pointer
                       0
                       head-length
-                      bindings-fill-pointer)))
+                      bindings-fill-pointer
+                      fill-pointer)))
 
 
   (defun clause-body-to-heap (execution-state execution-stack-cell)
@@ -155,7 +160,8 @@
                                                       fill-pointer
                                                       body-pointer
                                                       full-length
-                                                      bindings-fill-pointer))
+                                                      bindings-fill-pointer
+                                                      previous-fill-pointer))
            (goals (~>> execution-stack-cell
                        huginn.m.r:execution-stack-cell-previous-cell
                        huginn.m.r:execution-stack-cell-goals

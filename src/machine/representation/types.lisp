@@ -1,5 +1,6 @@
 (cl:in-package #:huginn.machine.representation)
 
+(def <empty-range-placeholder> (make 'cl-ds:empty-range))
 
 (with-compilation-unit (:override nil)
   (deftype vector-representation ()
@@ -27,9 +28,6 @@
     (variable-values +placeholder-array+ :type simple-vector)
     (content +placeholder-array+ :type vector-representation)
     (body-pointer 0 :type fixnum))
-
-
-  (def <empty-range-placeholder> (make 'cl-ds:empty-range))
 
 
   (defstruct execution-stack-cell

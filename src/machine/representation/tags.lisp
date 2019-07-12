@@ -148,3 +148,39 @@
            (optimize (speed 3)))
   (assert (eql +list-rest+ (tag-of cell)))
   (~> cell detag zerop))
+
+
+(defun print-byte-code (vector stream &optional (end (length vector)))
+  (macrolet ((s (c)
+               `(format stream "[~a,~a:~a]" i ,c word)))
+    (iterate
+      (for i from 0 below end)
+      (for cell = (aref vector i))
+      (for word = (detag cell))
+      (for previous-cell previous cell)
+      (if (or (first-iteration-p)
+              (not (expression-cell-p previous-cell)))
+          (tag-case (cell)
+            :fixnum (s #\f)
+            :variable (s #\v)
+            :list-start (s #\l)
+            :list-rest (s #\m)
+            :reference (s #\r)
+            :expression (s #\e)
+            :predicate (s #\p))
+          (s #\a))))
+  vector)
+
+
+(defmethod print-object ((object clause) stream)
+  (print-unreadable-object (object stream :type t)
+    (print-byte-code (clause-content object) stream)))
+
+
+(defmethod print-object ((object execution-state) stream)
+  (print-unreadable-object (object stream :type t)
+    (print-byte-code (execution-state-heap object) stream
+                     (let ((stack (execution-state-stack object)))
+                       (if (null stack)
+                           0
+                           (execution-stack-cell-heap-fill-pointer stack))))))
