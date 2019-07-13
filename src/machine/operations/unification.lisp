@@ -68,7 +68,7 @@
       (huginn.m.r:execution-state
        huginn.m.r:execution-stack-cell
        huginn.m.r:pointer huginn.m.r:cell)
-      t)
+      boolean)
   (defun alter-cell (execution-state
                      execution-stack-cell
                      pointer
@@ -86,7 +86,8 @@
        (shiftf (aref (huginn.m.r:execution-state-heap execution-state)
                      pointer)
                new-value)
-       heap-trail)))
+       heap-trail))
+    t)
 
 
   (declaim (notinline unify-variable/list-start))
@@ -112,8 +113,7 @@
     (unless (huginn.m.r:variable-unbound-p variable-cell)
       (return-from unify-variable/list-start nil))
     (alter-cell execution-state execution-stack-cell
-                variable-pointer list-start-cell)
-    t)
+                variable-pointer list-start-cell))
 
 
   (declaim (notinline unify-variable/list-start))
@@ -140,8 +140,7 @@
     (alter-cell execution-state execution-stack-cell variable-pointer
                 (if (huginn.m.r:list-rest-unbound-p list-rest-cell)
                     (huginn.m.r:make-reference list-rest-pointer)
-                    (huginn.m.r:tag huginn.m.r:+list-start+ list-rest-cell)))
-    t)
+                    (huginn.m.r:tag huginn.m.r:+list-start+ list-rest-cell))))
 
 
   (declaim (notinline unify-list-rests))
@@ -173,16 +172,13 @@
             ((and first-unbound second-unbound)
              (alter-cell execution-state execution-stack-cell
                          pointer1
-                         (huginn.m.r:make-reference pointer2))
-             t)
+                         (huginn.m.r:make-reference pointer2)))
             (first-unbound
              (alter-cell execution-state execution-stack-cell
-                         pointer1 cell2)
-             t)
+                         pointer1 cell2))
             (second-unbound
              (alter-cell execution-state execution-stack-cell
-                         pointer2 cell1)
-             t))))
+                         pointer2 cell1)))))
 
 
   (declaim (notinline unify-lists))
@@ -316,13 +312,10 @@
               (declare (type fixnum i j))
               (for j from 0 below first-arity)
               (for i from 2)
-              (unless
-                  (unify-pair execution-state execution-stack-cell
-                              (the huginn.m.r:pointer
-                                   (+ first-expression-pointer i))
-                              (the huginn.m.r:pointer
-                                   (+ second-expression-pointer i)))
-                (done nil))))
+              (upush (the huginn.m.r:pointer
+                          (+ first-expression-pointer i))
+                     (the huginn.m.r:pointer
+                          (+ second-expression-pointer i)))))
           (done t))))
 
 
@@ -377,8 +370,7 @@
     (alter-cell execution-state
                 execution-stack-cell
                 variable-pointer
-                fixnum-cell)
-    t)
+                fixnum-cell))
 
 
   (declaim (notinline unify-variables))
@@ -405,16 +397,13 @@
              (huginn.m.r:same-cells-p cell1 cell2))
             ((and first-unbound second-unbound)
              (alter-cell execution-state execution-stack-cell
-                         pointer2 (huginn.m.r:make-reference pointer1))
-             t)
+                         pointer2 (huginn.m.r:make-reference pointer1)))
             (first-unbound
              (alter-cell execution-state execution-stack-cell
-                         pointer1 cell2)
-             t)
+                         pointer1 cell2))
             (second-unbound
              (alter-cell execution-state execution-stack-cell
-                         pointer2 cell1)
-             t))))
+                         pointer2 cell1)))))
 
 
   (declaim (notinline unify-variable/reference))
@@ -462,16 +451,13 @@
              (huginn.m.r:same-cells-p cell1 cell2))
             ((and first-unbound second-unbound)
              (alter-cell execution-state execution-stack-cell
-                         pointer1 (huginn.m.r:make-reference pointer2))
-             t)
+                         pointer1 (huginn.m.r:make-reference pointer2)))
             (first-unbound
              (alter-cell execution-state execution-stack-cell
-                         pointer1 cell2)
-             t)
+                         pointer1 cell2))
             (second-unbound
              (alter-cell execution-state execution-stack-cell
-                         pointer2 cell1)
-             t))))
+                         pointer2 cell1)))))
 
 
   (declaim (notinline unify-variable/expression))
@@ -493,8 +479,7 @@
     (alter-cell execution-state
                 execution-stack-cell
                 variable-pointer
-                (huginn.m.r:make-reference expression-pointer))
-    t)
+                (huginn.m.r:make-reference expression-pointer)))
 
 
   (-> unify-pair
