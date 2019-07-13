@@ -77,8 +77,6 @@
              (type huginn.m.r:execution-stack-cell execution-stack-cell)
              (type huginn.m.r:pointer pointer)
              (type huginn.m.r:cell new-value))
-    (when (= pointer 5)
-      (break))
     (let ((heap-trail (huginn.m.r:execution-stack-cell-heap-cells-trail
                        execution-stack-cell)))
       (vector-push-extend pointer heap-trail 2)
@@ -114,6 +112,7 @@
       (return-from unify-variable/list-start nil))
     (alter-cell execution-state execution-stack-cell
                 variable-pointer list-start-cell))
+
 
 
   (declaim (notinline unify-variable/list-start))
@@ -193,8 +192,6 @@
     (declare (type huginn.m.r:pointer first-pointer second-pointer)
              (type huginn.m.r:execution-state execution-state)
              (type huginn.m.r:execution-stack-cell execution-stack-cell))
-    (unless (< first-pointer second-pointer)
-      (rotatef first-pointer second-pointer))
     (iterate
       (declare (type huginn.m.r:pointer p1 p2)
                (type huginn.m.r:cell cell1 cell2))
@@ -245,11 +242,38 @@
         (next-iteration))
       (for unified-p = (unify-pair execution-state execution-stack-cell
                                    p1 p2))
-      (break)
       (always unified-p)
       (incf p1)
       (incf p2)))
 
+
+  (declaim (notinline unify-list-start/list-rest))
+  (-> unify-list-start/list-rest
+      (huginn.m.r:execution-state
+       huginn.m.r:execution-stack-cell
+       huginn.m.r:pointer huginn.m.r:pointer
+       huginn.m.r:cell huginn.m.r:cell)
+      boolean)
+  (defun unify-list-start/list-rest (execution-state
+                                     execution-stack-cell
+                                     list-start-pointer
+                                     list-rest-pointer
+                                     list-start-cell
+                                     list-rest-cell)
+    (declare (ignore list-start-pointer))
+    (let ((list-start-word (huginn.m.r:detag list-start-cell))
+          (list-rest-word (huginn.m.r:detag list-rest-cell)))
+      (cond ((= list-start-word list-rest-word) t)
+            ((huginn.m.r:list-rest-unbound-p list-rest-cell)
+             (alter-cell execution-state
+                         execution-stack-cell
+                         list-rest-pointer
+                         (huginn.m.r:tag huginn.m.r:+list-rest+
+                                         list-start-word)))
+            (t (unify-lists execution-state
+                            execution-stack-cell
+                            list-start-word
+                            list-rest-word)))))
 
   (declaim (notinline unify-list-rest/list-start))
   (-> unify-list-rest/list-start
@@ -390,7 +414,6 @@
              (type huginn.m.r:cell cell1 cell2))
     (assert (huginn.m.r:variable-cell-p cell1))
     (assert (huginn.m.r:variable-cell-p cell2))
-    (break)
     (let ((first-unbound (huginn.m.r:variable-unbound-p cell1))
           (second-unbound (huginn.m.r:variable-unbound-p cell2)))
       (cond ((nor first-unbound second-unbound)
@@ -496,7 +519,6 @@
     (declare (type huginn.m.r:pointer pointer1 pointer2)
              (type huginn.m.r:execution-stack-cell execution-stack-cell)
              (type huginn.m.r:execution-state execution-state))
-    (break)
     (when (eql pointer1 pointer2)
       (return-from unify-pair t))
     (bind ((cell1 (or cell1
@@ -642,7 +664,18 @@
          (unify-list-rests execution-state
                            execution-stack-cell
                            pointer1 pointer2
-                           cell1 cell2)))))
+                           cell1 cell2))
+        (+list-rest/list-start+
+         (unify-list-start/list-rest execution-state
+                                     execution-stack-cell
+                                     pointer2 pointer1
+                                     cell2 cell1))
+        (+list-start/list-rest+
+         (unify-list-start/list-rest execution-state
+                                     execution-stack-cell
+                                     pointer1 pointer2
+                                     cell1 cell2))
+        (t nil))))
 
 
   (-> unify (huginn.m.r:execution-state

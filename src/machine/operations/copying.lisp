@@ -84,8 +84,6 @@
                       huginn.m.r:expression-cell-p))
         (next-iteration))
       (for word = (huginn.m.r:detag cell))
-      (when (huginn.m.r:variable-cell-p cell)
-        (break))
       (huginn.m.r:tag-case (cell)
         :expression
         (setf (aref heap i) (huginn.m.r:tag huginn.m.r:+expression+ i))

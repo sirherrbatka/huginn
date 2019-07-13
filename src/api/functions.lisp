@@ -69,7 +69,6 @@
          (bindings-fill-pointer (length variable-bindings))
          (objects-mapping (iterate
                             (with table = (make-hash-table :test 'eql))
-                            (break)
                             (for i from 0)
                             (for v in-vector variable-bindings)
                             (setf (gethash v table) i)
