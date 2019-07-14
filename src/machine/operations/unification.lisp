@@ -539,22 +539,14 @@
         (rotatef cell1 cell2)
         (rotatef pointer1 pointer2))
       (switch ((combine-cell-tags cell1 cell2) :test 'eql)
-        (+predicate/predicate+
-         (unify-predicates execution-state
-                           execution-stack-cell
-                           pointer1 pointer2
-                           cell1 cell2))
-        (+reference/predicate+
-         (unify-pair execution-state
-                     execution-stack-cell
-                     pointer2
-                     (follow-pointer (huginn.m.r:detag cell1))
-                     cell2))
         (+variable/variable+
          (unify-variables execution-state
                           execution-stack-cell
                           pointer1 pointer2
                           cell1 cell2))
+        (+variable/expression+
+         (unify-variable/expression execution-state execution-stack-cell
+                                    pointer1 pointer2 cell1 cell2))
         (+variable/fixnum+
          (unify-variable/fixnum execution-state
                                 execution-stack-cell
@@ -566,6 +558,21 @@
                      pointer1
                      (follow-pointer (huginn.m.r:detag cell2))
                      cell1))
+        (+variable/list-start+
+         (unify-variable/list-start execution-state
+                                    execution-stack-cell
+                                    pointer1 pointer2
+                                    cell1 cell2))
+        (+variable/list-rest+
+         (unify-list-rest/variable execution-state
+                                   execution-stack-cell
+                                   pointer2 pointer1
+                                   cell2 cell1))
+        (+reference/reference+
+         (unify-references execution-state
+                           execution-stack-cell
+                           pointer1 pointer2
+                           cell1 cell2))
         (+reference/fixnum+
          (unify-pair execution-state
                      execution-stack-cell
@@ -573,54 +580,48 @@
                      pointer2
                      nil
                      cell2))
-        (+variable/expression+
-         (unify-variable/expression execution-state execution-stack-cell
-                                    pointer1 pointer2 cell1 cell2))
-        (+expression/expression+
-         (unify-expressions execution-state
-                            execution-stack-cell
-                            pointer1 pointer2
-                            cell1 cell2))
-        (+reference/reference+
-         (unify-references execution-state
-                           execution-stack-cell
-                           pointer1 pointer2
-                           cell1 cell2))
-        (+fixnum/fixnum+
-         (huginn.m.r:same-cells-p cell1 cell2))
-        (+list-end/list-end+
-         t)
-        (+variable/list-start+
-         (unify-variable/list-start execution-state
-                                    execution-stack-cell
-                                    pointer1 pointer2
-                                    cell1 cell2))
         (+reference/list-start+
          (unify-pair execution-state
                      execution-stack-cell
                      pointer2
                      (follow-pointer (huginn.m.r:detag cell1))
                      cell2))
-        (+list-start/list-start+
-         (unify-lists execution-state execution-stack-cell
-                      (huginn.m.r:detag cell1)
-                      (huginn.m.r:detag cell2)))
-        (+variable/list-rest+
-         (unify-list-rest/variable execution-state
-                                   execution-stack-cell
-                                   pointer2 pointer1
-                                   cell2 cell1))
+        (+reference/predicate+
+         (unify-pair execution-state
+                     execution-stack-cell
+                     pointer2
+                     (follow-pointer (huginn.m.r:detag cell1))
+                     cell2))
         (+reference/list-rest+
          (unify-pair execution-state
                      execution-stack-cell
                      pointer2
                      (follow-pointer pointer1)
                      cell2))
+        (+predicate/predicate+
+         (unify-predicates execution-state
+                           execution-stack-cell
+                           pointer1 pointer2
+                           cell1 cell2))
+
+        (+expression/expression+
+         (unify-expressions execution-state
+                            execution-stack-cell
+                            pointer1 pointer2
+                            cell1 cell2))
+        (+fixnum/fixnum+
+         (huginn.m.r:same-cells-p cell1 cell2))
+        (+list-end/list-end+
+         t)
         (+list-rest/list-rest+
          (unify-list-rests execution-state
                            execution-stack-cell
                            pointer1 pointer2
                            cell1 cell2))
+        (+list-start/list-start+
+         (unify-lists execution-state execution-stack-cell
+                      (huginn.m.r:detag cell1)
+                      (huginn.m.r:detag cell2)))
         (+list-start/list-rest+
          (unify-list-start/list-rest execution-state
                                      execution-stack-cell
