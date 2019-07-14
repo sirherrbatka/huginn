@@ -46,3 +46,13 @@
                   (~> execution-stack-cell
                       huginn.m.r:execution-stack-cell-bindings-fill-pointer)))
   (huginn.m.r:execution-stack-cell-previous-cell execution-stack-cell))
+
+
+(defun pop-stack-cells-until-goal (execution-state)
+  (iterate
+    (for stack = (huginn.m.r:execution-state-stack execution-state))
+    (while (and (not (huginn.m.r:execution-stack-cell-more-goals-p stack))
+                (not (null stack))))
+    (setf (huginn.m.r:execution-state-stack execution-state)
+          (pop-stack-cell execution-state stack))
+    (finally (return execution-state))))

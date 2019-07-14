@@ -94,6 +94,7 @@
           (let ((result (extrack-variable-bindings execution-state
                                                    variables
                                                    pointers)))
+            (huginn.m.o:pop-stack-cells-until-goal execution-state)
             (return-from cl-ds:consume-front (values result t)))
         (variable-binding-failed (e) (declare (ignore e))
           (break))))))

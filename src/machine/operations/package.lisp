@@ -6,4 +6,5 @@
   (:nicknames #:huginn.m.o)
   (:export
    #:find-answer
+   #:pop-stack-cells-until-goal
    ))

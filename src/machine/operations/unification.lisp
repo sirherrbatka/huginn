@@ -191,59 +191,59 @@
     (declare (type huginn.m.r:pointer first-pointer second-pointer)
              (type huginn.m.r:execution-state execution-state)
              (type huginn.m.r:execution-stack-cell execution-stack-cell))
-    (iterate
-      (declare (type huginn.m.r:pointer p1 p2)
-               (type huginn.m.r:cell cell1 cell2))
-      (with p1 = first-pointer)
-      (with p2 = second-pointer)
-      (when (= p1 p2)
-        (leave t))
-      (for cell1 = (huginn.m.r:dereference-heap-pointer execution-state
-                                                        p1 t))
-      (for cell2 = (huginn.m.r:dereference-heap-pointer execution-state
-                                                        p2 t))
-      (until (and (huginn.m.r:list-end-cell-p cell1)
-                  (huginn.m.r:list-end-cell-p cell2)))
-      (for cell1-rest-p = (huginn.m.r:list-rest-cell-p cell1))
-      (for cell2-rest-p = (huginn.m.r:list-rest-cell-p cell2))
-      (when (and cell1-rest-p cell2-rest-p)
-        (let ((unbound1 (huginn.m.r:list-rest-unbound-p cell1))
-              (unbound2 (huginn.m.r:list-rest-unbound-p cell2)))
-          (cond ((nor unbound1 unbound2)
-                 (setf p1 (huginn.m.r:detag cell1)
-                       p2 (huginn.m.r:detag cell2))
-                 (next-iteration))
-                (unbound2
-                 (alter-cell execution-state execution-stack-cell
-                             p2 (huginn.m.r:make-reference p1))
-                 (leave t))
-                (unbound1
-                 (alter-cell execution-state execution-stack-cell
-                             p1 (huginn.m.r:make-reference p2))
-                 (leave t)))))
-      (when cell2-rest-p
-        (when (huginn.m.r:list-rest-unbound-p cell2)
-          (alter-cell execution-state execution-stack-cell
-                      p2 (huginn.m.r:tag huginn.m.r:+list-rest+ p1))
-          (leave t))
-        (setf p2 (huginn.m.r:follow-pointer execution-state
-                                            (huginn.m.r:detag cell2)
-                                            t))
-        (next-iteration))
-      (when cell1-rest-p
-        (when (huginn.m.r:list-rest-unbound-p cell1)
-          (alter-cell execution-state execution-stack-cell
-                      p1 (huginn.m.r:tag huginn.m.r:+list-rest+ p2))
-          (leave t))
-        (setf p1 (huginn.m.r:follow-pointer execution-state
-                                            (huginn.m.r:detag cell1)
-                                            t))
-        (next-iteration))
-      (for unified-p = (unify-pair execution-state execution-stack-cell
-                                   p1 p2))
-      (always unified-p)
-      (incf p1)
-      (incf p2)))
+    (with-unification-stack (execution-state)
+      (iterate
+        (declare (type huginn.m.r:pointer p1 p2)
+                 (type huginn.m.r:cell cell1 cell2))
+        (with p1 = first-pointer)
+        (with p2 = second-pointer)
+        (when (= p1 p2)
+          (done t))
+        (for cell1 = (huginn.m.r:dereference-heap-pointer execution-state
+                                                          p1 t))
+        (for cell2 = (huginn.m.r:dereference-heap-pointer execution-state
+                                                          p2 t))
+        (until (and (huginn.m.r:list-end-cell-p cell1)
+                    (huginn.m.r:list-end-cell-p cell2)))
+        (for cell1-rest-p = (huginn.m.r:list-rest-cell-p cell1))
+        (for cell2-rest-p = (huginn.m.r:list-rest-cell-p cell2))
+        (when (and cell1-rest-p cell2-rest-p)
+          (let ((unbound1 (huginn.m.r:list-rest-unbound-p cell1))
+                (unbound2 (huginn.m.r:list-rest-unbound-p cell2)))
+            (cond ((nor unbound1 unbound2)
+                   (setf p1 (huginn.m.r:detag cell1)
+                         p2 (huginn.m.r:detag cell2))
+                   (next-iteration))
+                  (unbound2
+                   (alter-cell execution-state execution-stack-cell
+                               p2 (huginn.m.r:make-reference p1))
+                   (done t))
+                  (unbound1
+                   (alter-cell execution-state execution-stack-cell
+                               p1 (huginn.m.r:make-reference p2))
+                   (done t)))))
+        (when cell2-rest-p
+          (when (huginn.m.r:list-rest-unbound-p cell2)
+            (alter-cell execution-state execution-stack-cell
+                        p2 (huginn.m.r:tag huginn.m.r:+list-rest+ p1))
+            (done t))
+          (setf p2 (huginn.m.r:follow-pointer execution-state
+                                              (huginn.m.r:detag cell2)
+                                              t))
+          (next-iteration))
+        (when cell1-rest-p
+          (when (huginn.m.r:list-rest-unbound-p cell1)
+            (alter-cell execution-state execution-stack-cell
+                        p1 (huginn.m.r:tag huginn.m.r:+list-rest+ p2))
+            (done t))
+          (setf p1 (huginn.m.r:follow-pointer execution-state
+                                              (huginn.m.r:detag cell1)
+                                              t))
+          (next-iteration))
+        (upush p1 p2)
+        (incf p1)
+        (incf p2))
+      (done t)))
 
 
   (declaim (notinline unify-list-start/list-rest))
@@ -650,5 +650,4 @@
                                  first-pointer second-pointer)))
          (unless result
            (done nil)))
-       (next))))
-  )
+       (next)))))

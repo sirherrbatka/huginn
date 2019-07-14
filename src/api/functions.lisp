@@ -90,10 +90,8 @@
          (clauses (huginn.m.d:matching-clauses database
                                                execution-state
                                                (first goals)))
-         (stack (huginn.m.r:make-initial-execution-stack-cell goals
-                                                              total-size
-                                                              bindings-fill-pointer
-                                                              clauses)))
+         (stack (huginn.m.r:make-initial-execution-stack-cell
+                 goals total-size bindings-fill-pointer clauses)))
     (setf (huginn.m.r:execution-state-stack execution-state) stack)
     (wrap-into-answers-range execution-state
                              compilation)))

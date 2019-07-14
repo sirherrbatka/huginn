@@ -24,4 +24,5 @@
                              '(= ?zuzia zuzia)))
 
   (print (cl-ds:consume-front *answer*))
+  (print (cl-ds:consume-front *answer*))
   )
