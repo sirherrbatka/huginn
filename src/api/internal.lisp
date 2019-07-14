@@ -73,7 +73,7 @@
           (t (assert nil)))))
 
 
-(defun extrack-variable-bindings (execution-state variables pointers)
+(defun extract-variable-bindings (execution-state variables pointers)
   (mapcar (lambda (variable pointer)
             (~>> pointer
                  (dereference-variable-pointer execution-state)
@@ -91,7 +91,7 @@
       (unless answer-found-p
         (return-from cl-ds:consume-front (values nil nil)))
       (handler-case
-          (let ((result (extrack-variable-bindings execution-state
+          (let ((result (extract-variable-bindings execution-state
                                                    variables
                                                    pointers)))
             (huginn.m.o:pop-stack-cells-until-goal execution-state)
