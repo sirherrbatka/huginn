@@ -5,6 +5,7 @@
   (:use #:huginn.aux-package #:cl)
   (:nicknames #:huginn.m.r)
   (:export
+   #:+all-tags+
    #:+expression+
    #:+fixnum+
    #:+list-end+

@@ -1,48 +1,47 @@
 (cl:in-package #:huginn.machine.operations)
 
 
-(defmacro define-tag-combinations (&body input)
-  `(flet ((combine-tags (first-tag second-tag)
-            (combine-tags (huginn.m.r:tag first-tag 0)
-                          (huginn.m.r:tag second-tag 0))))
-     ,@(iterate outer
-         (for a on input)
-         (iterate
-           (for b on input)
-           (for combination = (list (first a) (first b)))
-           (in outer
-               (collect
-                   `(define-constant
-                        ,(intern (format nil "+~a/~a+"
-                                         (~>> combination
-                                              first
-                                              symbol-name
-                                              (remove #\+ ))
-                                         (~>> combination
-                                              second
-                                              symbol-name
-                                              (remove #\+ ))))
-                        (combine-tags ,(first combination)
-                                      ,(second combination)))))))))
+(eval-always
+  (-> combine-tags (huginn.m.r:tag huginn.m.r:tag) fixnum)
+  (defun combine-tags (tag1 tag2)
+    (logior (ash (1- tag1) (1+ huginn.m.r:+tag-size+))
+            (the fixnum (1- tag2)))))
 
 
-(-> combine-tags (huginn.m.r:cell huginn.m.r:cell) fixnum)
-(defun combine-tags (first-cell second-cell)
-  (declare (type huginn.m.r:cell first-cell second-cell))
-  (logior (ash (the fixnum (1- (huginn.m.r:tag-of first-cell)))
-               (1+ huginn.m.r:+tag-size+))
-          (the fixnum (1- (huginn.m.r:tag-of second-cell)))))
+(eval-always
+  (-> combine-cell-tags (huginn.m.r:cell huginn.m.r:cell) fixnum)
+  (defun combine-cell-tags (first-cell second-cell)
+    (declare (type huginn.m.r:cell first-cell second-cell))
+    (combine-tags (huginn.m.r:tag-of first-cell) (huginn.m.r:tag-of second-cell))))
 
 
-(define-tag-combinations
-  huginn.m.r:+expression+
-  huginn.m.r:+fixnum+
-  huginn.m.r:+list-end+
-  huginn.m.r:+list-rest+
-  huginn.m.r:+list-start+
-  huginn.m.r:+predicate+
-  huginn.m.r:+reference+
-  huginn.m.r:+variable+)
+(eval-always
+  (defmacro define-tag-combinations ()
+    `(progn
+       ,@(iterate outer
+           (for sub on huginn.m.r:+all-tags+)
+           (for (symbol1 . value1) = (first sub))
+           (iterate
+             (for (symbol2 . value2) in sub)
+             (for combination = (list symbol1 symbol2))
+             (for value = (combine-tags value1 value2))
+             (in outer
+                 (collect
+                     `(define-constant
+                          ,(intern (format nil "+~a/~a+"
+                                           (~>> combination
+                                                first
+                                                symbol-name
+                                                (remove #\+ ))
+                                           (~>> combination
+                                                second
+                                                symbol-name
+                                                (remove #\+ ))))
+                        ,value))))))))
+
+
+(eval-always
+  (define-tag-combinations))
 
 
 (with-compilation-unit (:override nil)
@@ -529,24 +528,22 @@
                                                            pointer2)))
            ((:dflet follow-pointer (pointer))
             (declare (type huginn.m.r:pointer pointer))
-            (lret ((result (huginn.m.r:follow-pointer execution-state
-                                                      pointer
-                                                      t)))
-              (when (null result)
-                (return-from unify-pair nil)))))
-      (declare (type huginn.m.r:cell cell1 cell2))
-      (switch ((combine-tags cell1 cell2) :test 'eql)
+            (huginn.m.r:follow-pointer execution-state
+                                       pointer
+                                       t)))
+      (declare (type huginn.m.r:cell cell1 cell2)
+               (ftype (-> (huginn.m.r:pointer) huginn.m.r:pointer)
+                      follow-pointer)
+               (inline follow-pointer))
+      (unless (< cell1 cell2)
+        (rotatef cell1 cell2)
+        (rotatef pointer1 pointer2))
+      (switch ((combine-cell-tags cell1 cell2) :test 'eql)
         (+predicate/predicate+
          (unify-predicates execution-state
                            execution-stack-cell
                            pointer1 pointer2
                            cell1 cell2))
-        (+predicate/reference+
-         (unify-pair execution-state
-                     execution-stack-cell
-                     pointer1
-                     (follow-pointer (huginn.m.r:detag cell2))
-                     cell1))
         (+reference/predicate+
          (unify-pair execution-state
                      execution-stack-cell
@@ -563,11 +560,6 @@
                                 execution-stack-cell
                                 pointer1 pointer2
                                 cell1 cell2))
-        (+fixnum/variable+
-         (unify-variable/fixnum execution-state
-                                execution-stack-cell
-                                pointer2 pointer1
-                                cell2 cell1))
         (+variable/reference+
          (unify-pair execution-state
                      execution-stack-cell
@@ -581,23 +573,9 @@
                      pointer2
                      nil
                      cell2))
-        (+fixnum/reference+
-         (unify-pair execution-state
-                     execution-stack-cell
-                     pointer1
-                     (follow-pointer (huginn.m.r:detag cell2))
-                     cell1))
-        (+reference/variable+
-         (unify-pair execution-state
-                     execution-stack-cell
-                     (follow-pointer (huginn.m.r:detag cell1))
-                     pointer2))
         (+variable/expression+
          (unify-variable/expression execution-state execution-stack-cell
                                     pointer1 pointer2 cell1 cell2))
-        (+expression/variable+
-         (unify-variable/expression execution-state execution-stack-cell
-                                    pointer2 pointer1 cell2 cell1))
         (+expression/expression+
          (unify-expressions execution-state
                             execution-stack-cell
@@ -617,43 +595,21 @@
                                     execution-stack-cell
                                     pointer1 pointer2
                                     cell1 cell2))
-        (+list-start/variable+
-         (unify-variable/list-start execution-state
-                                    execution-stack-cell
-                                    pointer2 pointer1
-                                    cell2 cell1))
         (+reference/list-start+
          (unify-pair execution-state
                      execution-stack-cell
                      pointer2
                      (follow-pointer (huginn.m.r:detag cell1))
                      cell2))
-        (+list-start/reference+
-         (unify-pair execution-state
-                     execution-stack-cell
-                     pointer1
-                     (follow-pointer (huginn.m.r:detag cell2))
-                     cell1))
         (+list-start/list-start+
          (unify-lists execution-state execution-stack-cell
                       (huginn.m.r:detag cell1)
                       (huginn.m.r:detag cell2)))
-        (+list-rest/variable+
-         (unify-list-rest/variable execution-state
-                                   execution-stack-cell
-                                   pointer1 pointer2
-                                   cell1 cell2))
         (+variable/list-rest+
          (unify-list-rest/variable execution-state
                                    execution-stack-cell
                                    pointer2 pointer1
                                    cell2 cell1))
-        (+list-rest/reference+
-         (unify-pair execution-state
-                     execution-stack-cell
-                     (follow-pointer pointer1)
-                     pointer2
-                     cell1))
         (+reference/list-rest+
          (unify-pair execution-state
                      execution-stack-cell
@@ -665,11 +621,6 @@
                            execution-stack-cell
                            pointer1 pointer2
                            cell1 cell2))
-        (+list-rest/list-start+
-         (unify-list-start/list-rest execution-state
-                                     execution-stack-cell
-                                     pointer2 pointer1
-                                     cell2 cell1))
         (+list-start/list-rest+
          (unify-list-start/list-rest execution-state
                                      execution-stack-cell

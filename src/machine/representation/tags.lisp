@@ -61,17 +61,19 @@
         tags)))
 
 
-(define-tags
-  +variable+ ; just a variable pointer (either bound or free depending on the variable-bindings)
-  +reference+ ; variable pointing to expression. This tag simplifies unification algorithm implementation and allows filtering of clauses by scanining head alone. Dereferencing is more complicated then in the case of variable, first jump to the expression, next obtain word out of the expresion cell and use it as index for variable-bindings array.
-  +fixnum+ ; integer small enough to fit in the word
-  +expression+ ; complex expression, word in next cell designates arity, following cells are arguments to the expression.
-  +predicate+ ; like variable but indexed during clause creation
-  +list-start+
-  +list-end+
-  +list-rest+)
+(defmacro define-all-tags (&body input)
+  `(progn
+     (define-tags ,@input)
+     (define-constant +all-tags+ (list ,@(mapcar (lambda (x) `(cons ',x ,x))
+                                                 input))
+       :test 'equal)))
 
 
+(define-all-tags +variable+ +reference+ +fixnum+ +expression+
+  +predicate+ +list-start+ +list-end+ +list-rest+)
+
+
++all-tags+
 (defmacro tag-case ((cell) &body cases)
   (assert (every (rcurry #'member '(:variable :reference :expression
                                     :fixnum :predicate :list-start
