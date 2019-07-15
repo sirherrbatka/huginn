@@ -4,12 +4,15 @@
 (defclass database (fundamental-database)
   ((%clauses :initarg :clauses
              :reader clauses)
+   (%reverse-predicate :initarg :reverse-predicate
+                       :accessor access-reverse-predicates)
    (%predicates :initarg :predicates
                 :accessor access-predicates)
    (%predicates-index :initarg :predicates-index
                       :accessor access-predicates-index))
   (:default-initargs
    :clauses (vect)
+   :reverse-predicate (vect)
    :predicates-index 1
    :predicates (make-hash-table)))
 
@@ -21,10 +24,6 @@
 (defmethod make-database ((class (eql 'database))
                           &rest more-options)
   (apply #'make 'database more-options))
-
-
-(defun yield (value)
-  value)
 
 
 (defmethod matching-clauses ((database database)
@@ -56,12 +55,12 @@
                         (goal-predicate (aref buffer 0)))
                     (or (huginn.m.r:predicate-unbound-p goal-predicate)
                         (huginn.m.r:same-cells-p goal-predicate
-                                                 clause-predicate)))))))
-        (cl-ds.alg:on-each #'yield))))
+                                                 clause-predicate))))))))))
 
 
 (defmethod clear ((database database))
-  (setf (fill-pointer (clauses database)) 0
+  (setf (~> database clauses fill-pointer) 0
+        (~> database access-predicates-index fill-pointer) 0
         (access-predicates-index database) 1
         (access-predicates database) (make-hash-table)))
 
@@ -71,4 +70,19 @@
   (lret ((result (ensure (gethash predicate (access-predicates database))
                    #1=(access-predicates-index database))))
     (when (= result #1#)
+      (vector-push-extend predicate (access-reverse-predicates database))
       (incf #1#))))
+
+
+(defmethod predicate-from-cell/word ((database database)
+                                     cell/word)
+  (check-type cell/word huginn.m.r:cell)
+  (let* ((word (huginn.m.r:detag cell/word))
+         (index (1- word))
+         (predicates (access-predicates database))
+         (length (length predicates)))
+    (when (zerop index)
+      cl-ds.utils:todo)
+    (unless (< index length)
+      cl-ds.utils:todo)
+    (aref predicates index)))

@@ -2,7 +2,7 @@
 
 
 (with-compilation-unit (:override nil)
-  (declare (optimize (speed 0) (debug 3) (safety 3) (space 3)))
+  (declare (optimize (speed 3) (debug 0) (safety 0) (space 0)))
   ;; this should be performed only after clause was already proven (and therefore copied to heap.
   ;; Code assumes that next stack cell is located DIRECTLY after the current one on the heap
   (defun push-stack-cell (execution-stack-cell clause
@@ -181,5 +181,4 @@
         (setf (huginn.m.r:execution-stack-cell-clauses execution-stack-cell)
               (huginn.m.d:matching-clauses database execution-state
                                            (first goals))))
-      nil))
-  )
+      nil)))

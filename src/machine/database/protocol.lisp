@@ -14,6 +14,8 @@
 
 (defgeneric index-predicate (database predicate))
 
+(defgeneric predicate-from-cell/word (database cell/word))
+
 (defgeneric add-clause (database clause))
 
 (defgeneric make-database (class &rest more-options))

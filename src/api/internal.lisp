@@ -49,37 +49,66 @@
 
 
 (defun expression-from-heap (execution-state pointer)
-  cl-ds.utils:todo)
-
-
-(defun list-from-heap (execution-state pointer)
-  cl-ds.utils:todo)
+  (iterate
+    (with arity = (huginn.m.r:dereference-heap-pointer execution-state
+                                                       (1+ pointer)))
+    (with result = `(,(~>>
+                       pointer
+                       (huginn.m.r:dereference-heap-pointer execution-state)
+                       (huginn.m.d:predicate-from-cell/word
+                        (huginn.m.r:execution-state-database
+                         execution-state)))))
+    (for p from (+ pointer 2))
+    (repeat (1- arity))
+    (push (dereference-pointer execution-state p)
+          result)
+    (finally (return (nreversef result)))))
 
 
 (define-condition variable-binding-failed ()
   ())
 
 
-(defun dereference-variable-pointer (execution-state pointer)
-  (declare (optimize (debug 3)))
-  (let ((result (huginn.m.r:dereference-heap-pointer
-                 execution-state
-                 pointer t)))
-    (huginn.m.r:tag-case (result)
-      :expression (expression-from-heap execution-state pointer)
-      :variable (if (huginn.m.r:variable-unbound-p result)
-                     (error 'variable-binding-failed)
-                     (huginn.m.r:dereference-variable execution-state
-                                                      result))
-      :fixnum (huginn.m.r:detag result)
-      :list-start (list-from-heap execution-state pointer)
-      )))
+(defun handle-cell (execution-state cell pointer)
+  (huginn.m.r:tag-case (cell)
+    :expression (expression-from-heap execution-state pointer)
+    :variable (if (huginn.m.r:variable-unbound-p cell)
+                  (error 'variable-binding-failed)
+                  (huginn.m.r:dereference-variable execution-state
+                                                   cell))
+    :reference (dereference-pointer execution-state
+                                    (huginn.m.r:follow-pointer
+                                     execution-state
+                                     pointer t))
+    :predicate (let ((word (huginn.m.r:detag cell)))
+                 (huginn.m.r:pre))
+    :fixnum (huginn.m.r:detag cell)
+    :list-start (list-from-heap execution-state pointer)
+    ))
+
+
+(defun list-from-heap (execution-state pointer)
+  (let ((result '()))
+    (huginn.m.r:scan-heap-list (lambda (pointer cell)
+                                 (push (handle-cell execution-state
+                                                    pointer cell)
+                                       result))
+                               execution-state
+                               pointer)
+    (nreversef result)))
+
+
+(defun dereference-pointer (execution-state pointer)
+  (handle-cell execution-state pointer
+               (huginn.m.r:follow-pointer execution-state
+                                          pointer t)))
+
 
 
 (defun extract-variable-bindings (execution-state variables pointers)
   (mapcar (lambda (variable pointer)
             (~>> pointer
-                 (dereference-variable-pointer execution-state)
+                 (dereference-pointer execution-state)
                  (list* variable)))
           variables
           pointers))

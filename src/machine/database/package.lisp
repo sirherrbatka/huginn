@@ -11,6 +11,7 @@
    #:clauses
    #:database
    #:index-predicate
+   #:predicate-from-cell/word
    #:fundamental-database
    #:make-database
    #:with-database
