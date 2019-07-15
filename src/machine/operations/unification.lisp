@@ -512,7 +512,7 @@
        (or null huginn.m.r:cell)
        (or null huginn.m.r:cell))
       boolean)
-  (declaim (inline unify-pair))
+  (declaim (notinline unify-pair))
   (defun unify-pair (execution-state execution-stack-cell pointer1 pointer2
                      &optional cell1 cell2)
     (declare (type huginn.m.r:pointer pointer1 pointer2)
