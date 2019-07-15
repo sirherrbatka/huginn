@@ -143,7 +143,8 @@
              (optimize (speed 3) (safety 1)))
     (assert (variable-cell-p cell))
     (let ((word (detag cell)))
-      (assert (> word 0))
+      (when (= word 0)
+        cl-ds.utils:todo)
       (aref (execution-state-variable-bindings state)
             (1- word))))
 

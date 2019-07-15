@@ -69,7 +69,7 @@
   ())
 
 
-(defun handle-cell (execution-state cell pointer)
+(defun handle-cell (execution-state pointer cell)
   (huginn.m.r:tag-case (cell)
     :expression (expression-from-heap execution-state pointer)
     :variable (if (huginn.m.r:variable-unbound-p cell)
@@ -80,8 +80,9 @@
                                     (huginn.m.r:follow-pointer
                                      execution-state
                                      pointer t))
-    :predicate (let ((word (huginn.m.r:detag cell)))
-                 (huginn.m.r:pre))
+    :predicate (huginn.m.d:predicate-from-cell/word
+                (huginn.m.r:execution-state-database execution-state)
+                cell)
     :fixnum (huginn.m.r:detag cell)
     :list-start (list-from-heap execution-state pointer)
     ))
@@ -99,10 +100,8 @@
 
 
 (defun dereference-pointer (execution-state pointer)
-  (handle-cell execution-state pointer
-               (huginn.m.r:follow-pointer execution-state
-                                          pointer t)))
-
+  (~>> (huginn.m.r:dereference-heap-pointer execution-state pointer t)
+       (handle-cell execution-state pointer)))
 
 
 (defun extract-variable-bindings (execution-state variables pointers)

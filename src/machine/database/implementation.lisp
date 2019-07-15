@@ -59,7 +59,7 @@
 
 (defmethod clear ((database database))
   (setf (~> database clauses fill-pointer) 0
-        (~> database access-predicates-index fill-pointer) 0
+        (~> database access-reverse-predicates fill-pointer) 0
         (access-predicates-index database) 1
         (access-predicates database) (make-hash-table)))
 
