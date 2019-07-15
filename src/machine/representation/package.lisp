@@ -68,6 +68,7 @@
    #:pointer
    #:predicate-cell-p
    #:predicate-unbound-p
+   #:reduce-heap-list
    #:reference-cell-p
    #:same-cells-p
    #:tag

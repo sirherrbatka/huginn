@@ -15,7 +15,8 @@
                 :components ((:module "representation"
                               :components ((:file "package")
                                            (:file "tags")
-                                           (:file "types")))
+                                           (:file "types")
+                                           (:file "functions")))
                              (:module "database"
                               :components ((:file "package")
                                            (:file "protocol")
