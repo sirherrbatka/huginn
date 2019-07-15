@@ -274,6 +274,7 @@
                             list-start-word
                             list-rest-word)))))
 
+
   (declaim (inline unify-list-rest/list-start))
   (-> unify-list-rest/list-start
       (huginn.m.r:execution-state
