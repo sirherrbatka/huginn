@@ -52,6 +52,10 @@
   cl-ds.utils:todo)
 
 
+(defun list-from-heap (execution-state pointer)
+  cl-ds.utils:todo)
+
+
 (define-condition variable-binding-failed ()
   ())
 
@@ -61,16 +65,15 @@
   (let ((result (huginn.m.r:dereference-heap-pointer
                  execution-state
                  pointer t)))
-    (cond ((huginn.m.r:expression-cell-p result)
-           (expression-from-heap execution-state pointer))
-          ((huginn.m.r:variable-cell-p result)
-           (if (huginn.m.r:variable-unbound-p result)
-               (error 'variable-binding-failed)
-               (huginn.m.r:dereference-variable execution-state
-                                                result)))
-          ((huginn.m.r:fixnum-cell-p result)
-           (huginn.m.r:detag result))
-          (t (assert nil)))))
+    (huginn.m.r:tag-case (result)
+      :expression (expression-from-heap execution-state pointer)
+      :variable (if (huginn.m.r:variable-unbound-p result)
+                     (error 'variable-binding-failed)
+                     (huginn.m.r:dereference-variable execution-state
+                                                      result))
+      :fixnum (huginn.m.r:detag result)
+      :list-start (list-from-heap execution-state pointer)
+      )))
 
 
 (defun extract-variable-bindings (execution-state variables pointers)
