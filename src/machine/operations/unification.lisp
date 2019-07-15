@@ -25,19 +25,18 @@
              (for (symbol2 . value2) in sub)
              (for combination = (list symbol1 symbol2))
              (for value = (combine-tags value1 value2))
+             (for constant-name = (intern (format nil "+~a/~a+"
+                                                  (~>> combination
+                                                       first
+                                                       symbol-name
+                                                       (remove #\+ ))
+                                                  (~>> combination
+                                                       second
+                                                       symbol-name
+                                                       (remove #\+ )))))
              (in outer
-                 (collect
-                     `(define-constant
-                          ,(intern (format nil "+~a/~a+"
-                                           (~>> combination
-                                                first
-                                                symbol-name
-                                                (remove #\+ ))
-                                           (~>> combination
-                                                second
-                                                symbol-name
-                                                (remove #\+ ))))
-                        ,value))))))))
+                 (collect `(define-constant ,constant-name ,value))
+                 (collect `(declaim (type fixnum ,constant-name)))))))))
 
 
 (eval-always
