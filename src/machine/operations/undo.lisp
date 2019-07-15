@@ -32,7 +32,7 @@
   "Pop top stack-cell, adjust execution-state by clearing changes."
   (declare (type huginn.m.r:execution-stack-cell execution-stack-cell)
            (type huginn.m.r:execution-state execution-state)
-           (optimize (debug 3)))
+           (optimize (speed 3) (safety 0)))
   (~>> execution-stack-cell
        huginn.m.r:execution-stack-cell-heap-cells-trail
        (unwind-heap-cells-trail execution-state))

@@ -45,7 +45,7 @@
 
 
 (with-compilation-unit (:override nil)
-  (declare (optimize (speed 0) (debug 3) (safety 3) (space 2)))
+  (declare (optimize (speed 3) (debug 0) (safety 0) (space 0)))
 
   (-> prepare-unification-stack
       (huginn.m.r:execution-state
@@ -62,7 +62,7 @@
              goal-pointer)))
 
 
-  (declaim (notinline alter-cell))
+  (declaim (inline alter-cell))
   (-> alter-cell
       (huginn.m.r:execution-state
        huginn.m.r:execution-stack-cell
@@ -87,7 +87,7 @@
     t)
 
 
-  (declaim (notinline unify-variable/list-start))
+  (declaim (inline unify-variable/list-start))
   (-> unify-variable/list-start
       (huginn.m.r:execution-state
        huginn.m.r:execution-stack-cell
@@ -114,7 +114,7 @@
 
 
 
-  (declaim (notinline unify-variable/list-start))
+  (declaim (inline unify-variable/list-start))
   (-> unify-list-rest/variable
       (huginn.m.r:execution-state
        huginn.m.r:execution-stack-cell
@@ -141,7 +141,7 @@
                     (huginn.m.r:tag huginn.m.r:+list-start+ list-rest-cell))))
 
 
-  (declaim (notinline unify-list-rests))
+  (declaim (inline unify-list-rests))
   (-> unify-list-rests
       (huginn.m.r:execution-state
        huginn.m.r:execution-stack-cell
@@ -179,7 +179,7 @@
                          pointer2 cell1)))))
 
 
-  (declaim (notinline unify-lists))
+  (declaim (inline unify-lists))
   (-> unify-lists
       (huginn.m.r:execution-state
        huginn.m.r:execution-stack-cell
@@ -246,7 +246,7 @@
       (done t)))
 
 
-  (declaim (notinline unify-list-start/list-rest))
+  (declaim (inline unify-list-start/list-rest))
   (-> unify-list-start/list-rest
       (huginn.m.r:execution-state
        huginn.m.r:execution-stack-cell
@@ -274,7 +274,7 @@
                             list-start-word
                             list-rest-word)))))
 
-  (declaim (notinline unify-list-rest/list-start))
+  (declaim (inline unify-list-rest/list-start))
   (-> unify-list-rest/list-start
       (huginn.m.r:execution-state
        huginn.m.r:execution-stack-cell
@@ -303,7 +303,7 @@
                  (huginn.m.r:detag list-rest-cell)))
 
 
-  (declaim (notinline unify-expressions))
+  (declaim (inline unify-expressions))
   (-> unify-expressions
       (huginn.m.r:execution-state
        huginn.m.r:execution-stack-cell
@@ -342,7 +342,7 @@
           (done t))))
 
 
-  (declaim (notinline unify-references))
+  (declaim (inline unify-references))
   (-> unify-references
       (huginn.m.r:execution-state
        huginn.m.r:execution-stack-cell
@@ -370,7 +370,7 @@
           (done t))))
 
 
-  (declaim (notinline unify-variable/fixnum))
+  (declaim (inline unify-variable/fixnum))
   (-> unify-variable/fixnum
       (huginn.m.r:execution-state
        huginn.m.r:execution-stack-cell
@@ -396,7 +396,7 @@
                 fixnum-cell))
 
 
-  (declaim (notinline unify-variables))
+  (declaim (inline unify-variables))
   (-> unify-variables
       (huginn.m.r:execution-state
        huginn.m.r:execution-stack-cell
@@ -428,7 +428,7 @@
                          pointer2 cell1)))))
 
 
-  (declaim (notinline unify-variable/reference))
+  (declaim (inline unify-variable/reference))
   (-> unify-variable/reference
       (huginn.m.r:execution-state
        huginn.m.r:execution-stack-cell
@@ -454,7 +454,7 @@
                   variable-cell)))
 
 
-  (declaim (notinline unify-predicates))
+  (declaim (inline unify-predicates))
   (-> unify-predicates
       (huginn.m.r:execution-state
        huginn.m.r:execution-stack-cell
@@ -482,7 +482,7 @@
                          pointer2 cell1)))))
 
 
-  (declaim (notinline unify-variable/expression))
+  (declaim (inline unify-variable/expression))
   (-> unify-variable/expression
       (huginn.m.r:execution-state
        huginn.m.r:execution-stack-cell
@@ -512,7 +512,7 @@
        (or null huginn.m.r:cell)
        (or null huginn.m.r:cell))
       boolean)
-  (declaim (notinline unify-pair))
+  (declaim (inline unify-pair))
   (defun unify-pair (execution-state execution-stack-cell pointer1 pointer2
                      &optional cell1 cell2)
     (declare (type huginn.m.r:pointer pointer1 pointer2)
