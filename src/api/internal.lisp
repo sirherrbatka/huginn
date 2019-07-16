@@ -86,6 +86,11 @@
     ))
 
 
+;; (more-conditions:define-condition-translating-method handle-cell-translate-exceptions
+;;     (execution-state pointer cell)
+;;   ())
+
+
 (defun list-from-heap (execution-state pointer)
   (let ((result '()))
     (huginn.m.r:scan-heap-list (lambda (pointer cell)
