@@ -6,14 +6,18 @@
   (:nicknames #:huginn.m.d)
   (:export
    #:add-clause
-   #:matching-clauses
-   #:clear
+   #:cell
    #:clauses
+   #:clear
    #:database
-   #:index-predicate
-   #:predicate-from-cell/word
+   #:database
    #:fundamental-database
+   #:index-predicate
    #:make-database
+   #:matching-clauses
+   #:predicate-dereference-error
+   #:predicate-from-cell/word
+   #:predicate-unbound-error
+   #:unknown-predicate-error
    #:with-database
-   #:database
    ))

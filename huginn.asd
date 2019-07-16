@@ -6,7 +6,7 @@
   :version "0.0.0"
   :author "Marek Kochanowicz"
   :depends-on (:iterate :alexandria :prove :prove-asdf
-               :serapeum :cl-data-structures)
+               :serapeum :cl-data-structures :more-conditions)
   :serial T
   :pathname "src"
   :defsystem-depends-on (:prove-asdf)
