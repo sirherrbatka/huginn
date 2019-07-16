@@ -171,7 +171,7 @@
     (setf (fill-pointer vector) 0))
 
 
-  (declaim (notinline follow-pointer))
+  (declaim (inline follow-pointer))
   (-> follow-pointer (execution-state pointer &optional boolean) pointer)
   (defun follow-pointer (execution-state pointer &optional recursive)
     (declare (type execution-state execution-state)

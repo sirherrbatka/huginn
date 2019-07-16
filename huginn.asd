@@ -40,6 +40,7 @@
                              (:test-file "tests")))
                (:module "api"
                 :components ((:file "package")
+                             (:file "conditions")
                              (:file "variables")
                              (:file "macros")
                              (:file "internal")
