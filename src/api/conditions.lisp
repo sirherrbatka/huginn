@@ -6,6 +6,9 @@
   ())
 
 
+(defgeneric variable-symbol (condition))
+
+
 (define-condition cant-bind-variable-error (cant-bind-error)
   ((%variable-symbol :initarg :variable-symbol
                      :reader variable-symbol)))
