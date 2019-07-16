@@ -21,3 +21,5 @@
 (defgeneric make-database (class &rest more-options))
 
 (defgeneric clear (database))
+
+(defgeneric cell (condition))

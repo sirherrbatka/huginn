@@ -69,6 +69,10 @@
    #:predicate-cell-p
    #:predicate-unbound-p
    #:scan-heap-list
+   #:cell
+   #:unknown-variable-error
+   #:variable-unbound-error
+   #:variable-dereference-error
    #:reference-cell-p
    #:same-cells-p
    #:tag

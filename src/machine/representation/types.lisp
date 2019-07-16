@@ -148,9 +148,9 @@
            (length (length bindings)))
       (declare (type fixnum index))
       (when (negative-fixnum-p index)
-        cl-ds.utils:todo)
+        (error 'variable-unbound-error))
       (unless (< index length)
-        cl-ds.utils:todo)
+        (error 'unknown-variable-error :cell cell))
       (aref bindings index)))
 
 
