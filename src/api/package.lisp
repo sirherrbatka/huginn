@@ -14,6 +14,7 @@
    #:cant-bind-predicate-error
    #:cant-bind-variable-error
    #:cant-bind-error
+   #:variable-symbol
    #:database
    #:make-database
    #:with-database
