@@ -2,7 +2,7 @@
 
 
 (define-condition variable-dereference-error
-    (error more-conditions:chainable-condition)
+    (cl:error more-conditions:chainable-condition)
   ()
   (:report (lambda (condition stream)
              (declare (ignore condition))

@@ -11,6 +11,9 @@
    #:clear
    #:li
    #:compiler
+   #:cant-bind-predicate-error
+   #:cant-bind-variable-error
+   #:cant-bind-error
    #:database
    #:make-database
    #:with-database
