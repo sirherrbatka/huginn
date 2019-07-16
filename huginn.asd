@@ -14,11 +14,13 @@
                (:module "machine"
                 :components ((:module "representation"
                               :components ((:file "package")
+                                           (:file "conditions")
                                            (:file "tags")
                                            (:file "types")
                                            (:file "functions")))
                              (:module "database"
                               :components ((:file "package")
+                                           (:file "conditions")
                                            (:file "protocol")
                                            (:file "implementation")))
                              (:module "operations"
