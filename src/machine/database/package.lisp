@@ -6,7 +6,7 @@
   (:nicknames #:huginn.m.d)
   (:export
    #:add-clause
-   #:cell
+   #:word
    #:clauses
    #:clear
    #:database

@@ -17,11 +17,9 @@
 
 
 (define-condition unknown-predicate-error (predicate-dereference-error)
-  ((cell :initarg :cell
-         :reader cell))
+  ((word :initarg :word
+         :reader word))
   (:report (lambda (condition stream)
-             (let* ((cell (cell condition))
-                    (word (huginn.m.r:detag cell)))
-               (format stream "Unknown predicate cell ~a (word: ~a). This error indicates bug in the huginn database itself."
-                       cell
+             (let* ((word (word condition)))
+               (format stream "Unknown predicate word ~a. This error indicates bug in the huginn database itself."
                        word)))))

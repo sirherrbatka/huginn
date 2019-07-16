@@ -22,4 +22,4 @@
 
 (defgeneric clear (database))
 
-(defgeneric cell (condition))
+(defgeneric word (condition))
