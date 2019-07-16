@@ -63,10 +63,6 @@
     (finally (return (nreversef result)))))
 
 
-(define-condition variable-binding-failed ()
-  ())
-
-
 (defun handle-cell (execution-state pointer cell)
   (huginn.m.r:tag-case (cell)
     :expression (expression-from-heap execution-state pointer)
@@ -86,9 +82,17 @@
     ))
 
 
-;; (more-conditions:define-condition-translating-method handle-cell-translate-exceptions
-;;     (execution-state pointer cell)
-;;   ())
+(more-conditions:define-condition-translating-method
+    dereference-pointer-with-condition-translation
+    (execution-state pointer variable-symbol)
+  ((huginn.m.r:variable-dereference-error cant-bind-variable-error)
+   :variable-symbol variable-symbol)
+  ((huginn.m.d:predicate-dereference-error cant-bind-predicate-error)))
+
+
+(defmethod dereference-pointer-with-condition-translation
+    (execution-state pointer variable-symbol)
+  (dereference-pointer execution-state pointer))
 
 
 (defun list-from-heap (execution-state pointer)
@@ -109,8 +113,13 @@
 
 (defun extract-variable-bindings (execution-state variables pointers)
   (mapcar (lambda (variable pointer)
-            (~>> pointer
-                 (dereference-pointer execution-state)
+            (~>> (restart-case
+                     (dereference-pointer-with-condition-translation
+                      execution-state pointer variable)
+                   (self-bind () variable)
+                   (use-value (new-value)
+                     :interactive read
+                     new-value))
                  (list* variable)))
           variables
           pointers))
@@ -121,17 +130,17 @@
          (variables (read-variables range))
          (pointers (read-pointers range)))
     (iterate
-      (for answer-found-p = (huginn.m.o:find-answer execution-state))
-      (unless answer-found-p
-        (return-from cl-ds:consume-front (values nil nil)))
-      (handler-case
-          (let ((result (extract-variable-bindings execution-state
-                                                   variables
-                                                   pointers)))
-            (huginn.m.o:pop-stack-cells-until-goal execution-state)
-            (return-from cl-ds:consume-front (values result t)))
-        (variable-binding-failed (e) (declare (ignore e))
-          (break))))))
+      (restart-case
+          (let ((answer-found-p (huginn.m.o:find-answer execution-state)))
+            (unless answer-found-p
+              (return-from cl-ds:consume-front (values nil nil)))
+            (let ((result (extract-variable-bindings execution-state
+                                                     variables
+                                                     pointers)))
+              (huginn.m.o:pop-stack-cells-until-goal execution-state)
+              (return-from cl-ds:consume-front (values result t))))
+        (go-to-next-answer ()
+          (huginn.m.o:pop-stack-cells-until-goal execution-state))))))
 
 
 (defmethod cl-ds:reset! ((range answers-stream))
