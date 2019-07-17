@@ -90,6 +90,11 @@
   ((huginn.m.d:predicate-dereference-error cant-bind-predicate-error)))
 
 
+(defun dereference-pointer (execution-state pointer)
+  (~>> (huginn.m.r:dereference-heap-pointer execution-state pointer t)
+       (handle-cell execution-state pointer)))
+
+
 (defmethod dereference-pointer-with-condition-translation
     (execution-state pointer variable-symbol)
   (dereference-pointer execution-state pointer))
@@ -104,11 +109,6 @@
                                execution-state
                                pointer)
     (nreversef result)))
-
-
-(defun dereference-pointer (execution-state pointer)
-  (~>> (huginn.m.r:dereference-heap-pointer execution-state pointer t)
-       (handle-cell execution-state pointer)))
 
 
 (defun extract-variable-bindings (execution-state variables pointers)
