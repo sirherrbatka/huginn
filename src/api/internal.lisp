@@ -107,7 +107,9 @@
                                                     pointer cell)
                                        result))
                                execution-state
-                               pointer)
+                               (~> (huginn.m.r:dereference-heap-pointer
+                                    execution-state pointer)
+                                   huginn.m.r:detag))
     (nreversef result)))
 
 

@@ -21,7 +21,7 @@
 
 (declaim (inline tag))
 (defun tag (tag word)
-  (declare (type word word)
+  (declare (type (or cell word) word)
            (type tag tag))
   (dpb (1- tag) (byte +tag-size+ +word-size+) word))
 

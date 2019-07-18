@@ -24,5 +24,11 @@
                              '(= ?zuzia zuzia)))
 
   (print (cl-ds:consume-front *answer*))
+  (print (cl-ds:consume-front *answer*)))
+
+(progn
+  (clear)
+  (<- `(rest ?rest ,(li '(? . ?rest))))
+  (defparameter *answer* (?- `(rest ?rest ,(li `(nie-zuzia zuzia)))))
   (print (cl-ds:consume-front *answer*))
   )
