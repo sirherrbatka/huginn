@@ -13,8 +13,8 @@
   ((%variable-symbol :initarg :variable-symbol
                      :reader variable-symbol))
   (:report (lambda (condition stream)
-             (declare (ignore condition))
-             (format stream "Can't bind variable."))))
+             (format stream "Can't bind variable ~a."
+                     (variable-symbol condition)))))
 
 
 (define-condition cant-bind-predicate-error (cant-bind-error)
