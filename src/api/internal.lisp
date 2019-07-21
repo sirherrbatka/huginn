@@ -66,10 +66,8 @@
 (defun handle-cell (execution-state pointer cell)
   (huginn.m.r:tag-case (cell)
     :expression (expression-from-heap execution-state pointer)
-    :variable (if (huginn.m.r:variable-unbound-p cell)
-                  (error 'variable-binding-failed)
-                  (huginn.m.r:dereference-variable execution-state
-                                                   cell))
+    :variable (huginn.m.r:dereference-variable execution-state
+                                               cell)
     :reference (dereference-pointer execution-state
                                     (huginn.m.r:follow-pointer
                                      execution-state

@@ -11,7 +11,10 @@
 
 (define-condition cant-bind-variable-error (cant-bind-error)
   ((%variable-symbol :initarg :variable-symbol
-                     :reader variable-symbol)))
+                     :reader variable-symbol))
+  (:report (lambda (condition stream)
+             (declare (ignore condition))
+             (format stream "Can't bind variable."))))
 
 
 (define-condition cant-bind-predicate-error (cant-bind-error)

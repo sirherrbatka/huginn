@@ -1,0 +1,36 @@
+(cl:in-package #:huginn-user)
+
+(defparameter *data* (make-database 'huginn.m.d:database t))
+
+(defmacro house (nation pet smokes drinks house-color)
+  ``(house ,',nation ,',pet ,',smokes ,',drinks ,',house-color))
+
+(progn
+  (clear)
+
+  (<- `(iright ?left ?right))
+  (<- `(nextto ?x ?y)
+      `(iright ?x ?y))
+  (<- `(nextto ?x ?y)
+      `(iright ?y ?x))
+  (<- (house england ? ? ? red))
+  (<- (house spain dog ? ? ?))
+  (<- (house ? ? ? coffe green))
+  (<- (house ukrain ? ? tea ?))
+  (<- `(iright (house ? ? ? ? ivory)
+               (house ? ? ? ? green)))
+  (<- (house ? snails winston ? ?))
+  (<- (house ? ? kools ? yellow))
+  (<- `(nextto (house ? ? chesterfield ? ?)
+               (house ? fox ? ? ?)))
+  (<- `(nextto (house ? ? kools ? ?)
+               (house ? horse ? ? ?)))
+  (<- (house ? ? luckystrike orange-juice ?))
+  (<- (house japan ? parliments ? ?))
+  (<- `(nextto ,(house norway ? ? ? ?)
+               ,(house ? ? ? ? blue)))
+
+  (defparameter *answer* (?- (house ?nation zebra ? ? ?)
+                             (house ? ? ? water ?)))
+  (print (cl-ds:consume-front *answer*))
+  )

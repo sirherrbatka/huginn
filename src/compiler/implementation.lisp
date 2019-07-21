@@ -142,6 +142,11 @@
            (assert (not (null pointer)))
            (assert (not (eql pointer index)))
            (add (huginn.m.r:tag huginn.m.r:+list-start+ pointer))))
+        ((expressionp elt)
+         (let ((pointer (pointer-for-expression state elt)))
+           (assert (not (null pointer)))
+           (assert (not (eql pointer index)))
+           (add (huginn.m.r:tag huginn.m.r:+expression+ index))))
         ((expression-marker-p elt)
          (let ((pointer (~>> elt expression-marker-content
                              (pointer-for-expression state))))
