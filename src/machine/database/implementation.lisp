@@ -78,7 +78,7 @@
   (check-type cell/word huginn.m.r:cell)
   (let* ((word (huginn.m.r:detag cell/word))
          (index (1- word))
-         (predicates (access-predicates database))
+         (predicates (access-reverse-predicates database))
          (length (length predicates)))
     (when (zerop index)
       (error 'predicate-unbound-error))
