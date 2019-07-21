@@ -30,7 +30,8 @@
   (<- `(nextto ,(house norway ? ? ? ?)
                ,(house ? ? ? ? blue)))
 
-  (defparameter *answer* (?- (house ?nation zebra ? ? ?)
-                             (house ? ? ? water ?)))
+  (defparameter *answer* (?- (house ?zebra-owner zebra ? ? ?)
+                             (house ?water-drinker ? ? water ?)))
+  (print (cl-ds:consume-front *answer*))
   (print (cl-ds:consume-front *answer*))
   )

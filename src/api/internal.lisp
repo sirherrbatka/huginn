@@ -153,7 +153,11 @@
 (defun wrap-into-answers-range (execution-state compilation-state)
   (let* ((variables (~>> compilation-state
                          huginn.c:cells-count
-                         (huginn.c:variables compilation-state 0)))
+                         (huginn.c:variables compilation-state 0)
+                         (remove-if (curry #'string= "?")
+                                    _
+                                    :from-end t
+                                    :key #'symbol-name)))
          (variable-pointers (mapcar (curry #'huginn.c:pointer-for-variable
                                            compilation-state)
                                     variables))
