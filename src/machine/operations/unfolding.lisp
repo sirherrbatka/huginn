@@ -2,7 +2,7 @@
 
 
 (with-compilation-unit ()
-  (declare (optimize (speed 3) (debug 0) (safety 0)
+  (declare (optimize (speed 0) (debug 3) (safety 3)
                      (compilation-speed 0) (space 0)))
 
   (defun unfold (execution-state stack-cell)

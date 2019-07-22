@@ -53,6 +53,7 @@
    #:expand-state-heap
    #:expression-cell-p
    #:fixnum-cell-p
+   #:symbol-tag-of
    #:follow-pointer
    #:index-object
    #:list-end-cell-p

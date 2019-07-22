@@ -73,6 +73,12 @@
   +predicate+ +list-start+ +list-end+ +list-rest+)
 
 
+(defun symbol-tag-of (cell)
+  (declare (type cell cell))
+  (car (find (tag-of cell) +all-tags+
+             :key #'cdr)))
+
+
 +all-tags+
 (defmacro tag-case ((cell) &body cases)
   (assert (every (rcurry #'member '(:variable :reference :expression
