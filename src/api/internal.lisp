@@ -55,8 +55,8 @@
     (with result = `(,(huginn.m.d:predicate-from-cell/word
                        (huginn.m.r:execution-state-database execution-state)
                        (huginn.m.r:dereference-heap-pointer execution-state
-                                                            (1+ pointer)))))
-    (for p from (+ pointer 2))
+                                                            (+ 2 pointer)))))
+    (for p from (+ pointer 3))
     (repeat (1- arity))
     (push (dereference-pointer execution-state p)
           result)
