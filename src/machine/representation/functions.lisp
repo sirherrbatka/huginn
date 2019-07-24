@@ -3,8 +3,7 @@
 
 (defun scan-heap-list (function execution-state pointer)
   (iterate
-    (with heap = (execution-state-heap execution-state))
-    (for cell = (aref heap pointer))
+    (for cell = (dereference-heap-pointer execution-state pointer t))
     (tag-case (cell)
       :list-rest
       (let ((new-pointer (detag cell)))
