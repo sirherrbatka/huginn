@@ -259,14 +259,18 @@
 
 
 (defmethod variables ((compilation-state compilation-state) start end)
-  (~> (collect-range compilation-state start end
-                     :predicate (cl-ds.utils:or* #'variablep
-                                                 #'list-rest-marker-p)
-                     :key (lambda (x)
-                            (if (list-rest-marker-p x)
-                                (list-rest-marker-content x)
-                                x)))
-      remove-duplicates))
+  (~>> (collect-range compilation-state start end
+                      :predicate (cl-ds.utils:or* #'variablep
+                                                  #'list-rest-marker-p)
+                      :key (lambda (x)
+                             (if (list-rest-marker-p x)
+                                 (list-rest-marker-content x)
+                                 x)))
+       (remove-if (curry #'string= "?")
+                  _
+                  :from-end t
+                  :key #'symbol-name)
+       (remove-duplicates _ :from-end t)))
 
 
 (defmethod pointer-for-variable ((state compilation-state)
@@ -313,6 +317,7 @@
                                    #'inlined-fixnum-p
                                    #'list-input-p
                                    #'list-end-marker-p
+                                   #'list-rest-marker-p
                                    #'list-marker-p
                                    #'expression-marker-p
                                    #'predicate-marker-p))
