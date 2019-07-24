@@ -268,9 +268,8 @@
                                  x)))
        (remove-if (curry #'string= "?")
                   _
-                  :from-end t
                   :key #'symbol-name)
-       (remove-duplicates _ :from-end t)))
+       (remove-duplicates _)))
 
 
 (defmethod pointer-for-variable ((state compilation-state)
