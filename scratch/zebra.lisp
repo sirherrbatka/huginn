@@ -13,7 +13,7 @@
   (<- `(member ?item ,(li '(? . ?rest)))
       '(member ?item ?rest))
 
-  (cl-ds:traverse (?- `(= ?list ,(li `(a ? ?)))
+  (cl-ds:traverse (?- `(= ?list ,(li `(? ? ?)))
                       `(member b ?list)
                       `(member c ?list))
                   #'print)

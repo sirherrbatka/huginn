@@ -101,9 +101,12 @@
 (defun list-from-heap (execution-state pointer)
   (let ((result '()))
     (huginn.m.r:scan-heap-list (lambda (pointer cell)
-                                 (push (handle-cell execution-state
-                                                    pointer cell)
-                                       result))
+                                 (if (and (huginn.m.r:variable-cell-p cell)
+                                          (huginn.m.r:variable-unbound-p cell))
+                                     (push :? result)
+                                     (push (handle-cell execution-state
+                                                        pointer cell)
+                                           result)))
                                execution-state
                                (~> (huginn.m.r:dereference-heap-pointer
                                     execution-state pointer)
