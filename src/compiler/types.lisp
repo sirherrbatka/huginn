@@ -80,24 +80,75 @@ This representation is pretty much the same as one used by norvig in the PAIP.
   (~> clause clause-head clause-head-predicate))
 
 
-(defstruct list-input
-  (content))
+(defclass fundamental-marker ()
+  ())
 
 
-(defstruct list-marker
-  (content))
+(defgeneric marker-size (marker))
 
 
-(defstruct list-end-marker)
+(defmethod marker-size ((marker fundamental-marker))
+  1)
 
 
-(defstruct list-rest-marker
-  (content))
+(defclass referencable-mixin (fundamental-marker)
+  ((%object-position :initarg :object-position
+                     :accessor access-object-position)))
 
 
-(defun list-input (content)
-  (make-list-input :content content))
+(defclass pointer-mixin (fundamental-marker)
+  ((%destination :initarg :destination
+                 :accessor access-destination)))
 
 
-(defun list-rest-marker (content)
-  (make-list-rest-marker :content content))
+(defclass complex-mixin (content-marker)
+  ())
+
+
+(defclass potentially-unbound-mixin (fundamental-marker)
+  ((%bound :initarg :bound
+           :accessor access-bound))
+  (:default-initargs :bound nil))
+
+
+(defclass content-mixin (fundamental-marker)
+  ((%content :initarg :content
+             :reader read-content)))
+
+
+(defclass list-rest-marker (referencable-mixin
+                            content-mixin
+                            fundamental-marker)
+  ())
+
+
+(defclass fixnum-marker (content-mixin)
+  ())
+
+
+(defclass variable-marker (referencable-mixin
+                           potentially-unbound-mixin
+                           content-mixin
+                           fundamental-marker)
+  ())
+
+
+(defclass expression-marker (complex-mixin
+                             fundamental-marker)
+  ((%arity :initarg :arity
+           :reader read-arity)))
+
+
+(defclass predicate-marker (content-mixin
+                            fundamental-marker)
+  ())
+
+
+(defclass list-end-marker (fundamental-marker)
+  ())
+
+
+(defclass list-marker (pointer-mixin
+                       complex-mixin
+                       fundamental-marker)
+  ())

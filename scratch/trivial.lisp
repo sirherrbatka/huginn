@@ -40,14 +40,17 @@
   (<- `(member ?item ,(li '(?item . ?rest))))
   (<- `(member ?item ,(li '(? . ?rest)))
       '(member ?item ?rest))
+  (<- `(s ?item))
+  (<- `(member (s b) ?list))
 
   (cl-ds:traverse (?- `(= ?list ,(li `(? ? ?)))
-                      `(member b ?list)
-                      `(member c ?list))
+                      `(member (s a) ?list)
+                      `(member (s b) ?list))
                   #'print))
 
 (progn
   (clear)
+
   (<- `(iright ?left ?right ,(li `(?left ?right . ?))))
   (<- `(iright ?left ?right ,(li `(? . ?rest)))
       `(iright ?left ?right ?rest))
@@ -55,6 +58,7 @@
       `(iright ?x ?y ?list))
   (<- `(nextto ?x ?y ?list)
       `(iright ?y ?x ?list))
+
   (cl-ds:traverse (?- `(iright ?left ?right
                                ,(li '(a b c d e f g))))
                   #'print)

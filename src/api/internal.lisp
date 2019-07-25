@@ -49,18 +49,28 @@
 
 
 (defun expression-from-heap (execution-state pointer)
-  (iterate
-    (with arity = (huginn.m.r:dereference-heap-pointer execution-state
-                                                       (1+ pointer)))
-    (with result = `(,(huginn.m.d:predicate-from-cell/word
-                       (huginn.m.r:execution-state-database execution-state)
-                       (huginn.m.r:dereference-heap-pointer execution-state
-                                                            (+ 2 pointer)))))
-    (for p from (+ pointer 3))
-    (repeat (1- arity))
-    (push (dereference-pointer execution-state p)
-          result)
-    (finally (return (nreversef result)))))
+  (let* ((position (huginn.m.r:follow-pointer execution-state pointer t))
+         (cell (huginn.m.r:dereference-heap-pointer execution-state
+                                                    position))
+         (arity-index (1+ position))
+         (predicate-cell (huginn.m.r:dereference-heap-pointer execution-state
+                                                              (+ 2 position)))
+         (arity (huginn.m.r:dereference-heap-pointer execution-state
+                                                     arity-index)))
+    (assert (> arity 0))
+    (assert (huginn.m.r:expression-cell-p cell))
+    (assert (= (huginn.m.r:detag cell) position))
+    (assert (huginn.m.r:predicate-cell-p predicate-cell))
+    (iterate
+      (with predicate = (huginn.m.d:predicate-from-cell/word
+                         (huginn.m.r:execution-state-database execution-state)
+                         predicate-cell))
+      (with result = (list predicate))
+      (for p from (+ position 3))
+      (repeat (1- arity))
+      (push (dereference-pointer execution-state p)
+            result)
+      (finally (return (nreversef result))))))
 
 
 (defun handle-cell (execution-state pointer cell)
