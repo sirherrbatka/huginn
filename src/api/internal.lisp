@@ -140,7 +140,9 @@
               (huginn.m.o:pop-stack-cells-until-goal execution-state)
               (return-from cl-ds:consume-front (values result t))))
         (go-to-next-answer ()
-          (huginn.m.o:pop-stack-cells-until-goal execution-state))))))
+          (huginn.m.o:pop-stack-cells-until-goal execution-state))
+        (end ()
+          (return-from cl-ds:consume-front (values nil nil)))))))
 
 
 (defmethod cl-ds:reset! ((range answers-stream))
