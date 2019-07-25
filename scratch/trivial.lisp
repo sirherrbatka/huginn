@@ -32,3 +32,32 @@
   (defparameter *answer* (?- `(rest ?rest ,(li `(nie-zuzia zuzia)))))
   (print (cl-ds:consume-front *answer*))
   )
+
+(progn
+  (clear)
+
+  (<- `(= ?item ?item))
+  (<- `(member ?item ,(li '(?item . ?rest))))
+  (<- `(member ?item ,(li '(? . ?rest)))
+      '(member ?item ?rest))
+
+  (cl-ds:traverse (?- `(= ?list ,(li `(? ? ?)))
+                      `(member b ?list)
+                      `(member c ?list))
+                  #'print))
+
+(progn
+  (clear)
+  (<- `(iright ?left ?right ,(li `(?left ?right . ?))))
+  (<- `(iright ?left ?right ,(li `(? . ?rest)))
+      `(iright ?left ?right ?rest))
+  (<- `(nextto ?x ?y ?list)
+      `(iright ?x ?y ?list))
+  (<- `(nextto ?x ?y ?list)
+      `(iright ?y ?x ?list))
+  (cl-ds:traverse (?- `(iright ?left ?right
+                               ,(li '(a b c d e f g))))
+                  #'print)
+  (cl-ds:traverse (?- `(nextto ?x ?y
+                               ,(li '(a b c d e f g))))
+                  #'print))
