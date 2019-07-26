@@ -92,7 +92,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
    (%pointer :initarg :pointer
              :accessor access-pointer))
   (:default-initargs
-   :queue (cl-ds.queues.2-3-tree:make-mutable-2-3-queue)
+   :queue (make 'flexichain:standard-flexichain)
    :pointer 0
    :markers (make-hash-table :test 'eq)))
 
@@ -147,6 +147,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 
 
 (defclass expression-marker (complex-mixin
+                             pointer-mixin
                              fundamental-marker)
   ((%arity :initarg :arity
            :reader read-arity)))
@@ -202,10 +203,15 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 (defgeneric queue-size (flattening))
 (defgeneric next-object (flattening))
 (defgeneric markers-for (flattening exp class))
-(defgeneric enque-expression/variable/list/fixnum (flattening exp))
-(defgeneric enqueue (flattening exp)
+(defgeneric enqueue-expression/variable/list/fixnum (flattening exp
+                                                     direction))
+(defgeneric enqueue-front (flattening exp)
   (:method ((flattening flattening) exp)
-    (~> flattening read-queue (cl-ds:put! exp))
+    (~> flattening read-queue (flexichain:push-start exp))
+    flattening))
+(defgeneric enqueue-back (flattening exp)
+  (:method ((flattening flattening) exp)
+    (~> flattening read-queue (flexichain:push-end exp))
     flattening))
 (defgeneric enqueue-markers-content (flattening marker)
   (:method ((flattening flattening) (marker fundamental-marker))
@@ -221,13 +227,23 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 
 
 (defmethod enqueue-expression/variable/list/fixnum ((flattening flattening)
-                                                    exp)
+                                                    exp
+                                                    direction)
   (cond
-    ((expressionp exp) cl-ds.utils:todo)
-    ((variablep exp) cl-ds.utils:todo)
-    ((list-input-p exp) cl-ds.utils:todo)
-    ((huginn.m.r:fixnum-cell-p exp) cl-ds.utils:todo)
-    (t cl-ds.utils:todo)))
+    ((expressionp exp) (~>> (markers-for flattening exp 'expression-marker)
+                            first
+                            (funcall direction flattening)))
+    ((list-input-p exp) (~>> (markers-for flattening exp 'list-marker)
+                             first
+                             (funcall direction flattening)))
+    ((variablep exp)
+     (~>> (markers-for flattening exp 'variable-marker)
+          (funcall direction flattening)))
+    ((huginn.m.r:fixnum-cell-p exp)
+     (~>> (make 'fixnum-marker :content exp)
+          (funcall direction flattening)))
+    (t (~>> (markers-for flattening exp 'variable-marker)
+            (funcall direction flattening)))))
 
 
 (defmethod ensure-object-position ((marker referencable-mixin) pointer)
@@ -235,7 +251,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 
 
 (defmethod next-object ((flattening flattening))
-  (~> flattening read-queue cl-ds:take-out!))
+  (~> flattening read-queue flexichain:pop-start))
 
 
 (defgeneric markerp (object)
@@ -259,40 +275,54 @@ This representation is pretty much the same as one used by norvig in the PAIP.
              (marker-size object)))
       (fundamental-operation
        (execute flattening object))
-      (t (enque-expression/variable/list/fixnum flattening object)))
+      (t (enqueue-expression/variable/list/fixnum flattening object
+                                                  #'enqueue-back)))
     (finally (return result))))
 
 
-(defmethod enqueue-markers-content ((flattening flattening) (marker expression-marker))
+(defmethod enqueue-markers-content ((flattening flattening)
+                                    (marker expression-marker))
   (let ((content (read-content marker)))
-    (enqueue flattening
-             (first (markers-for flattening
-                                 (first content)
-                                 'predicate-marker)))
+    (~>> (make 'set-destination-operation
+               :marker marker)
+         (enqueue-back flattening))
+    (~>> (markers-for flattening
+                      (first content)
+                      'predicate-marker)
+         first
+         (enqueue-back flattening))
+    (~>> (markers-for flattening
+                      (first content)
+                      'predicate-marker)
+         first
+         (enqueue-back flattening))
     (iterate
-      (for c in (rest content))
-      (enque-expression/variable/list/fixnum flattening c)))
+      (for c in (reverse (rest content)))
+      (enqueue-expression/variable/list/fixnum flattening c
+                                               #'enqueue-back)))
   flattening)
 
 
-(defmethod enqueue-markers-content ((flattening flattening) (marker list-marker))
+(defmethod enqueue-markers-content ((flattening flattening)
+                                    (marker list-marker))
   (iterate
     (with sub = (read-content marker))
     (until (null sub))
     (if (consp sub)
-        (enque-expression/variable/list/fixnum flattening (first sub))
+        (enqueue-expression/variable/list/fixnum flattening (first sub)
+                                                 #'enqueue-back)
         (let ((markers (markers-for flattening sub 'list-rest-marker)))
           (iterate
             (for m in markers)
             (etypecase m
-              (variable-marker (~>> (make 'set-pointer-operation
-                                          :marker m :pin t)
-                                    (enqueue flattening)))
-              (list-rest-marker (enqueue flattening m))))
+              (variable-marker (~>> (make 'set-position-operation
+                                          :marker m)
+                                    (enqueue-back flattening)))
+              (list-rest-marker (enqueue-back flattening m))))
           (leave)))
     (pop sub)
-    (finally (enqueue flattening (make 'list-end-marker)))))
+    (finally (enqueue-back flattening (make 'list-end-marker)))))
 
 
 (defmethod queue-size ((flattening flattening))
-  (~> flattening read-queue cl-ds:size))
+  (~> flattening read-queue flexichain:nb-elements))
