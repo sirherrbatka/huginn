@@ -202,7 +202,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 (defgeneric queue-size (flattening))
 (defgeneric next-object (flattening))
 (defgeneric markers-for (flattening exp class))
-(defgeneric enque-expression/variable/fixnum (flattening exp))
+(defgeneric enque-expression/variable/list/fixnum (flattening exp))
 (defgeneric enqueue (flattening exp)
   (:method ((flattening flattening) exp)
     (~> flattening read-queue (cl-ds:put! exp))
@@ -249,7 +249,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
              (marker-size object)))
       (fundamental-operation
        (execute flattening object))
-      (t (enque-expression/variable/fixnum flattening object)))
+      (t (enque-expression/variable/list/fixnum flattening object)))
     (finally (return result))))
 
 
@@ -261,7 +261,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
                                  'predicate-marker)))
     (iterate
       (for c in (rest content))
-      (enque-expression/variable/fixnum flattening c)))
+      (enque-expression/variable/list/fixnum flattening c)))
   flattening)
 
 
@@ -270,7 +270,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
     (with sub = (read-content marker))
     (until (null sub))
     (if (consp sub)
-        (enque-expression/variable/fixnum flattening (first sub))
+        (enque-expression/variable/list/fixnum flattening (first sub))
         (let ((markers (markers-for flattening sub 'list-rest-marker)))
           (iterate
             (for m in markers)
