@@ -84,21 +84,34 @@ This representation is pretty much the same as one used by norvig in the PAIP.
   ())
 
 
-(defgeneric marker-size (marker))
-
-
-(defmethod marker-size ((marker fundamental-marker))
-  1)
+(defclass flattening ()
+  ((%queue :initarg :queue
+           :reader read-queue)
+   (%markers :initarg :markers
+             :reader read-markers)
+   (%pointer :initarg :pointer
+             :accessor access-pointer))
+  (:default-initargs
+   :queue (cl-ds.queues.2-3-tree:make-mutable-2-3-queue)
+   :pointer 0
+   :markers (make-hash-table :test 'eq)))
 
 
 (defclass referencable-mixin (fundamental-marker)
   ((%object-position :initarg :object-position
-                     :accessor access-object-position)))
+                     :accessor access-object-position)
+   (%pinned :initarg :pinned
+            :accessor access-pinned))
+  (:default-initargs
+   :object-position nil
+   :pinned nil))
 
 
 (defclass pointer-mixin (fundamental-marker)
   ((%destination :initarg :destination
-                 :accessor access-destination)))
+                 :accessor access-destination))
+  (:default-initargs
+   :destination nil))
 
 
 (defclass complex-mixin (content-marker)
@@ -152,3 +165,125 @@ This representation is pretty much the same as one used by norvig in the PAIP.
                        complex-mixin
                        fundamental-marker)
   ())
+
+
+(defclass fundamental-operation ()
+  ())
+
+
+(defclass set-position-operation (fundamental-operation)
+  ((%marker :initarg :marker
+            :reader read-marker)
+   (%pin :initarg :pin
+         :reader read-pin))
+  (:default-initargs
+   :pin nil))
+
+
+(defclass set-destination-operation (fundamental-operation)
+  ((%marker :initarg :marker
+            :reader read-marker)))
+
+
+(defstruct list-input
+  (content))
+
+
+(defun list-input (content)
+  (make-list-input :content content))
+
+
+(defgeneric marker-size (marker)
+  (:method ((marker fundamental-marker))
+    1))
+
+(defgeneric ensure-object-position ())
+(defgeneric execute (flattening operation))
+(defgeneric queue-size (flattening))
+(defgeneric next-object (flattening))
+(defgeneric markers-for (flattening exp class))
+(defgeneric add-expression (flattening exp))
+(defgeneric enqueue (flattening exp)
+  (:method ((flattening flattening) exp)
+    (~> flattening read-queue (cl-ds:put! exp))
+    flattening))
+(defgeneric enqueue-markers-content (flattening marker)
+  (:method ((flattening flattening) (marker fundamental-marker))
+    nil))
+(defgeneric flat-representation (flattening &optional result))
+(defgeneric ensure-object-position (marker pointer)
+  (:method ((marker fundamental-marker) pointer)
+    nil))
+
+
+(defmethod marker-size ((marker expression-marker))
+  2)
+
+
+(defmethod ensure-object-position ((marker referencable-mixin) pointer)
+  (ensure (access-object-position marker) pointer))
+
+
+(defmethod next-object ((flattening flattening))
+  (~> flattening read-queue cl-ds:take-out!))
+
+
+(defgeneric markerp (object)
+  (:method ((object fundamental-marker))
+    t)
+  (:method ((object t))
+    nil))
+
+
+(defmethod flat-representation ((flattening flattening)
+                                &optional (result (vect)))
+  (iterate
+    (until (zerop (queue-size flattening)))
+    (for object = (next-object flattening))
+    (etypecase object
+      (fundamental-marker
+       (ensure-object-position object (access-pointer flattening))
+       (vector-push-extend object result)
+       (enqueue-markers-content flattening object)
+       (incf (access-pointer flattening)
+             (marker-size object)))
+      (fundamental-operation
+       (execute flattening object))
+      (t (add-expression flattening object)))
+    (finally (return result))))
+
+
+(defmethod enqueue-markers-content ((flattening flattening) (marker expression-marker))
+  (let ((content (read-content marker)))
+    (enqueue flattening
+             (first (markers-for flattening
+                                 (first content)
+                                 'predicate-marker)))
+    (iterate
+      (for c in (rest content))
+      (add-expression flattening c)))
+  flattening)
+
+
+(defmethod enqueue-markers-content ((flattening flattening) (marker list-marker))
+  (iterate
+    (with sub = (read-content marker))
+    (until (null sub))
+    (if (consp sub)
+        (add-expression flattening (first sub))
+        (let ((markers (markers-for flattening sub 'list-rest-marker)))
+          (iterate
+            (for m in markers)
+            (etypecase m
+              (variable-marker (enqueue flattening
+                                        (make 'set-pointer-operation
+                                              :marker m
+                                              :pin t)))
+              (list-rest-marker (enqueue flattening m))))
+          (leave)))
+    (pop sub)
+    (finally (enqueue flattening (make 'list-end-marker)))))
+
+
+(defmethod queue-size ((flattening flattening))
+  (~> flattening read-queue cl-ds:size))
