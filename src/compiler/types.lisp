@@ -220,6 +220,16 @@ This representation is pretty much the same as one used by norvig in the PAIP.
   2)
 
 
+(defmethod enqueue-expression/variable/list/fixnum ((flattening flattening)
+                                                    exp)
+  (cond
+    ((expressionp exp) cl-ds.utils:todo)
+    ((variablep exp) cl-ds.utils:todo)
+    ((list-input-p exp) cl-ds.utils:todo)
+    ((huginn.m.r:fixnum-cell-p exp) cl-ds.utils:todo)
+    (t cl-ds.utils:todo)))
+
+
 (defmethod ensure-object-position ((marker referencable-mixin) pointer)
   (ensure (access-object-position marker) pointer))
 
@@ -275,10 +285,9 @@ This representation is pretty much the same as one used by norvig in the PAIP.
           (iterate
             (for m in markers)
             (etypecase m
-              (variable-marker (enqueue flattening
-                                        (make 'set-pointer-operation
-                                              :marker m
-                                              :pin t)))
+              (variable-marker (~>> (make 'set-pointer-operation
+                                          :marker m :pin t)
+                                    (enqueue flattening)))
               (list-rest-marker (enqueue flattening m))))
           (leave)))
     (pop sub)
