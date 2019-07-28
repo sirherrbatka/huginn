@@ -43,13 +43,13 @@
   (<- `(member ?item ,(li '(? . ?rest)))
       '(member ?item ?rest))
   (<- `(s ?item))
-  (<- `(member (s a) ?list))
-  (<- `(member (s b) ?list))
 
   (defparameter *answer* (?- `(= ?list ,(li `(? ? ?)))
                              `(member (s a) ?list)
                              `(member (s b) ?list)))
-  (cl-ds:traverse *answer* #'print))
+  (cl-ds:traverse *answer*
+                  (lambda (x)
+                    (print x))))
 
 (progn
   (clear)

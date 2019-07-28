@@ -141,6 +141,25 @@
                     (huginn.m.r:tag huginn.m.r:+list-start+ list-rest-cell))))
 
 
+  (declaim (inline unify-list-end/list-rest))
+  (-> unify-list-end/list-rest
+      (huginn.m.r:execution-state
+       huginn.m.r:execution-stack-cell
+       huginn.m.r:pointer
+       huginn.m.r:pointer
+       huginn.m.r:cell
+       huginn.m.r:cell)
+      boolean)
+  (defun unify-list-end/list-rest (execution-state execution-stack-cell
+                                   end-pointer rest-pointer
+                                   end-cell rest-cell)
+    (declare (ignore end-pointer))
+    (unless (huginn.m.r:list-rest-unbound-p rest-cell)
+      (return-from unify-list-end/list-rest nil))
+    (alter-cell execution-state execution-stack-cell
+                rest-pointer end-cell))
+
+
   (declaim (inline unify-list-rests))
   (-> unify-list-rests
       (huginn.m.r:execution-state
@@ -203,8 +222,6 @@
                                                           p1 t))
         (for cell2 = (huginn.m.r:dereference-heap-pointer execution-state
                                                           p2 t))
-        (until (and (huginn.m.r:list-end-cell-p cell1)
-                    (huginn.m.r:list-end-cell-p cell2)))
         (for cell1-rest-p = (huginn.m.r:list-rest-cell-p cell1))
         (for cell2-rest-p = (huginn.m.r:list-rest-cell-p cell2))
         (when (and cell1-rest-p cell2-rest-p)
@@ -242,7 +259,9 @@
           (next-iteration))
         (upush p1 p2)
         (incf p1)
-        (incf p2))
+        (incf p2)
+        (until (or (huginn.m.r:list-end-cell-p cell1)
+                   (huginn.m.r:list-end-cell-p cell2))))
       (done t)))
 
 
@@ -593,6 +612,12 @@
                      pointer2
                      (follow-pointer pointer1)
                      cell2))
+        (+reference/list-end+
+         (unify-pair execution-state
+                     execution-stack-cell
+                     pointer2
+                     (follow-pointer pointer1)
+                     cell2))
         (+predicate/predicate+
          (unify-predicates execution-state
                            execution-stack-cell
@@ -608,6 +633,11 @@
          (huginn.m.r:same-cells-p cell1 cell2))
         (+list-end/list-end+
          t)
+        (+list-end/list-rest+
+         (unify-list-end/list-rest execution-state
+                                   execution-stack-cell
+                                   pointer1 pointer2
+                                   cell1 cell2))
         (+list-rest/list-rest+
          (unify-list-rests execution-state
                            execution-stack-cell
