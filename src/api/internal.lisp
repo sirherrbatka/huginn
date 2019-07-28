@@ -49,24 +49,24 @@
 
 
 (defun expression-from-heap (execution-state pointer)
-  (let* ((position (huginn.m.r:follow-pointer execution-state pointer t))
-         (cell (huginn.m.r:dereference-heap-pointer execution-state
-                                                    position))
-         (arity-index (1+ position))
-         (predicate-cell (huginn.m.r:dereference-heap-pointer execution-state
-                                                              (+ 2 position)))
-         (arity (huginn.m.r:dereference-heap-pointer execution-state
-                                                     arity-index)))
+  (let* ((expression-cell (huginn.m.r:dereference-heap-pointer execution-state
+                                                               pointer nil))
+         (expression-pointer (huginn.m.r:detag expression-cell))
+         (arity (~> (huginn.m.r:dereference-heap-pointer execution-state
+                                                         expression-pointer)
+                    huginn.m.r:detag))
+         (predicate-cell (huginn.m.r:dereference-heap-pointer
+                          execution-state
+                          (+ 1 expression-pointer))))
     (assert (> arity 0))
-    (assert (huginn.m.r:expression-cell-p cell))
-    (assert (= (huginn.m.r:detag cell) position))
+    (assert (huginn.m.r:expression-cell-p expression-cell))
     (assert (huginn.m.r:predicate-cell-p predicate-cell))
     (iterate
       (with predicate = (huginn.m.d:predicate-from-cell/word
                          (huginn.m.r:execution-state-database execution-state)
                          predicate-cell))
       (with result = (list predicate))
-      (for p from (+ position 3))
+      (for p from (+ expression-pointer 2))
       (repeat (1- arity))
       (push (dereference-pointer execution-state p)
             result)
@@ -99,8 +99,9 @@
 
 
 (defun dereference-pointer (execution-state pointer)
-  (~>> (huginn.m.r:dereference-heap-pointer execution-state pointer t)
-       (handle-cell execution-state pointer)))
+  (let* ((pointer (huginn.m.r:follow-pointer execution-state pointer t))
+         (cell (huginn.m.r:dereference-heap-pointer execution-state pointer nil)))
+    (handle-cell execution-state pointer cell)))
 
 
 (defmethod dereference-pointer-with-condition-translation

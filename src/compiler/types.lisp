@@ -90,10 +90,13 @@ This representation is pretty much the same as one used by norvig in the PAIP.
    (%markers :initarg :markers
              :reader read-markers)
    (%pointer :initarg :pointer
-             :accessor access-pointer))
+             :accessor access-pointer)
+   (%variable-index :initarg :variable-index
+                    :accessor access-variable-index))
   (:default-initargs
    :queue (make 'flexichain:standard-flexichain)
    :pointer 0
+   :variable-index 0
    :markers (make-hash-table :test 'eq)))
 
 
@@ -114,7 +117,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
    :destination nil))
 
 
-(defclass complex-mixin (content-marker)
+(defclass complex-mixin (content-mixin)
   ())
 
 
@@ -129,8 +132,15 @@ This representation is pretty much the same as one used by norvig in the PAIP.
              :reader read-content)))
 
 
+(defclass indexed-mixin (fundamental-marker)
+  ((%variable-index :initarg :variable-index
+                    :accessor access-variable-index))
+  (:default-initargs :variable-index 0))
+
+
 (defclass list-rest-marker (referencable-mixin
                             content-mixin
+                            indexed-mixin
                             fundamental-marker)
   ())
 
@@ -142,6 +152,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 (defclass variable-marker (referencable-mixin
                            potentially-unbound-mixin
                            content-mixin
+                           indexed-mixin
                            fundamental-marker)
   ())
 
@@ -151,6 +162,11 @@ This representation is pretty much the same as one used by norvig in the PAIP.
                              fundamental-marker)
   ((%arity :initarg :arity
            :reader read-arity)))
+
+
+(defmethod initialize-instance :after ((marker expression-marker)
+                                       &key &allow-other-keys)
+  (setf (slot-value marker '%arity) (~> marker read-content length)))
 
 
 (defclass predicate-marker (content-mixin
@@ -181,9 +197,29 @@ This representation is pretty much the same as one used by norvig in the PAIP.
    :pin nil))
 
 
+(defmethod execute ((flattening flattening)
+                    (operation set-position-operation))
+  (let* ((marker (read-marker operation))
+         (pin (read-pin operation))
+         (marker-pinned (access-pinned operation))
+         (position (access-object-position flattening)))
+    (unless marker-pinned
+      (setf (access-object-position marker) position)
+      (when pin
+        (setf (access-object-position marker) position
+              (access-pinned marker) t)))))
+
+
 (defclass set-destination-operation (fundamental-operation)
   ((%marker :initarg :marker
             :reader read-marker)))
+
+
+(defmethod execute ((flattening flattening)
+                    (operation set-destination-operation))
+  (let* ((marker (read-marker operation))
+         (position (access-pointer flattening)))
+    (setf (access-destination marker) position)))
 
 
 (defstruct list-input
@@ -198,13 +234,14 @@ This representation is pretty much the same as one used by norvig in the PAIP.
   (:method ((marker fundamental-marker))
     1))
 
-(defgeneric ensure-object-position ())
+(defgeneric ensure-object-position (object position))
 (defgeneric execute (flattening operation))
 (defgeneric queue-size (flattening))
 (defgeneric next-object (flattening))
 (defgeneric markers-for (flattening exp class))
 (defgeneric enqueue-expression/variable/list/fixnum (flattening exp
                                                      direction))
+(defgeneric marker->cell (marker position database))
 (defgeneric enqueue-front (flattening exp)
   (:method ((flattening flattening) exp)
     (~> flattening read-queue (flexichain:push-start exp))
@@ -222,8 +259,21 @@ This representation is pretty much the same as one used by norvig in the PAIP.
     nil))
 
 
-(defmethod marker-size ((marker expression-marker))
-  2)
+(defmethod markers-for ((flattening flattening) exp class)
+  (bind ((markers (read-markers flattening))
+         (list (gethash exp markers))
+         (result (find-if (rcurry #'typep class)
+                          list)))
+    (when (null result)
+      (setf result (make-instance class :content exp)
+            list (cons result list)
+            (gethash exp markers) list)
+      (when (typep result 'indexed-mixin)
+        (if (variablep exp)
+            0
+            (setf (access-variable-index result)
+                  (incf (access-variable-index flattening))))))
+    list))
 
 
 (defmethod enqueue-expression/variable/list/fixnum ((flattening flattening)
@@ -233,16 +283,20 @@ This representation is pretty much the same as one used by norvig in the PAIP.
     ((expressionp exp) (~>> (markers-for flattening exp 'expression-marker)
                             first
                             (funcall direction flattening)))
-    ((list-input-p exp) (~>> (markers-for flattening exp 'list-marker)
+    ((list-input-p exp) (~>> (markers-for flattening
+                                          (list-input-content exp)
+                                          'list-marker)
                              first
                              (funcall direction flattening)))
     ((variablep exp)
      (~>> (markers-for flattening exp 'variable-marker)
+          first
           (funcall direction flattening)))
-    ((huginn.m.r:fixnum-cell-p exp)
+    ((inlined-fixnum-p exp)
      (~>> (make 'fixnum-marker :content exp)
           (funcall direction flattening)))
     (t (~>> (markers-for flattening exp 'variable-marker)
+            first
             (funcall direction flattening)))))
 
 
@@ -286,10 +340,8 @@ This representation is pretty much the same as one used by norvig in the PAIP.
     (~>> (make 'set-destination-operation
                :marker marker)
          (enqueue-back flattening))
-    (~>> (markers-for flattening
-                      (first content)
-                      'predicate-marker)
-         first
+    (~>> (make-instance 'fixnum-marker
+                        :content (read-arity marker))
          (enqueue-back flattening))
     (~>> (markers-for flattening
                       (first content)
@@ -297,7 +349,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
          first
          (enqueue-back flattening))
     (iterate
-      (for c in (reverse (rest content)))
+      (for c in (rest content))
       (enqueue-expression/variable/list/fixnum flattening c
                                                #'enqueue-back)))
   flattening)
@@ -305,20 +357,29 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 
 (defmethod enqueue-markers-content ((flattening flattening)
                                     (marker list-marker))
+  (declare (optimize (debug 3)))
+  (~>> (make 'set-destination-operation
+             :marker marker)
+       (enqueue-back flattening))
   (iterate
     (with sub = (read-content marker))
     (until (null sub))
     (if (consp sub)
-        (enqueue-expression/variable/list/fixnum flattening (first sub)
+        (enqueue-expression/variable/list/fixnum flattening
+                                                 (first sub)
                                                  #'enqueue-back)
         (let ((markers (markers-for flattening sub 'list-rest-marker)))
           (iterate
             (for m in markers)
-            (etypecase m
-              (variable-marker (~>> (make 'set-position-operation
-                                          :marker m)
-                                    (enqueue-back flattening)))
-              (list-rest-marker (enqueue-back flattening m))))
+            (typecase m
+              (variable-marker
+               (~>> (make 'set-position-operation :marker m
+                                                  :pin t)
+                    (enqueue-back flattening))
+               (change-class m 'list-rest-marker)
+               (enqueue-back flattening m))
+              (list-rest-marker
+               (enqueue-back flattening m))))
           (leave)))
     (pop sub)
     (finally (enqueue-back flattening (make 'list-end-marker)))))
@@ -326,3 +387,54 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 
 (defmethod queue-size ((flattening flattening))
   (~> flattening read-queue flexichain:nb-elements))
+
+
+(defmethod marker->cell ((marker list-end-marker) position database)
+  (huginn.m.r:tag huginn.m.r:+list-end+ 0))
+
+
+(defgeneric marker-tag (marker)
+  (:method ((marker list-marker))
+    huginn.m.r:+list-start+)
+  (:method ((marker expression-marker))
+    huginn.m.r:+expression+)
+  (:method ((marker list-rest-marker))
+    huginn.m.r:+list-rest+)
+  (:method ((marker variable-marker))
+    huginn.m.r:+variable+))
+
+
+(defmethod marker->cell ((marker pointer-mixin) position database)
+  (huginn.m.r:tag (marker-tag marker)
+                  (access-destination marker)))
+
+
+(defmethod marker->cell ((marker fixnum-marker) position database)
+  (huginn.m.r:tag huginn.m.r:+fixnum+
+                  (read-content marker)))
+
+
+(defmethod marker->cell :around ((marker referencable-mixin)
+                                 position database)
+  (let ((object-position (access-object-position marker)))
+    (if (= position object-position)
+        (call-next-method)
+        (huginn.m.r:tag huginn.m.r:+reference+ object-position))))
+
+
+(defmethod marker->cell ((marker variable-marker) position database)
+  (huginn.m.r:tag huginn.m.r:+variable+
+                  (access-variable-index marker)))
+
+
+(defmethod marker->cell ((marker list-rest-marker) position database)
+  (huginn.m.r:tag huginn.m.r:+list-rest+
+                  (access-variable-index marker)))
+
+
+(defmethod marker->cell ((marker predicate-marker) position database)
+  (huginn.m.r:tag huginn.m.r:+predicate+
+                  (if (~> marker read-content variablep)
+                      0
+                      (~>> marker read-content
+                           (huginn.m.d:index-predicate database)))))

@@ -10,7 +10,8 @@
 
   (defparameter *answer* (?- '(lubi zuzia ?cos)))
 
-  (print (cl-ds:consume-front *answer*)))
+  (print (cl-ds:consume-front *answer*))
+  )
 
 (progn
   (clear)

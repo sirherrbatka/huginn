@@ -86,7 +86,7 @@
       (for word = (huginn.m.r:detag cell))
       (huginn.m.r:tag-case (cell)
         :expression
-        (setf (aref heap i) (huginn.m.r:tag huginn.m.r:+expression+ i))
+        (incf (aref heap i) offset)
         :reference
         (incf (aref heap i) offset)
         :list-start

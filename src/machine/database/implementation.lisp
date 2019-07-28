@@ -30,27 +30,28 @@
                               execution-state
                               goal-pointer)
   (declare (type huginn.m.r:execution-state execution-state)
-           (type huginn.m.r:pointer goal-pointer))
+           (type huginn.m.r:pointer goal-pointer)
+           (optimize (debug 3)))
   (bind ((heap (huginn.m.r:execution-state-heap execution-state))
          ((:flet deref (i))
           (aref heap i))
-         (arity (deref (1+ goal-pointer)))
-         (id (deref goal-pointer))
+         (expression-position (~> goal-pointer deref huginn.m.r:detag))
+         (arity (~> expression-position deref huginn.m.r:detag))
          (buffer (make-array arity
                              :element-type 'huginn.m.r:pointer)))
-    (assert (huginn.m.r:expression-cell-p id))
     (assert (not (zerop arity)))
     (iterate
       (for i from 0 below arity)
-      (setf (aref buffer i) (deref (+ goal-pointer 2 i))))
+      (setf (aref buffer i) (deref (+ expression-position 1 i))))
     (~> database
         clauses
         cl-ds:whole-range
         (cl-ds.alg:only
          (lambda (clause)
-           (let ((content (huginn.m.r:clause-content clause)))
-             (and (eql (aref content 1) arity) ; same arity
-                  (let ((clause-predicate (aref content 2))
+           (let* ((content (huginn.m.r:clause-content clause))
+                  (p (~>> content first-elt huginn.m.r:detag)))
+             (and (eql (huginn.m.r:detag (aref content p)) arity) ; same arity
+                  (let ((clause-predicate (aref content (1+ p)))
                         (goal-predicate (aref buffer 0)))
                     (or (huginn.m.r:predicate-unbound-p goal-predicate)
                         (huginn.m.r:same-cells-p goal-predicate

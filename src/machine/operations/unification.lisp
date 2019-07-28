@@ -308,38 +308,32 @@
   (-> unify-expressions
       (huginn.m.r:execution-state
        huginn.m.r:execution-stack-cell
-       huginn.m.r:pointer huginn.m.r:pointer
-       huginn.m.r:cell huginn.m.r:cell)
+       huginn.m.r:pointer huginn.m.r:pointer)
       boolean)
   (defun unify-expressions (execution-state
                             execution-stack-cell
-                            first-expression-pointer
-                            second-expression-pointer
-                            first-cell
-                            second-cell)
-    (declare (type huginn.m.r:cell first-cell second-cell)
-             (type huginn.m.r:pointer
-                   first-expression-pointer
-                   second-expression-pointer)
+                            first-pointer
+                            second-pointer)
+    (declare (type huginn.m.r:pointer
+                   first-pointer
+                   second-pointer)
              (type huginn.m.r:execution-stack-cell execution-stack-cell)
              (type huginn.m.r:execution-state execution-state))
-    (assert (huginn.m.r:expression-cell-p first-cell))
-    (assert (huginn.m.r:expression-cell-p second-cell))
-    (or (huginn.m.r:same-cells-p first-cell second-cell) ; first cell contains unique ID for the expression. If those matches it is the same expression so unification will succeed.
+    (or (= first-pointer second-pointer)
         (with-unification-stack (execution-state)
-          (let ((first-arity (deref (1+ first-expression-pointer)))
-                (second-arity (deref (1+ second-expression-pointer))))
+          (let* ((first-arity (huginn.m.r:detag (deref first-pointer)))
+                 (second-arity (huginn.m.r:detag (deref second-pointer))))
             (declare (type fixnum first-arity second-arity))
             (unless (huginn.m.r:same-cells-p first-arity second-arity)
               (done nil))
             (iterate
               (declare (type fixnum i j))
               (for j from 0 below first-arity)
-              (for i from 2)
+              (for i from 1)
               (upush (the huginn.m.r:pointer
-                          (+ first-expression-pointer i))
+                          (+ first-pointer i))
                      (the huginn.m.r:pointer
-                          (+ second-expression-pointer i)))))
+                          (+ second-pointer i)))))
           (done t))))
 
 
@@ -608,8 +602,8 @@
         (+expression/expression+
          (unify-expressions execution-state
                             execution-stack-cell
-                            pointer1 pointer2
-                            cell1 cell2))
+                            (huginn.m.r:detag cell1)
+                            (huginn.m.r:detag cell2)))
         (+fixnum/fixnum+
          (huginn.m.r:same-cells-p cell1 cell2))
         (+list-end/list-end+
