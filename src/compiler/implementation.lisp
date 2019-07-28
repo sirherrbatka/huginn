@@ -17,15 +17,6 @@
           :reader read-body)))
 
 
-(defun list-needs-rest-marker-p (list)
-  (check-type list list)
-  (~> list last rest null not))
-
-
-(defun list-input-end (input)
-  (~> input list-input-content last rest))
-
-
 (defmethod content ((state compilation-state)
                     (database huginn.m.d:database))
   (declare (optimize (speed 1) (debug 3)))
@@ -67,9 +58,10 @@
     (check-type body clause)
     (check-type predicate predicate)
    (let ((flattening (make-instance 'flattening)))
-    (enqueue-back flattening head)
-     (flat-representation flattening flat-form)
-     (setf body-pointer (flat-representation-cells-count flat-form))
+     (unless (endp head)
+       (enqueue-back flattening head)
+       (flat-representation flattening flat-form)
+       (setf body-pointer (flat-representation-cells-count flat-form)))
      (iterate
        (for b in body)
        (unless (goalp b)

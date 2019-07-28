@@ -490,13 +490,13 @@
                                     expression-pointer
                                     variable-cell
                                     expression-cell)
-    (declare (ignore expression-cell))
+    (declare (ignore expression-pointer))
     (unless (huginn.m.r:variable-unbound-p variable-cell) ; can't change bound variable
       (return-from unify-variable/expression nil))
     (alter-cell execution-state
                 execution-stack-cell
                 variable-pointer
-                (huginn.m.r:make-reference expression-pointer)))
+                expression-cell))
 
 
   (-> unify-pair
