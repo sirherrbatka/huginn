@@ -201,8 +201,8 @@ This representation is pretty much the same as one used by norvig in the PAIP.
                     (operation set-position-operation))
   (let* ((marker (read-marker operation))
          (pin (read-pin operation))
-         (marker-pinned (access-pinned operation))
-         (position (access-object-position flattening)))
+         (marker-pinned (access-pinned marker))
+         (position (access-pointer flattening)))
     (unless marker-pinned
       (setf (access-object-position marker) position)
       (when pin
@@ -238,7 +238,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 (defgeneric execute (flattening operation))
 (defgeneric queue-size (flattening))
 (defgeneric next-object (flattening))
-(defgeneric markers-for (flattening exp class))
+(defgeneric marker-for (flattening exp class))
 (defgeneric enqueue-expression/variable/list/fixnum (flattening exp
                                                      direction))
 (defgeneric marker->cell (marker position database))
@@ -259,44 +259,37 @@ This representation is pretty much the same as one used by norvig in the PAIP.
     nil))
 
 
-(defmethod markers-for ((flattening flattening) exp class)
+(defmethod marker-for ((flattening flattening) exp class)
   (bind ((markers (read-markers flattening))
-         (list (gethash exp markers))
-         (result (find-if (rcurry #'typep class)
-                          list)))
-    (when (null result)
+         (result (gethash exp markers)))
+    (when (and (not (null class))
+               (null result))
       (setf result (make-instance class :content exp)
-            list (cons result list)
-            (gethash exp markers) list)
-      (when (typep result 'indexed-mixin)
-        (if (variablep exp)
-            0
-            (setf (access-variable-index result)
-                  (incf (access-variable-index flattening))))))
-    list))
+            (gethash exp markers) result)
+      (when (and (typep result 'indexed-mixin)
+                 (not (variablep exp)))
+        (setf (access-variable-index result)
+              (incf (access-variable-index flattening)))))
+    result))
 
 
 (defmethod enqueue-expression/variable/list/fixnum ((flattening flattening)
                                                     exp
                                                     direction)
   (cond
-    ((expressionp exp) (~>> (markers-for flattening exp 'expression-marker)
-                            first
+    ((expressionp exp) (~>> (marker-for flattening exp 'expression-marker)
                             (funcall direction flattening)))
-    ((list-input-p exp) (~>> (markers-for flattening
+    ((list-input-p exp) (~>> (marker-for flattening
                                           (list-input-content exp)
                                           'list-marker)
-                             first
                              (funcall direction flattening)))
     ((variablep exp)
-     (~>> (markers-for flattening exp 'variable-marker)
-          first
+     (~>> (marker-for flattening exp 'variable-marker)
           (funcall direction flattening)))
     ((inlined-fixnum-p exp)
      (~>> (make 'fixnum-marker :content exp)
           (funcall direction flattening)))
-    (t (~>> (markers-for flattening exp 'variable-marker)
-            first
+    (t (~>> (marker-for flattening exp 'variable-marker)
             (funcall direction flattening)))))
 
 
@@ -343,10 +336,9 @@ This representation is pretty much the same as one used by norvig in the PAIP.
     (~>> (make-instance 'fixnum-marker
                         :content (read-arity marker))
          (enqueue-back flattening))
-    (~>> (markers-for flattening
+    (~>> (marker-for flattening
                       (first content)
                       'predicate-marker)
-         first
          (enqueue-back flattening))
     (iterate
       (for c in (rest content))
@@ -368,18 +360,16 @@ This representation is pretty much the same as one used by norvig in the PAIP.
         (enqueue-expression/variable/list/fixnum flattening
                                                  (first sub)
                                                  #'enqueue-back)
-        (let ((markers (markers-for flattening sub 'list-rest-marker)))
-          (iterate
-            (for m in markers)
-            (typecase m
-              (variable-marker
-               (~>> (make 'set-position-operation :marker m
-                                                  :pin t)
-                    (enqueue-back flattening))
-               (change-class m 'list-rest-marker)
-               (enqueue-back flattening m))
-              (list-rest-marker
-               (enqueue-back flattening m))))
+        (let ((marker (marker-for flattening sub 'list-rest-marker)))
+          (etypecase marker
+            (variable-marker
+             (~>> (make 'set-position-operation :marker marker
+                                                :pin t)
+                  (enqueue-back flattening))
+             (change-class marker 'list-rest-marker)
+             (enqueue-back flattening marker))
+            (list-rest-marker
+             (enqueue-back flattening marker)))
           (leave)))
     (pop sub)
     (finally (enqueue-back flattening (make 'list-end-marker)))))

@@ -35,10 +35,10 @@
     (declare (type huginn.m.r:execution-state execution-state))
     (iterate
       (with stack = (huginn.m.r:execution-state-stack execution-state))
-      (while (and (not (null stack))
-                  (huginn.m.r:execution-stack-cell-more-goals-p stack)))
       (setf stack (unfold execution-state stack)
             (huginn.m.r:execution-state-stack execution-state) stack)
+      (while (and (not (null stack))
+                  (huginn.m.r:execution-stack-cell-more-goals-p stack)))
       (finally (return stack))))
 
 

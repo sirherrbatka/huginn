@@ -11,6 +11,7 @@
   (defparameter *answer* (?- '(lubi zuzia ?cos)))
 
   (print (cl-ds:consume-front *answer*))
+  (print (cl-ds:consume-front *answer*))
   )
 
 (progn
@@ -42,7 +43,6 @@
   (<- `(member ?item ,(li '(? . ?rest)))
       '(member ?item ?rest))
   (<- `(s ?item))
-  (<- `(member (s b) ?list))
 
   (cl-ds:traverse (?- `(= ?list ,(li `(? ? ?)))
                       `(member (s a) ?list)

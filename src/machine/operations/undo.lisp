@@ -51,8 +51,24 @@
 (defun pop-stack-cells-until-goal (execution-state)
   (iterate
     (for stack = (huginn.m.r:execution-state-stack execution-state))
-    (while (and (not (huginn.m.r:execution-stack-cell-more-goals-p stack))
-                (not (null stack))))
+    (while (and (not (null stack))
+                (not (huginn.m.r:execution-stack-cell-more-goals-p stack))))
     (setf (huginn.m.r:execution-state-stack execution-state)
           (pop-stack-cell execution-state stack))
+    (finally (return execution-state))))
+
+
+(defun possible-answer (stack)
+  (nth-value (~>> stack huginn.m.r:execution-stack-cell-clauses
+                  cl-ds:peek-front)
+             1))
+
+
+(defun pop-stack-cells-until-possible-answer (execution-state)
+  (iterate
+    (with stack = (huginn.m.r:execution-state-stack execution-state))
+    (until (possible-answer stack))
+    (setf stack (pop-stack-cell execution-state stack)
+          (huginn.m.r:execution-state-stack execution-state) stack)
+    (while (not (null stack)))
     (finally (return execution-state))))
