@@ -76,8 +76,10 @@
 (defun handle-cell (execution-state pointer cell)
   (huginn.m.r:tag-case (cell)
     :expression (expression-from-heap execution-state pointer)
-    :variable (huginn.m.r:dereference-variable execution-state
-                                               cell)
+    :variable (if (huginn.m.r:variable-unbound-p cell)
+                  :?
+                  (huginn.m.r:dereference-variable execution-state
+                                                   cell))
     :reference (dereference-pointer execution-state
                                     (huginn.m.r:follow-pointer
                                      execution-state
@@ -112,12 +114,9 @@
 (defun list-from-heap (execution-state pointer)
   (let ((result '()))
     (huginn.m.r:scan-heap-list (lambda (pointer cell)
-                                 (if (and (huginn.m.r:variable-cell-p cell)
-                                          (huginn.m.r:variable-unbound-p cell))
-                                     (push :? result)
-                                     (push (handle-cell execution-state
-                                                        pointer cell)
-                                           result)))
+                                 (push (handle-cell execution-state
+                                                    pointer cell)
+                                       result))
                                execution-state
                                (~> (huginn.m.r:dereference-heap-pointer
                                     execution-state pointer)
