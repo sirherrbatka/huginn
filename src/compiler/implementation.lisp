@@ -1,6 +1,179 @@
 (cl:in-package #:huginn.compiler)
 
 
+(defmethod marker-for ((flattening flattening) exp class)
+  (if (anonymus-variable-p exp)
+      (make-instance class :content exp)
+      (bind ((markers (read-markers flattening))
+             (result (gethash exp markers)))
+        (when (and (not (null class))
+                   (null result))
+          (setf result (make-instance class :content exp)
+                (gethash exp markers) result)
+          (when (and (typep result 'indexed-mixin)
+                     (not (variablep exp)))
+            (setf (access-variable-index result)
+                  (incf (access-variable-index flattening)))))
+        result)))
+
+
+(defmethod enqueue-expression/variable/list/fixnum ((flattening flattening)
+                                                    exp
+                                                    direction)
+  (cond
+    ((expressionp exp) (~>> (marker-for flattening exp 'expression-marker)
+                            (funcall direction flattening)))
+    ((list-input-p exp) (~>> (marker-for flattening
+                                          (list-input-content exp)
+                                          'list-marker)
+                             (funcall direction flattening)))
+    ((variablep exp)
+     (~>> (marker-for flattening exp 'variable-marker)
+          (funcall direction flattening)))
+    ((inlined-fixnum-p exp)
+     (~>> (make 'fixnum-marker :content exp)
+          (funcall direction flattening)))
+    (t (~>> (marker-for flattening exp 'variable-marker)
+            (funcall direction flattening)))))
+
+
+(defmethod ensure-object-position ((marker referencable-mixin) pointer)
+  (ensure (access-object-position marker) pointer))
+
+
+(defmethod next-object ((flattening flattening))
+  (~> flattening read-queue flexichain:pop-start))
+
+
+(defgeneric markerp (object)
+  (:method ((object fundamental-marker))
+    t)
+  (:method ((object t))
+    nil))
+
+
+(defmethod flat-representation ((flattening flattening)
+                                &optional (result (vect)))
+  (iterate
+    (until (zerop (queue-size flattening)))
+    (for object = (next-object flattening))
+    (etypecase object
+      (fundamental-marker
+       (ensure-object-position object (access-pointer flattening))
+       (vector-push-extend object result)
+       (enqueue-markers-content flattening object)
+       (incf (access-pointer flattening)
+             (marker-size object)))
+      (fundamental-operation
+       (execute flattening object))
+      (t (enqueue-expression/variable/list/fixnum flattening object
+                                                  #'enqueue-back)))
+    (finally (return result))))
+
+
+(defmethod enqueue-markers-content ((flattening flattening)
+                                    (marker expression-marker))
+  (let ((content (read-content marker)))
+    (~>> (make 'set-destination-operation
+               :marker marker)
+         (enqueue-back flattening))
+    (~>> (make-instance 'fixnum-marker
+                        :content (read-arity marker))
+         (enqueue-back flattening))
+    (~>> (marker-for flattening
+                      (first content)
+                      'predicate-marker)
+         (enqueue-back flattening))
+    (iterate
+      (for c in (rest content))
+      (enqueue-expression/variable/list/fixnum flattening c
+                                               #'enqueue-back)))
+  flattening)
+
+
+(defmethod enqueue-markers-content ((flattening flattening)
+                                    (marker list-marker))
+  (declare (optimize (debug 3)))
+  (~>> (make 'set-destination-operation
+             :marker marker)
+       (enqueue-back flattening))
+  (iterate
+    (with sub = (read-content marker))
+    (until (null sub))
+    (if (consp sub)
+        (enqueue-expression/variable/list/fixnum flattening
+                                                 (first sub)
+                                                 #'enqueue-back)
+        (let ((marker (marker-for flattening sub 'list-rest-marker)))
+          (etypecase marker
+            (variable-marker
+             (~>> (make 'set-position-operation :marker marker
+                                                :pin t)
+                  (enqueue-back flattening))
+             (change-class marker 'list-rest-marker)
+             (enqueue-back flattening marker))
+            (list-rest-marker
+             (enqueue-back flattening marker)))
+          (leave)))
+    (pop sub)
+    (finally (enqueue-back flattening (make 'list-end-marker)))))
+
+
+(defmethod queue-size ((flattening flattening))
+  (~> flattening read-queue flexichain:nb-elements))
+
+
+(defmethod marker->cell ((marker list-end-marker) position database)
+  (huginn.m.r:tag huginn.m.r:+list-end+ 0))
+
+
+(defgeneric marker-tag (marker)
+  (:method ((marker list-marker))
+    huginn.m.r:+list-start+)
+  (:method ((marker expression-marker))
+    huginn.m.r:+expression+)
+  (:method ((marker list-rest-marker))
+    huginn.m.r:+list-rest+)
+  (:method ((marker variable-marker))
+    huginn.m.r:+variable+))
+
+
+(defmethod marker->cell ((marker pointer-mixin) position database)
+  (huginn.m.r:tag (marker-tag marker)
+                  (access-destination marker)))
+
+
+(defmethod marker->cell ((marker fixnum-marker) position database)
+  (huginn.m.r:tag huginn.m.r:+fixnum+
+                  (read-content marker)))
+
+
+(defmethod marker->cell :around ((marker referencable-mixin)
+                                 position database)
+  (let ((object-position (access-object-position marker)))
+    (if (= position object-position)
+        (call-next-method)
+        (huginn.m.r:tag huginn.m.r:+reference+ object-position))))
+
+
+(defmethod marker->cell ((marker variable-marker) position database)
+  (huginn.m.r:tag huginn.m.r:+variable+
+                  (access-variable-index marker)))
+
+
+(defmethod marker->cell ((marker list-rest-marker) position database)
+  (huginn.m.r:tag huginn.m.r:+list-rest+
+                  (access-variable-index marker)))
+
+
+(defmethod marker->cell ((marker predicate-marker) position database)
+  (huginn.m.r:tag huginn.m.r:+predicate+
+                  (if (~> marker read-content variablep)
+                      0
+                      (~>> marker read-content
+                           (huginn.m.d:index-predicate database)))))
+
+
 (defclass compilation-state (fundamental-compilation-state)
   ((%values-table :initarg :values-table
                   :reader read-values-table)
