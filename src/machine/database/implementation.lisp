@@ -37,12 +37,12 @@
           (aref heap i))
          (expression-position (~> goal-pointer deref huginn.m.r:detag))
          (arity (~> expression-position deref huginn.m.r:detag))
-         (buffer (make-array arity
-                             :element-type 'huginn.m.r:pointer)))
+         (buffer (make-array arity :element-type 'huginn.m.r:pointer)))
     (assert (not (zerop arity)))
     (iterate
       (for i from 0 below arity)
       (setf (aref buffer i) (deref (+ expression-position 1 i))))
+    (assert (huginn.m.r:predicate-cell-p (aref buffer 0)))
     (~> database
         clauses
         cl-ds:whole-range

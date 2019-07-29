@@ -2,9 +2,6 @@
 
 (defparameter *data* (make-database 'huginn.m.d:database t))
 
-(defmacro house (nation pet smokes drinks house-color)
-  ``(house ,',nation ,',pet ,',smokes ,',drinks ,',house-color))
-
 (progn
   (clear)
 
@@ -22,11 +19,7 @@
       `(iright ?y ?x ?list))
 
   (<- `(zebra ?houses)
-      `(= ?houses ,(li '((house norway ? ? ? ?)
-                         (house ? ? ? ? ?)
-                         (house ? ? ? ? ?)
-                         (house ? ? ? ? ?)
-                         (house ? ? ? ? ?))))
+      `(= ?houses ,(li '((house norway ? ? ? ?) ? ? ? ?)))
       `(member (house england ? ? ? red) ?houses)
       `(member (house spain dog ? ? ?) ?houses)
       `(member (house ? ? ? coffe green) ?houses)
