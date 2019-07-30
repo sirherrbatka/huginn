@@ -48,7 +48,7 @@
         (cl-ds.alg:only
          (lambda (clause)
            (let* ((content (huginn.m.r:clause-content clause))
-                  (expression (first-elt content))
+                  (expression (aref content 0))
                   (p (huginn.m.r:detag expression)))
              (assert (huginn.m.r:expression-cell-p expression))
              (and (eql (huginn.m.r:detag (aref content p)) arity) ; same arity
