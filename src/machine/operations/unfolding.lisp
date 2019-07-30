@@ -46,4 +46,4 @@
     (declare (type huginn.m.r:execution-state execution-state))
     (if (~> execution-state huginn.m.r:execution-state-stack null)
         nil
-        (not (null (unfold-all execution-state))))))
+        (~> execution-state unfold-all null not))))
