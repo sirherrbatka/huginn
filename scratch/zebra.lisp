@@ -68,5 +68,5 @@
                          'single-float)))))))
 
 
-(time-median (500)
+(time-median (50)
  (cl-ds:consume-front (?- '(zebra ?houses))))
