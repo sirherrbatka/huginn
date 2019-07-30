@@ -83,7 +83,7 @@
          (index (1- word))
          (predicates (access-reverse-predicates database))
          (length (length predicates)))
-    (when (zerop index)
+    (when (zerop word)
       (error 'predicate-unbound-error))
     (unless (< index length)
       (error 'unknown-predicate-error :word word))
