@@ -78,11 +78,6 @@
       (for j from source-start below source-end)
       (for cell = (aref source j))
       (setf (aref heap i) cell)
-      (when (and (not (first-iteration-p))
-                 (~>> (1- i)
-                      (aref heap)
-                      huginn.m.r:expression-cell-p))
-        (next-iteration))
       (for word = (huginn.m.r:detag cell))
       (huginn.m.r:tag-case (cell)
         :expression
@@ -106,6 +101,20 @@
                                                 (1+ index)))
             (when (eql index new-index)
               (incf bindings-fill-pointer))))))
+    (iterate
+      (with heap = (huginn.m.r:execution-state-heap execution-state))
+      (for i from destination-start)
+      (for j from source-start below source-end)
+      (for cell = (aref heap i))
+      (huginn.m.r:tag-case (cell)
+        :expression (let ((pointer (huginn.m.r:detag cell)))
+                      (assert (~> heap (aref pointer)
+                                  huginn.m.r:fixnum-cell-p))
+                      (assert (~> heap (aref pointer)
+                                  huginn.m.r:detag
+                                  (> 1)))
+                      (assert (~> heap (aref (1+ pointer))
+                                  huginn.m.r:predicate-cell-p)))))
     bindings-fill-pointer)
 
 

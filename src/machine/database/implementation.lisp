@@ -32,27 +32,29 @@
   (declare (type huginn.m.r:execution-state execution-state)
            (type huginn.m.r:pointer goal-pointer)
            (optimize (debug 3)))
-  (bind ((heap (huginn.m.r:execution-state-heap execution-state))
-         ((:flet deref (i))
-          (aref heap i))
-         (expression-position (~> goal-pointer deref huginn.m.r:detag))
-         (arity (~> expression-position deref huginn.m.r:detag))
-         (buffer (make-array arity :element-type 'huginn.m.r:pointer)))
-    (assert (not (zerop arity)))
-    (iterate
-      (for i from 0 below arity)
-      (setf (aref buffer i) (deref (+ expression-position 1 i))))
-    (assert (huginn.m.r:predicate-cell-p (aref buffer 0)))
+  (bind (((:flet deref (i))
+          (~> execution-state
+              huginn.m.r:execution-state-heap
+              (aref i)))
+         (expression (deref goal-pointer))
+         (expression-position (huginn.m.r:detag expression))
+         (arity-cell (~>  expression-position huginn.m.r:detag deref))
+         (arity (huginn.m.r:detag arity-cell)))
+    (assert (huginn.m.r:expression-cell-p expression))
+    (assert (huginn.m.r:fixnum-cell-p arity-cell))
+    (assert (> arity 1))
     (~> database
         clauses
         cl-ds:whole-range
         (cl-ds.alg:only
          (lambda (clause)
            (let* ((content (huginn.m.r:clause-content clause))
-                  (p (~>> content first-elt huginn.m.r:detag)))
+                  (expression (first-elt content))
+                  (p (huginn.m.r:detag expression)))
+             (assert (huginn.m.r:expression-cell-p expression))
              (and (eql (huginn.m.r:detag (aref content p)) arity) ; same arity
                   (let ((clause-predicate (aref content (1+ p)))
-                        (goal-predicate (aref buffer 0)))
+                        (goal-predicate (deref (1+ expression-position))))
                     (or (huginn.m.r:predicate-unbound-p goal-predicate)
                         (huginn.m.r:same-cells-p goal-predicate
                                                  clause-predicate))))))))))

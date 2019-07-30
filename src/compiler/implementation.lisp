@@ -203,6 +203,17 @@
     (iterate
       (for elt in-vector %flat-representation)
       (~> elt (marker->cell index database) add))
+    (iterate
+      (for elt in-vector result)
+      (huginn.m.r:tag-case (elt)
+        :expression (let ((pointer (huginn.m.r:detag elt)))
+                      (assert (~> result (aref pointer)
+                                  huginn.m.r:fixnum-cell-p))
+                      (assert (~> result (aref pointer)
+                                  huginn.m.r:detag
+                                  (> 1)))
+                      (assert (~> result (aref (1+ pointer))
+                                  huginn.m.r:predicate-cell-p)))))
     result))
 
 
