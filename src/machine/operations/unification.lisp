@@ -618,6 +618,12 @@
                      pointer2
                      (follow-pointer pointer1)
                      cell2))
+        (+reference/expression+
+         (unify-pair execution-state
+                     execution-stack-cell
+                     pointer2
+                     (follow-pointer pointer1)
+                     cell2))
         (+predicate/predicate+
          (unify-predicates execution-state
                            execution-stack-cell
