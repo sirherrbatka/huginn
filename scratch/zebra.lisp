@@ -41,9 +41,9 @@
                ?houses)
       `(member (house ? ? luckystrike orange-juice ?)
                ?houses)
-      `(member (house japan ? parliments ? ?)
+      `(member (house japanese ? parliments ? ?)
                ?houses)
-      `(nextto (house norway ? ? ? ?)
+      `(nextto (house norwegian ? ? ? ?)
                (house ? ? ? ? blue)
                ?houses))
 
