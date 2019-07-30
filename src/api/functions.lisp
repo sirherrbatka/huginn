@@ -73,13 +73,11 @@
                             (for v in-vector variable-bindings)
                             (setf (gethash v table) i)
                             (finally (return table))))
-         (expressions (huginn.c:expressions compilation
-                                            0 total-size))
-         (goals
+         (goal-pointers
           (map 'list
                (curry #'huginn.c:pointer-for-expression
                       compilation)
-               expressions))
+               goals))
          (database (database))
          (execution-state
            (huginn.m.r:make-execution-state
@@ -89,9 +87,9 @@
             :objects-mapping objects-mapping))
          (clauses (huginn.m.d:matching-clauses database
                                                execution-state
-                                               (first goals)))
+                                               (first goal-pointers)))
          (stack (huginn.m.r:make-initial-execution-stack-cell
-                 goals total-size bindings-fill-pointer clauses)))
+                 goal-pointers total-size bindings-fill-pointer clauses)))
     (setf (huginn.m.r:execution-state-stack execution-state) stack)
     (wrap-into-answers-range execution-state
                              compilation)))
