@@ -11,18 +11,19 @@
 (eval-always
   (defmacro cell-combination-case ((cell1 cell2) &body cases)
     (with-gensyms (!tag1 !tag2)
-      `(let ((,!tag1 (the fixnum (1- (huginn.m.r:tag-of ,cell1))))
-             (,!tag2 (the fixnum (1- (huginn.m.r:tag-of ,cell2)))))
-         (declare (type (jumpcase:index ,(length huginn.m.r:+all-tags+))
-                        ,!tag1 ,!tag2))
-         (trivial-jumptables:ejumpcase ,!tag1
+      `(let ((,!tag1 (huginn.m.r:tag-of ,cell1))
+             (,!tag2 (huginn.m.r:tag-of ,cell2)))
+         (case ,!tag1
            ,@(iterate
                (for ptag in huginn.m.r:+all-tags+)
                (collect
-                   `(trivial-jumptables:ejumpcase ,!tag2
-                      ,@(iterate
-                          (for stag in huginn.m.r:+all-tags+)
-                          (collect (find-body-for cases ptag stag)))))))))))
+                   `(,(cdr ptag)
+                     (case ,!tag2
+                       ,@(iterate
+                           (for stag in huginn.m.r:+all-tags+)
+                           (for body = (find-body-for cases ptag stag))
+                           (unless (null body)
+                             (collect (list (cdr stag) body)))))))))))))
 
 
 (with-compilation-unit (:override nil)
