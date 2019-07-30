@@ -2,45 +2,27 @@
 
 
 (eval-always
-  (-> combine-tags (huginn.m.r:tag huginn.m.r:tag) fixnum)
-  (defun combine-tags (tag1 tag2)
-    (logior (ash (1- tag1) (1+ huginn.m.r:+tag-size+))
-            (the fixnum (1- tag2)))))
+  (defun find-body-for (cases tag1 tag2)
+    (second (find (list (first tag1) (first tag2))
+                  cases
+                  :key #'first :test #'equal))))
 
 
 (eval-always
-  (-> combine-cell-tags (huginn.m.r:cell huginn.m.r:cell) fixnum)
-  (defun combine-cell-tags (first-cell second-cell)
-    (declare (type huginn.m.r:cell first-cell second-cell))
-    (combine-tags (huginn.m.r:tag-of first-cell) (huginn.m.r:tag-of second-cell))))
-
-
-(eval-always
-  (defmacro define-tag-combinations ()
-    `(progn
-       ,@(iterate outer
-           (for sub on huginn.m.r:+all-tags+)
-           (for (symbol1 . value1) = (first sub))
-           (iterate
-             (for (symbol2 . value2) in sub)
-             (for combination = (list symbol1 symbol2))
-             (for value = (combine-tags value1 value2))
-             (for constant-name = (intern (format nil "+~a/~a+"
-                                                  (~>> combination
-                                                       first
-                                                       symbol-name
-                                                       (remove #\+ ))
-                                                  (~>> combination
-                                                       second
-                                                       symbol-name
-                                                       (remove #\+ )))))
-             (in outer
-                 (collect `(define-constant ,constant-name ,value))
-                 (collect `(declaim (type fixnum ,constant-name)))))))))
-
-
-(eval-always
-  (define-tag-combinations))
+  (defmacro cell-combination-case ((cell1 cell2) &body cases)
+    (with-gensyms (!tag1 !tag2)
+      `(let ((,!tag1 (the fixnum (1- (huginn.m.r:tag-of ,cell1))))
+             (,!tag2 (the fixnum (1- (huginn.m.r:tag-of ,cell2)))))
+         (declare (type (jumpcase:index ,(length huginn.m.r:+all-tags+))
+                        ,!tag1 ,!tag2))
+         (trivial-jumptables:ejumpcase ,!tag1
+           ,@(iterate
+               (for ptag in huginn.m.r:+all-tags+)
+               (collect
+                   `(trivial-jumptables:ejumpcase ,!tag2
+                      ,@(iterate
+                          (for stag in huginn.m.r:+all-tags+)
+                          (collect (find-body-for cases ptag stag)))))))))))
 
 
 (with-compilation-unit (:override nil)
@@ -552,108 +534,108 @@
       (unless (< cell1 cell2)
         (rotatef cell1 cell2)
         (rotatef pointer1 pointer2))
-      (serapeum:tree-case (combine-cell-tags cell1 cell2)
-        (#.+variable/variable+
+      (cell-combination-case (cell1 cell2)
+        ((huginn.m.r:+variable+ huginn.m.r:+variable+)
          (unify-variables execution-state
                           execution-stack-cell
                           pointer1 pointer2
                           cell1 cell2))
-        (#.+variable/expression+
+        ((huginn.m.r:+variable+ huginn.m.r:+expression+)
          (unify-variable/expression execution-state execution-stack-cell
                                     pointer1 pointer2 cell1 cell2))
-        (#.+variable/fixnum+
+        ((huginn.m.r:+variable+ huginn.m.r:+fixnum+)
          (unify-variable/fixnum execution-state
                                 execution-stack-cell
                                 pointer1 pointer2
                                 cell1 cell2))
-        (#.+variable/reference+
+        ((huginn.m.r:+variable+ huginn.m.r:+reference+)
          (unify-pair execution-state
                      execution-stack-cell
                      pointer1
                      (follow-pointer (huginn.m.r:detag cell2))
                      cell1))
-        (#.+variable/list-start+
+        ((huginn.m.r:+variable+ huginn.m.r:+list-start+)
          (unify-variable/list-start execution-state
                                     execution-stack-cell
                                     pointer1 pointer2
                                     cell1 cell2))
-        (#.+variable/list-rest+
+        ((huginn.m.r:+variable+ huginn.m.r:+list-rest+)
          (unify-list-rest/variable execution-state
                                    execution-stack-cell
                                    pointer2 pointer1
                                    cell2 cell1))
-        (#.+reference/reference+
+        ((huginn.m.r:+reference+ huginn.m.r:+reference+)
          (unify-references execution-state
                            execution-stack-cell
                            pointer1 pointer2
                            cell1 cell2))
-        (#.+reference/fixnum+
+        ((huginn.m.r:+reference+ huginn.m.r:+fixnum+)
          (unify-pair execution-state
                      execution-stack-cell
                      (follow-pointer (huginn.m.r:detag cell1))
                      pointer2
                      nil
                      cell2))
-        (#.+reference/list-start+
+        ((huginn.m.r:+reference+ huginn.m.r:+list-start+)
          (unify-pair execution-state
                      execution-stack-cell
                      pointer2
                      (follow-pointer (huginn.m.r:detag cell1))
                      cell2))
-        (#.+reference/predicate+
+        ((huginn.m.r:+reference+ huginn.m.r:+predicate+)
          (unify-pair execution-state
                      execution-stack-cell
                      pointer2
                      (follow-pointer (huginn.m.r:detag cell1))
                      cell2))
-        (#.+reference/list-rest+
+        ((huginn.m.r:+reference+ huginn.m.r:+list-rest+)
          (unify-pair execution-state
                      execution-stack-cell
                      pointer2
                      (follow-pointer pointer1)
                      cell2))
-        (#.+reference/list-end+
+        ((huginn.m.r:+reference+ huginn.m.r:+list-end+)
          (unify-pair execution-state
                      execution-stack-cell
                      pointer2
                      (follow-pointer pointer1)
                      cell2))
-        (#.+reference/expression+
+        ((huginn.m.r:+reference+ huginn.m.r:+expression+)
          (unify-pair execution-state
                      execution-stack-cell
                      pointer2
                      (follow-pointer pointer1)
                      cell2))
-        (#.+predicate/predicate+
+        ((huginn.m.r:+predicate+ huginn.m.r:+predicate+)
          (unify-predicates execution-state
                            execution-stack-cell
                            pointer1 pointer2
                            cell1 cell2))
 
-        (#.+expression/expression+
+        ((huginn.m.r:+expression+ huginn.m.r:+expression+)
          (unify-expressions execution-state
                             execution-stack-cell
                             (huginn.m.r:detag cell1)
                             (huginn.m.r:detag cell2)))
-        (#.+fixnum/fixnum+
+        ((huginn.m.r:+fixnum+ huginn.m.r:+fixnum+)
          (huginn.m.r:same-cells-p cell1 cell2))
-        (#.+list-end/list-end+
+        ((huginn.m.r:+list-end+ huginn.m.r:+list-end+)
          t)
-        (#.+list-end/list-rest+
+        ((huginn.m.r:+list-end+ huginn.m.r:+list-rest+)
          (unify-list-end/list-rest execution-state
                                    execution-stack-cell
                                    pointer1 pointer2
                                    cell1 cell2))
-        (#.+list-rest/list-rest+
+        ((huginn.m.r:+list-rest+ huginn.m.r:+list-rest+)
          (unify-list-rests execution-state
                            execution-stack-cell
                            pointer1 pointer2
                            cell1 cell2))
-        (#.+list-start/list-start+
+        ((huginn.m.r:+list-start+ huginn.m.r:+list-start+)
          (unify-lists execution-state execution-stack-cell
                       (huginn.m.r:detag cell1)
                       (huginn.m.r:detag cell2)))
-        (#.+list-start/list-rest+
+        ((huginn.m.r:+list-start+ huginn.m.r:+list-rest+)
          (unify-list-start/list-rest execution-state
                                      execution-stack-cell
                                      pointer1 pointer2
