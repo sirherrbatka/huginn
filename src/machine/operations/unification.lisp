@@ -552,113 +552,112 @@
       (unless (< cell1 cell2)
         (rotatef cell1 cell2)
         (rotatef pointer1 pointer2))
-      (switch ((combine-cell-tags cell1 cell2) :test 'eql)
-        (+variable/variable+
+      (serapeum:tree-case (combine-cell-tags cell1 cell2)
+        (#.+variable/variable+
          (unify-variables execution-state
                           execution-stack-cell
                           pointer1 pointer2
                           cell1 cell2))
-        (+variable/expression+
+        (#.+variable/expression+
          (unify-variable/expression execution-state execution-stack-cell
                                     pointer1 pointer2 cell1 cell2))
-        (+variable/fixnum+
+        (#.+variable/fixnum+
          (unify-variable/fixnum execution-state
                                 execution-stack-cell
                                 pointer1 pointer2
                                 cell1 cell2))
-        (+variable/reference+
+        (#.+variable/reference+
          (unify-pair execution-state
                      execution-stack-cell
                      pointer1
                      (follow-pointer (huginn.m.r:detag cell2))
                      cell1))
-        (+variable/list-start+
+        (#.+variable/list-start+
          (unify-variable/list-start execution-state
                                     execution-stack-cell
                                     pointer1 pointer2
                                     cell1 cell2))
-        (+variable/list-rest+
+        (#.+variable/list-rest+
          (unify-list-rest/variable execution-state
                                    execution-stack-cell
                                    pointer2 pointer1
                                    cell2 cell1))
-        (+reference/reference+
+        (#.+reference/reference+
          (unify-references execution-state
                            execution-stack-cell
                            pointer1 pointer2
                            cell1 cell2))
-        (+reference/fixnum+
+        (#.+reference/fixnum+
          (unify-pair execution-state
                      execution-stack-cell
                      (follow-pointer (huginn.m.r:detag cell1))
                      pointer2
                      nil
                      cell2))
-        (+reference/list-start+
+        (#.+reference/list-start+
          (unify-pair execution-state
                      execution-stack-cell
                      pointer2
                      (follow-pointer (huginn.m.r:detag cell1))
                      cell2))
-        (+reference/predicate+
+        (#.+reference/predicate+
          (unify-pair execution-state
                      execution-stack-cell
                      pointer2
                      (follow-pointer (huginn.m.r:detag cell1))
                      cell2))
-        (+reference/list-rest+
+        (#.+reference/list-rest+
          (unify-pair execution-state
                      execution-stack-cell
                      pointer2
                      (follow-pointer pointer1)
                      cell2))
-        (+reference/list-end+
+        (#.+reference/list-end+
          (unify-pair execution-state
                      execution-stack-cell
                      pointer2
                      (follow-pointer pointer1)
                      cell2))
-        (+reference/expression+
+        (#.+reference/expression+
          (unify-pair execution-state
                      execution-stack-cell
                      pointer2
                      (follow-pointer pointer1)
                      cell2))
-        (+predicate/predicate+
+        (#.+predicate/predicate+
          (unify-predicates execution-state
                            execution-stack-cell
                            pointer1 pointer2
                            cell1 cell2))
 
-        (+expression/expression+
+        (#.+expression/expression+
          (unify-expressions execution-state
                             execution-stack-cell
                             (huginn.m.r:detag cell1)
                             (huginn.m.r:detag cell2)))
-        (+fixnum/fixnum+
+        (#.+fixnum/fixnum+
          (huginn.m.r:same-cells-p cell1 cell2))
-        (+list-end/list-end+
+        (#.+list-end/list-end+
          t)
-        (+list-end/list-rest+
+        (#.+list-end/list-rest+
          (unify-list-end/list-rest execution-state
                                    execution-stack-cell
                                    pointer1 pointer2
                                    cell1 cell2))
-        (+list-rest/list-rest+
+        (#.+list-rest/list-rest+
          (unify-list-rests execution-state
                            execution-stack-cell
                            pointer1 pointer2
                            cell1 cell2))
-        (+list-start/list-start+
+        (#.+list-start/list-start+
          (unify-lists execution-state execution-stack-cell
                       (huginn.m.r:detag cell1)
                       (huginn.m.r:detag cell2)))
-        (+list-start/list-rest+
+        (#.+list-start/list-rest+
          (unify-list-start/list-rest execution-state
                                      execution-stack-cell
                                      pointer1 pointer2
-                                     cell1 cell2))
-        (t nil))))
+                                     cell1 cell2)))))
 
 
   (-> unify (huginn.m.r:execution-state
