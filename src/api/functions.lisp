@@ -44,7 +44,6 @@
 (defun <- (head &rest goals)
   (let* ((compilation (make-compilation-state (list* head goals)))
          (content (huginn.c:content compilation (database)))
-         (total-size (length content))
          (body-pointer (huginn.c:body-pointer compilation))
          (variable-bindings (huginn.c:variable-bindings compilation)))
     (~> (huginn.m.r:make-clause
@@ -52,12 +51,10 @@
          :variable-values variable-bindings
          :input (list* head goals)
          :content content
-         :goal-pointers (~> compilation
-                            (huginn.c:expressions body-pointer total-size)
-                            (map '(vector huginn.m.r:pointer)
-                                 (curry #'huginn.c:pointer-for-expression
-                                        compilation)
-                                 _)))
+         :goal-pointers (map '(vector huginn.m.r:pointer)
+                             (curry #'huginn.c:pointer-for-expression
+                                    compilation)
+                             goals))
         add-clause)))
 
 
