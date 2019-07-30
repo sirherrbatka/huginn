@@ -70,7 +70,7 @@
     t)
 
 
-  (declaim (inline unify-variable/list-start))
+  (declaim (notinline unify-variable/list-start))
   (-> unify-variable/list-start
       (huginn.m.r:execution-state
        huginn.m.r:execution-stack-cell
@@ -97,7 +97,7 @@
 
 
 
-  (declaim (inline unify-variable/list-start))
+  (declaim (notinline unify-variable/list-start))
   (-> unify-list-rest/variable
       (huginn.m.r:execution-state
        huginn.m.r:execution-stack-cell
@@ -124,7 +124,7 @@
                     (huginn.m.r:tag huginn.m.r:+list-start+ list-rest-cell))))
 
 
-  (declaim (inline unify-list-end/list-rest))
+  (declaim (notinline unify-list-end/list-rest))
   (-> unify-list-end/list-rest
       (huginn.m.r:execution-state
        huginn.m.r:execution-stack-cell
@@ -143,7 +143,7 @@
                 rest-pointer end-cell))
 
 
-  (declaim (inline unify-list-rests))
+  (declaim (notinline unify-list-rests))
   (-> unify-list-rests
       (huginn.m.r:execution-state
        huginn.m.r:execution-stack-cell
@@ -181,7 +181,7 @@
                          pointer2 cell1)))))
 
 
-  (declaim (inline unify-lists))
+  (declaim (notinline unify-lists))
   (-> unify-lists
       (huginn.m.r:execution-state
        huginn.m.r:execution-stack-cell
@@ -248,7 +248,7 @@
       (done t)))
 
 
-  (declaim (inline unify-list-start/list-rest))
+  (declaim (notinline unify-list-start/list-rest))
   (-> unify-list-start/list-rest
       (huginn.m.r:execution-state
        huginn.m.r:execution-stack-cell
@@ -277,7 +277,7 @@
                             list-rest-word)))))
 
 
-  (declaim (inline unify-list-rest/list-start))
+  (declaim (notinline unify-list-rest/list-start))
   (-> unify-list-rest/list-start
       (huginn.m.r:execution-state
        huginn.m.r:execution-stack-cell
@@ -306,7 +306,7 @@
                  (huginn.m.r:detag list-rest-cell)))
 
 
-  (declaim (inline unify-expressions))
+  (declaim (notinline unify-expressions))
   (-> unify-expressions
       (huginn.m.r:execution-state
        huginn.m.r:execution-stack-cell
@@ -339,7 +339,7 @@
           (done t))))
 
 
-  (declaim (inline unify-references))
+  (declaim (notinline unify-references))
   (-> unify-references
       (huginn.m.r:execution-state
        huginn.m.r:execution-stack-cell
@@ -367,7 +367,7 @@
           (done t))))
 
 
-  (declaim (inline unify-variable/fixnum))
+  (declaim (notinline unify-variable/fixnum))
   (-> unify-variable/fixnum
       (huginn.m.r:execution-state
        huginn.m.r:execution-stack-cell
@@ -393,7 +393,7 @@
                 fixnum-cell))
 
 
-  (declaim (inline unify-variables))
+  (declaim (notinline unify-variables))
   (-> unify-variables
       (huginn.m.r:execution-state
        huginn.m.r:execution-stack-cell
@@ -425,7 +425,7 @@
                          pointer2 cell1)))))
 
 
-  (declaim (inline unify-variable/reference))
+  (declaim (notinline unify-variable/reference))
   (-> unify-variable/reference
       (huginn.m.r:execution-state
        huginn.m.r:execution-stack-cell
@@ -451,7 +451,7 @@
                   variable-cell)))
 
 
-  (declaim (inline unify-predicates))
+  (declaim (notinline unify-predicates))
   (-> unify-predicates
       (huginn.m.r:execution-state
        huginn.m.r:execution-stack-cell
@@ -479,7 +479,7 @@
                          pointer2 cell1)))))
 
 
-  (declaim (inline unify-variable/expression))
+  (declaim (notinline unify-variable/expression))
   (-> unify-variable/expression
       (huginn.m.r:execution-state
        huginn.m.r:execution-stack-cell

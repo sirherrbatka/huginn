@@ -2,7 +2,8 @@
 
 
 (with-compilation-unit (:override nil)
-  (declare (optimize (speed 3) (debug 0) (safety 0) (space 0)))
+  (declare (optimize (speed 3) (debug 0) (safety 0) (space 0)
+                     (compilation-speed 0)))
   ;; this should be performed only after clause was already proven (and therefore copied to heap.
   ;; Code assumes that next stack cell is located DIRECTLY after the current one on the heap
   (defun push-stack-cell (execution-stack-cell clause
@@ -101,20 +102,6 @@
                                                 (1+ index)))
             (when (eql index new-index)
               (incf bindings-fill-pointer))))))
-    (iterate
-      (with heap = (huginn.m.r:execution-state-heap execution-state))
-      (for i from destination-start)
-      (for j from source-start below source-end)
-      (for cell = (aref heap i))
-      (huginn.m.r:tag-case (cell)
-        :expression (let ((pointer (huginn.m.r:detag cell)))
-                      (assert (~> heap (aref pointer)
-                                  huginn.m.r:fixnum-cell-p))
-                      (assert (~> heap (aref pointer)
-                                  huginn.m.r:detag
-                                  (> 1)))
-                      (assert (~> heap (aref (1+ pointer))
-                                  huginn.m.r:predicate-cell-p)))))
     bindings-fill-pointer)
 
 

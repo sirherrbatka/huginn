@@ -49,3 +49,24 @@
 
   (defparameter *answer* (?- '(zebra ?houses)))
   (print (cl-ds:consume-front *answer*)))
+
+(use-package :iterate)
+
+(defmacro time-median ((times) &body body)
+  (alexandria:with-gensyms (!data)
+    `(iterate
+       (with ,!data = (serapeum:vect))
+       (repeat ,times)
+       (for start = (get-internal-real-time))
+       (progn ,@body)
+       (for end = (get-internal-real-time))
+       (for diff = (- end start))
+       (vector-push-extend diff ,!data)
+       (finally
+        (let ((median (alexandria:median ,!data)))
+          (print (coerce (/ median internal-time-units-per-second)
+                         'single-float)))))))
+
+
+(time-median (500)
+ (cl-ds:consume-front (?- '(zebra ?houses))))

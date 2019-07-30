@@ -36,7 +36,8 @@
 (-> tag-of (cell) tag)
 (defun tag-of (cell)
   (declare (type cell cell)
-           (optimize (speed 3) (safety 0)))
+           (optimize (speed 3) (safety 0) (debug 0)
+                     (compilation-speed 0)))
   (1+ (ldb (byte +tag-size+ +word-size+) cell)))
 
 
