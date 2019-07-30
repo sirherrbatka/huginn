@@ -3,31 +3,46 @@
 
 (defmacro with-unification-stack ((execution-state)
                                     &body body)
-    (with-gensyms (!ustack !fill-pointer !state !start !block)
+    (with-gensyms (!ustack !fill-pointer !length !state !start !block)
       `(let* ((,!state ,execution-state)
               (,!ustack (huginn.m.r:execution-state-unification-stack ,!state)))
          (declare (ignorable ,!ustack)
-                  (type (cl-ds.utils:extendable-vector fixnum) ,!ustack))
-         (assert (array-has-fill-pointer-p ,!ustack))
+                  (type (simple-array fixnum (*)) ,!ustack))
          (macrolet ((upush (stack-pointer goal-pointer)
-                      `(progn
-                         (vector-push-extend ,stack-pointer ,',!ustack)
-                         (vector-push-extend ,goal-pointer ,',!ustack)))
+                      `(let ((,',!length (length ,',!ustack))
+                             (,',!fill-pointer
+                               (huginn.m.r:execution-state-unification-stack-fill-pointer
+                                ,',!state)))
+                         (unless (< (the fixnum (+ 2 ,',!fill-pointer))
+                                    ,',!length)
+                           (setf ,',!ustack (adjust-array ,',!ustack (ash ,',!length 2))
+                                 (huginn.m.r:execution-state-unification-stack ,',!state) ,',!ustack))
+                         (setf (aref ,',!ustack ,',!fill-pointer) ,goal-pointer)
+                         (setf (aref ,',!ustack (1+ ,',!fill-pointer)) ,stack-pointer)
+                         (the fixnum (incf (huginn.m.r:execution-state-unification-stack-fill-pointer
+                                            ,',!state) 2))))
                     (upop ((stack-pointer goal-pointer)
                            &body this-body)
-                      `(let* ((,',!fill-pointer (fill-pointer ,',!ustack))
+                      `(let* ((,',!fill-pointer
+                                (huginn.m.r:execution-state-unification-stack-fill-pointer
+                                 ,',!state))
                               (,goal-pointer
                                 (aref ,',!ustack
                                       (the fixnum (1- ,',!fill-pointer))))
                               (,stack-pointer
                                 (aref ,',!ustack
                                       (- ,',!fill-pointer 2))))
-                         (decf (fill-pointer ,',!ustack) 2)
+                         (the fixnum
+                              (decf (huginn.m.r:execution-state-unification-stack-fill-pointer
+                                     ,',!state) 2))
                          ,@this-body))
                     (uclear ()
-                      `(setf (fill-pointer ,',!ustack) 0))
+                      `(setf (huginn.m.r:execution-state-unification-stack-fill-pointer
+                              ,',!state)
+                             0))
                     (uemptyp ()
-                      `(zerop (fill-pointer ,',!ustack)))
+                      `(zerop (huginn.m.r:execution-state-unification-stack-fill-pointer
+                               ,',!state)))
                     (deref (pointer)
                       `(huginn.m.r:dereference-heap-pointer ,',!state
                                                             ,pointer))

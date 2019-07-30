@@ -44,8 +44,8 @@
 
 
 (with-compilation-unit (:override nil)
-  (declare (optimize (speed 0) (debug 3) (safety 3) (space 3)
-                     (compilation-speed 0)))
+  (declare (optimize (speed 3) (debug 0) (safety 0)
+                     (space 0) (compilation-speed 0)))
 
   (-> prepare-unification-stack
       (huginn.m.r:execution-state

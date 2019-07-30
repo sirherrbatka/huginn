@@ -30,8 +30,7 @@
                               execution-state
                               goal-pointer)
   (declare (type huginn.m.r:execution-state execution-state)
-           (type huginn.m.r:pointer goal-pointer)
-           (optimize (debug 3)))
+           (type huginn.m.r:pointer goal-pointer))
   (bind (((:flet deref (i))
           (~> execution-state
               huginn.m.r:execution-state-heap

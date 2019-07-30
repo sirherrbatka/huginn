@@ -93,7 +93,7 @@
 
 (defmethod enqueue-markers-content ((flattening flattening)
                                     (marker list-marker))
-  (declare (optimize (debug 3)))
+  (declare (optimize (speed 3)))
   (~>> (make 'set-destination-operation
              :marker marker)
        (enqueue-back flattening))

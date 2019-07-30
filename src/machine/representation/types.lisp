@@ -77,10 +77,9 @@
     ;; reverse mapping, maps unique index to instance
     (heap +placeholder-array+ :type vector-representation)
     ;; heap, stores both data and code. Fresh clauses are appended at the back. It is a simple array, and fill-pointer is stored in the execution-stack-cell.
-    (unification-stack (make-array 16 :element-type 'fixnum
-                                      :adjustable t
-                                      :fill-pointer 0)
-     :type (cl-ds.utils:extendable-vector fixnum))
+    (unification-stack (make-array 256 :element-type 'fixnum)
+     :type (simple-array fixnum (*)))
+    (unification-stack-fill-pointer 0 :type fixnum)
     ;; shared unification stack. needs to be resetted before using.
     (stack nil :type (or null execution-stack-cell))
     ;; Actual execution stack. If NULL after unfolding, no more answers can be found.

@@ -54,6 +54,7 @@
    #:expression-cell-p
    #:fixnum-cell-p
    #:symbol-tag-of
+   #:execution-state-unification-stack-fill-pointer
    #:follow-pointer
    #:index-object
    #:list-end-cell-p
