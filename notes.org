@@ -17,4 +17,4 @@
 # optimization
 * TODO it would be a good idea to avoid creating separate unwind vector for each execution-stack-frame. It would be better to have just one big (and simple) vector in the execution-state and store just pointers to the end of the vector range corresponding to the end of the whole stack. Specialized simple-arrays are a lot faster in the SBCL and also this should increase the memory reuse.
 ** TODO Alter the definition of execution-state and the execution-stack-frame.
-** TODO Adjust stack unwinding logic, frame copying, execution-state copying.
+** TODO Adjust stack unwinding logic, frame copying, execution-state copying, alter-cell.
