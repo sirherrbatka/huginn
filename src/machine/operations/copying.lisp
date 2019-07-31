@@ -22,6 +22,8 @@
        :heap-fill-pointer new-fill-pointer
        :clause clause
        :heap-pointer fill-pointer
+       :unwind-trail-pointer (huginn.m.r:execution-stack-cell-unwind-trail-pointer
+                              execution-stack-cell)
        :bindings-fill-pointer bindings-fill-pointer)))
 
 

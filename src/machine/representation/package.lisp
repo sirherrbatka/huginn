@@ -37,7 +37,8 @@
    #:execution-stack-cell-clauses
    #:execution-stack-cell-clausese
    #:execution-stack-cell-goals
-   #:execution-stack-cell-heap-cells-trail
+   #:execution-stack-cell-unwind-trail-pointer
+   #:execution-state-unwind-trail
    #:execution-stack-cell-heap-fill-pointer
    #:execution-stack-cell-heap-pointer
    #:execution-stack-cell-more-goals-p

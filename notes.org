@@ -15,6 +15,10 @@
 *** there is a runtime representation (arrays of bytecodes)
 *** there is a compilation representation (something with a decent syntax)
 # optimization
-* TODO it would be a good idea to avoid creating separate unwind vector for each execution-stack-frame. It would be better to have just one big (and simple) vector in the execution-state and store just pointers to the end of the vector range corresponding to the end of the whole stack. Specialized simple-arrays are a lot faster in the SBCL and also this should increase the memory reuse.
-** TODO Alter the definition of execution-state and the execution-stack-frame.
-** TODO Adjust stack unwinding logic, frame copying, execution-state copying, alter-cell.
+* DONE it would be a good idea to avoid creating separate unwind vector for each execution-stack-frame. It would be better to have just one big (and simple) vector in the execution-state and store just pointers to the end of the vector range corresponding to the end of the whole stack. Specialized simple-arrays are a lot faster in the SBCL and also this should increase the memory reuse.
+  CLOSED: [2019-07-31 śro 20:10]
+** DONE Alter the definition of execution-state and the execution-stack-frame.
+   CLOSED: [2019-07-31 śro 20:10]
+** DONE Adjust stack unwinding logic, frame copying, execution-state copying, alter-cell.
+   CLOSED: [2019-07-31 śro 20:10]
+** This actually did not improve performance, but it reduced memory footprint so it is worth it i guess.

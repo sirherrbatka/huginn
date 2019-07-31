@@ -39,17 +39,13 @@
     ;; list of goals (pointers to the heap) for this cell. During unfolding top goal in this cell is selected for proving. If goal can't be proved stack cell will be popped. Therefore this stack represents already proven goals.
     (heap-pointer 0 :type fixnum)
     ;; location of representation of this cell on the heap
-    (heap-cells-trail (make-array 16 :adjustable t
-                                     :fill-pointer 0
-                                     :element-type 'fixnum)
-     :type (cl-ds.utils:extendable-vector fixnum))
-    ;; undo trail for heap-cells. each cons cell in the list contains pair address.value
     (bindings-fill-pointer 0 :type cl-ds.utils:index)
     ;; bindings fill pointer (in the execution-state)
     (heap-fill-pointer 0 :type cl-ds.utils:index)
     ;; heap fill pointer (actual heap is represented as a simple-array
     (previous-cell nil :type (or null execution-stack-cell))
     ;; well, it is stack, what did you expect?
+    (unwind-trail-pointer 0 :type fixnum)
     )
 
 
@@ -77,12 +73,14 @@
     ;; reverse mapping, maps unique index to instance
     (heap +placeholder-array+ :type vector-representation)
     ;; heap, stores both data and code. Fresh clauses are appended at the back. It is a simple array, and fill-pointer is stored in the execution-stack-cell.
-    (unification-stack (make-array 256 :element-type 'fixnum)
+    (unification-stack (make-array 64 :element-type 'fixnum)
      :type (simple-array fixnum (*)))
     (unification-stack-fill-pointer 0 :type fixnum)
     ;; shared unification stack. needs to be resetted before using.
     (stack nil :type (or null execution-stack-cell))
     ;; Actual execution stack. If NULL after unfolding, no more answers can be found.
+    (unwind-trail (make-array 64 :element-type 'fixnum)
+     :type (simple-array fixnum (*)))
     )
 
 
@@ -209,8 +207,8 @@
      :clause (execution-stack-cell-clause execution-stack-cell)
      :goals (execution-stack-cell-goals execution-stack-cell)
      :heap-pointer (execution-stack-cell-heap-pointer execution-stack-cell)
-     :heap-cells-trail (execution-stack-cell-heap-cells-trail
-                        execution-stack-cell)
+     :unwind-trail-pointer (execution-stack-cell-unwind-trail-pointer
+                            execution-stack-cell)
      :bindings-fill-pointer (execution-stack-cell-bindings-fill-pointer
                              execution-stack-cell)
      :heap-fill-pointer (execution-stack-cell-heap-fill-pointer
@@ -233,6 +231,9 @@
      :variable-bindings (~> execution-state
                             execution-state-variable-bindings
                             copy-array)
+     :unwind-trail (~> execution-state
+                       execution-state-unwind-trail
+                       copy-array)
      :stack (~> execution-state
                 execution-state-stack
                 clone-execution-stack-cell))))

@@ -59,14 +59,19 @@
              (type huginn.m.r:execution-stack-cell execution-stack-cell)
              (type huginn.m.r:pointer pointer)
              (type huginn.m.r:cell new-value))
-    (let ((heap-trail (huginn.m.r:execution-stack-cell-heap-cells-trail
-                       execution-stack-cell)))
-      (vector-push-extend pointer heap-trail 2)
-      (vector-push-extend
-       (shiftf (aref (huginn.m.r:execution-state-heap execution-state)
-                     pointer)
-               new-value)
-       heap-trail))
+    (let* ((trail #1=(huginn.m.r:execution-state-unwind-trail execution-state))
+           (trail-pointer #2=(huginn.m.r:execution-stack-cell-unwind-trail-pointer
+                              execution-stack-cell))
+           (length (length trail)))
+      (incf #2# 2)
+      (unless (< #2# length)
+        (setf trail (adjust-array trail (the fixnum (ash length 2)))
+              #1# trail))
+      (setf (aref trail trail-pointer) pointer
+            (aref trail (the fixnum (1+ trail-pointer)))
+            (shiftf (aref (huginn.m.r:execution-state-heap execution-state)
+                          pointer)
+                    new-value)))
     t)
 
 

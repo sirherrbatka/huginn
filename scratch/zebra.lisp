@@ -69,4 +69,9 @@
 
 
 (time-median (50)
- (cl-ds:consume-front (?- '(zebra ?houses))))
+  (cl-ds:consume-front (?- '(zebra ?houses))))
+
+(require :sb-sprof)
+
+(sb-sprof:with-profiling (:loop t :reset t)
+  (cl-ds:consume-front (?- '(zebra ?houses))))

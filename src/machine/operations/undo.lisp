@@ -1,15 +1,23 @@
 (cl:in-package #:huginn.machine.operations)
 
 
-(defun unwind-heap-cells-trail (execution-state trail)
-  (declare (type (cl-ds.utils:extendable-vector fixnum) trail)
+(defun unwind-heap-cells-trail (execution-state execution-stack-cell)
+  (declare (type huginn.m.r:execution-stack-cell execution-stack-cell)
            (type huginn.m.r:execution-state execution-state)
            (optimize (speed 3) (safety 0) (space 0) (debug 0)))
-  (let ((heap (huginn.m.r:execution-state-heap execution-state)))
+  (let ((heap (huginn.m.r:execution-state-heap execution-state))
+        (trail (huginn.m.r:execution-state-unwind-trail execution-state))
+        (trail-start
+          (if-let ((prev (huginn.m.r:execution-stack-cell-previous-cell
+                          execution-stack-cell)))
+            (huginn.m.r:execution-stack-cell-unwind-trail-pointer prev)
+            0))
+        (trail-end (huginn.m.r:execution-stack-cell-unwind-trail-pointer
+                    execution-stack-cell)))
     (iterate
       (declare (type fixnum address i)
                (type huginn.m.r:cell old-value))
-      (for i from 0 by 2 below (length trail))
+      (for i from trail-start by 2 below trail-end)
       (for address = (aref trail i))
       (for old-value = (aref trail (1+ i)))
       (setf (aref heap address) old-value))))
@@ -33,9 +41,7 @@
   (declare (type huginn.m.r:execution-stack-cell execution-stack-cell)
            (type huginn.m.r:execution-state execution-state)
            (optimize (speed 3) (safety 0)))
-  (~>> execution-stack-cell
-       huginn.m.r:execution-stack-cell-heap-cells-trail
-       (unwind-heap-cells-trail execution-state))
+  (unwind-heap-cells-trail execution-state execution-stack-cell)
   (let* ((prev-cell (huginn.m.r:execution-stack-cell-previous-cell execution-stack-cell))
          (lower-bound (if (null prev-cell)
                           0
