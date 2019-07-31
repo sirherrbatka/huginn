@@ -68,10 +68,5 @@
                          'single-float)))))))
 
 
-(time-median (50)
-  (cl-ds:consume-front (?- '(zebra ?houses))))
-
-(require :sb-sprof)
-
-(sb-sprof:with-profiling (:loop t :reset t)
+(time-median (100)
   (cl-ds:consume-front (?- '(zebra ?houses))))
