@@ -1,11 +1,20 @@
 # tasks
-* TODO Heap representation
-* TODO clauses representation
-* TODO unfolding algorithm
-* TODO unification algorithm
-* TODO matching algorithm
+* DONE Heap representation
+  CLOSED: [2019-07-31 śro 11:02]
+* DONE clauses representation
+  CLOSED: [2019-07-31 śro 11:02]
+* DONE unfolding algorithm
+  CLOSED: [2019-07-31 śro 11:02]
+* DONE unification algorithm
+  CLOSED: [2019-07-31 śro 11:02]
+* DONE matching algorithm
+  CLOSED: [2019-07-31 śro 11:02]
 # thoughts
 * should have layered architecture with separation between reprentation and algorithms
 ** … but what kind of representations?
 *** there is a runtime representation (arrays of bytecodes)
 *** there is a compilation representation (something with a decent syntax)
+# optimization
+* TODO it would be a good idea to avoid creating separate unwind vector for each execution-stack-frame. It would be better to have just one big (and simple) vector in the execution-state and store just pointers to the end of the vector range corresponding to the end of the whole stack. Specialized simple-arrays are a lot faster in the SBCL and also this should increase the memory reuse.
+** TODO Alter the definition of execution-state and the execution-stack-frame.
+** TODO Adjust stack unwinding logic, frame copying, execution-state copying.
