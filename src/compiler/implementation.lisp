@@ -391,3 +391,12 @@
                (huginn.m.r:make-reference
                 (the huginn.m.r:pointer (+ ,object-position
                                            ,heap-pointer-symbol)))))))
+
+
+(defmethod cell-copy-form ((marker list-end-marker)
+                           heap-symbol content-symbol
+                           heap-pointer-symbol position)
+  `(setf (aref ,heap-symbol
+               (the huginn.m.r:pointer (+ ,position
+                                          ,heap-pointer-symbol)))
+         ,(huginn.m.r:tag huginn.m.r:+list-end+ 0)))
