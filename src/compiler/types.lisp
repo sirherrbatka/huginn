@@ -257,5 +257,5 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 (defgeneric ensure-object-position (marker pointer)
   (:method ((marker fundamental-marker) pointer)
     nil))
-(defgeneric cell-copy-form (marker heap-symbol content-symbol
+(defgeneric cell-copy-form (marker heap-symbol
                             heap-pointer-symbol index))

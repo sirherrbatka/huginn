@@ -380,8 +380,8 @@
 
 
 (defmethod cell-copy-form :around ((marker referencable-mixin)
-                                   heap-symbol content-symbol
-                                   heap-pointer-symbol position)
+                                   heap-symbol heap-pointer-symbol
+                                   position)
   (let ((object-position (access-object-position marker)))
     (if (= position object-position)
         (call-next-method)
@@ -394,8 +394,8 @@
 
 
 (defmethod cell-copy-form ((marker list-end-marker)
-                           heap-symbol content-symbol
-                           heap-pointer-symbol position)
+                           heap-symbol heap-pointer-symbol
+                           position)
   `(setf (aref ,heap-symbol
                (the huginn.m.r:pointer (+ ,position
                                           ,heap-pointer-symbol)))
