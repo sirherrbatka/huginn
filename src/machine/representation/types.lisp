@@ -23,6 +23,8 @@
 
 
   (defstruct clause
+    (copy-head-function nil :type (or null (-> (execution-state pointer) t)))
+    (copy-body-function nil :type (or null (-> (execution-state pointer) t)))
     (input)
     (goal-pointers +placeholder-pointer-array+ :type (simple-array pointer (*)))
     (variable-values +placeholder-array+ :type simple-vector)

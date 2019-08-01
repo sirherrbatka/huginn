@@ -258,5 +258,6 @@ This representation is pretty much the same as one used by norvig in the PAIP.
   (:method ((marker fundamental-marker) pointer)
     nil))
 (defgeneric cell-copy-form (marker heap-symbol
+                            execution-state-symbol
                             heap-pointer-symbol index
                             database))

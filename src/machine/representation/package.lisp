@@ -31,6 +31,8 @@
    #:dereference-heap-pointer
    #:dereference-variable
    #:detag
+   #:clause-copy-head-function
+   #:clause-copy-body-function
    #:execution-stack-cell
    #:execution-stack-cell-bindings-fill-pointer
    #:execution-stack-cell-clause

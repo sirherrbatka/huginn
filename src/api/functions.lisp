@@ -45,8 +45,20 @@
   (let* ((compilation (make-compilation-state (list* head goals)))
          (content (huginn.c:content compilation (database)))
          (body-pointer (huginn.c:body-pointer compilation))
-         (variable-bindings (huginn.c:variable-bindings compilation)))
+         (variable-bindings (huginn.c:variable-bindings compilation))
+         (copy-head-function (huginn.c:optimized-relocate-cells-function
+                              compilation
+                              (database)
+                              0
+                              body-pointer))
+         (copy-body-function (huginn.c:optimized-relocate-cells-function
+                              compilation
+                              (database)
+                              body-pointer
+                              (length content))))
     (~> (huginn.m.r:make-clause
+         :copy-head-function copy-head-function
+         :copy-body-function copy-body-function
          :body-pointer body-pointer
          :variable-values variable-bindings
          :input (list* head goals)

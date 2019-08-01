@@ -36,4 +36,5 @@
 
 (defgeneric variable-bindings (compilation-state))
 
-(defgeneric optimized-relocate-cells-function (compilation-state start end))
+(defgeneric optimized-relocate-cells-function (compilation-state database
+                                               start end))
