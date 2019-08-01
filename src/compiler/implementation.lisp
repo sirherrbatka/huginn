@@ -377,3 +377,15 @@
                              (~> x read-content variablep not))))
        (delete-duplicates _ :from-end t)
        (cl-ds.utils:transform #'read-content)))
+
+
+(defmethod cell-copy-form :around ((marker referencable-mixin)
+                                   heap-symbol content-symbol
+                                   heap-pointer-symbol position)
+  (let ((object-position (access-object-position marker)))
+    (if (= position object-position)
+        (call-next-method)
+        `(setf (aref ,heap-symbol
+                     (the huginn.m.r:pointer (+ ,position ,heap-pointer-symbol)))
+               (huginn.m.r:make-reference
+                (the huginn.m.r:pointer (+ ,object-position ,heap-pointer-symbol)))))))
