@@ -35,3 +35,5 @@
 (defgeneric predicate (compilation-state))
 
 (defgeneric variable-bindings (compilation-state))
+
+(defgeneric optimized-relocate-cells-function (compilation-state start end))

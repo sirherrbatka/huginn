@@ -14,6 +14,7 @@
    #:expression
    #:expressions
    #:fundamental-compilation-state
+   #:optimized-relocate-cells-function
    #:head
    #:invalid-goal
    #:invalid-predicate
