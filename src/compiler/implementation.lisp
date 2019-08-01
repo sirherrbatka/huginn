@@ -400,3 +400,12 @@
                (the huginn.m.r:pointer (+ ,position
                                           ,heap-pointer-symbol)))
          ,(huginn.m.r:tag huginn.m.r:+list-end+ 0)))
+
+
+(defmethod cell-copy-form ((marker fixnum-marker)
+                           heap-symbol content-symbol
+                           heap-pointer-symbol position)
+  `(setf (aref ,heap-symbol (the huginn.m.r:pointer
+                                 (+ ,position
+                                    ,heap-pointer-symbol)))
+         ,(huginn.m.r:tag huginn.m.r:+fixnum+ (read-content marker))))
