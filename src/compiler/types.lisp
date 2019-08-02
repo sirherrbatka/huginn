@@ -229,12 +229,15 @@ This representation is pretty much the same as one used by norvig in the PAIP.
                             :reader read-execution-state-symbol)
    (%heap-pointer-symbol :initarg :heap-pointer-symbol
                          :reader read-heap-pointer-symbol)
+   (%position :initarg :position
+              :reader read-position)
    (%database :initarg :database
               :reader read-database)))
 
 
 (cl-ds.utils:define-list-of-slots cell-copy-form-arguments
   (%heap-symbol read-heap-symbol)
+  (%position read-position)
   (%execution-state-symbol read-execution-state-symbol)
   (%heap-pointer-symbol read-heap-pointer-symbol)
   (%database read-database))

@@ -474,8 +474,13 @@
                 (with flat = (read-flat-representation compilation-state))
                 (for i from start below end)
                 (for marker = (aref flat i))
-                (collect (cell-copy-form marker 'heap 'execution-state
-                                         'heap-pointer i database))))))))
+                (for arguments = (make-instance 'cell-copy-form-arguments
+                                                :heap-symbol !heap
+                                                :execution-state-symbol !execution-state
+                                                :heap-pointer-symbol !heap-pointer
+                                                :database database
+                                                :position i))
+                (collect (cell-copy-form marker arguments))))))))
 
 
 (defmethod optimized-relocate-cells-function ((compilation-state
