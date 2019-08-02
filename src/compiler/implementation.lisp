@@ -469,18 +469,20 @@
                                     (compilation-speed 0))))
        (let ((,!heap (huginn.m.r:execution-state-heap execution-state)))
          (declare (type (simple-array 'huginn.m.r:cell (*)) heap))
-         (+ ,!bindings-fill-pointer
-            ,@(iterate
-                (with flat = (read-flat-representation compilation-state))
-                (for i from start below end)
-                (for marker = (aref flat i))
-                (for arguments = (make-instance 'cell-copy-form-arguments
-                                                :heap-symbol !heap
-                                                :execution-state-symbol !execution-state
-                                                :heap-pointer-symbol !heap-pointer
-                                                :database database
-                                                :position i))
-                (collect (cell-copy-form marker arguments))))))))
+         ,@(iterate
+             (with flat = (read-flat-representation compilation-state))
+             (for i from start below end)
+             (for marker = (aref flat i))
+             (for arguments = (make-instance
+                               'cell-copy-form-arguments
+                               :heap-symbol !heap
+                               :execution-state-symbol !execution-state
+                               :bindings-fill-pointer-symbol !bindings-fill-pointer
+                               :heap-pointer-symbol !heap-pointer
+                               :database database
+                               :position i))
+             (collect `(incf ','!bindings-fill-pointer
+                             (cell-copy-form marker arguments))))))))
 
 
 (defmethod optimized-relocate-cells-function ((compilation-state

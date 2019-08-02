@@ -231,6 +231,8 @@ This representation is pretty much the same as one used by norvig in the PAIP.
                          :reader read-heap-pointer-symbol)
    (%position :initarg :position
               :reader read-position)
+   (%bindings-fill-pointer :initarg :bindings-fill-pointer
+                           :reader read-bindings-fill-pointer)
    (%database :initarg :database
               :reader read-database)))
 
@@ -240,6 +242,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
   (%position read-position)
   (%execution-state-symbol read-execution-state-symbol)
   (%heap-pointer-symbol read-heap-pointer-symbol)
+  (%bindings-fill-pointer read-bindings-fill-pointer)
   (%database read-database))
 
 
