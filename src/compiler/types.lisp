@@ -222,6 +222,24 @@ This representation is pretty much the same as one used by norvig in the PAIP.
     (setf (access-destination marker) position)))
 
 
+(defclass cell-copy-form-arguments ()
+  ((%heap-symbol :initarg :heap-symbol
+                 :reader read-heap-symbol)
+   (%execution-state-symbol :initarg :execution-state-symbol
+                            :reader read-execution-state-symbol)
+   (%heap-pointer-symbol :initarg :heap-pointer-symbol
+                         :reader read-heap-pointer-symbol)
+   (%database :initarg :database
+              :reader read-database)))
+
+
+(cl-ds.utils:define-list-of-slots cell-copy-form-arguments
+  (%heap-symbol read-heap-symbol)
+  (%execution-state-symbol read-execution-state-symbol)
+  (%heap-pointer-symbol read-heap-pointer-symbol)
+  (%database read-database))
+
+
 (defstruct list-input
   (content))
 
@@ -257,7 +275,4 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 (defgeneric ensure-object-position (marker pointer)
   (:method ((marker fundamental-marker) pointer)
     nil))
-(defgeneric cell-copy-form (marker heap-symbol
-                            execution-state-symbol
-                            heap-pointer-symbol index
-                            database))
+(defgeneric cell-copy-form (marker arguments))

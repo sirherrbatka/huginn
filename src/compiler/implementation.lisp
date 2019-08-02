@@ -379,93 +379,80 @@
        (cl-ds.utils:transform #'read-content)))
 
 
-(defmethod cell-copy-form :around ((marker referencable-mixin)
-                                   heap-symbol execution-state-symbol
-                                   heap-pointer-symbol
-                                   position database)
-  (let ((object-position (access-object-position marker)))
-    (if (= position object-position)
-        (call-next-method)
-        `(progn (setf (aref ,heap-symbol
-                       (the huginn.m.r:pointer (+ ,position
-                                                  ,heap-pointer-symbol)))
-                      (huginn.m.r:make-reference
-                       (the huginn.m.r:pointer (+ ,object-position
-                                                  ,heap-pointer-symbol))))
-                0))))
+(defmethod cell-copy-form :around ((marker referencable-mixin) arguments)
+  (cl-ds.utils:with-slots-for (arguments cell-copy-form-arguments)
+    (let ((object-position (access-object-position marker)))
+      (if (= position object-position)
+          (call-next-method)
+          `(progn (setf (aref ,heap-symbol
+                              (the huginn.m.r:pointer (+ ,position
+                                                         ,heap-pointer-symbol)))
+                        (huginn.m.r:make-reference
+                         (the huginn.m.r:pointer (+ ,object-position
+                                                    ,heap-pointer-symbol))))
+                  0)))))
 
 
-(defmethod cell-copy-form ((marker list-end-marker)
-                           heap-symbol execution-state-symbol
-                           heap-pointer-symbol
-                           position database)
-  `(progn (setf (aref ,heap-symbol
-                       (the huginn.m.r:pointer (+ ,position
-                                                  ,heap-pointer-symbol)))
-                ,(huginn.m.r:tag huginn.m.r:+list-end+ 0))
-          0))
+(defmethod cell-copy-form ((marker list-end-marker) arguments)
+  (cl-ds.utils:with-slots-for (arguments cell-copy-form-arguments)
+    `(progn (setf (aref ,heap-symbol
+                        (the huginn.m.r:pointer (+ ,position
+                                                   ,heap-pointer-symbol)))
+                  ,(huginn.m.r:tag huginn.m.r:+list-end+ 0))
+            0)))
 
 
-(defmethod cell-copy-form ((marker fixnum-marker)
-                           heap-symbol execution-state-symbol
-                           heap-pointer-symbol
-                           position database)
-  `(progn (setf (aref ,heap-symbol (the huginn.m.r:pointer
-                                         (+ ,position
-                                            ,heap-pointer-symbol)))
-                ,(huginn.m.r:tag huginn.m.r:+fixnum+ (read-content marker)))
-          0))
+(defmethod cell-copy-form ((marker fixnum-marker) arguments)
+  (cl-ds.utils:with-slots-for (arguments cell-copy-form-arguments)
+    `(progn (setf (aref ,heap-symbol (the huginn.m.r:pointer
+                                          (+ ,position
+                                             ,heap-pointer-symbol)))
+                  ,(huginn.m.r:tag huginn.m.r:+fixnum+ (read-content marker)))
+            0)))
 
 
-(defmethod cell-copy-form ((marker pointer-mixin)
-                           heap-symbol execution-state-symbol
-                           heap-pointer-symbol
-                           position database)
-  `(progn (setf (aref ,heap-symbol (the huginn.m.r:pointer
-                                         (+ ,position
-                                            ,heap-pointer-symbol)))
-                ,(huginn.m.r:tag (marker-tag marker)
-                                 (access-destination marker)))
-          0))
+(defmethod cell-copy-form ((marker pointer-mixin) arguments)
+  (cl-ds.utils:with-slots-for (arguments cell-copy-form-arguments)
+    `(progn (setf (aref ,heap-symbol (the huginn.m.r:pointer
+                                          (+ ,position
+                                             ,heap-pointer-symbol)))
+                  ,(huginn.m.r:tag (marker-tag marker)
+                                   (access-destination marker)))
+            0)))
 
 
-(defmethod cell-copy-form ((marker variable-marker)
-                           heap-symbol execution-state-symbol
-                           heap-pointer-symbol
-                           position database)
-  `(progn (setf (aref ,heap-symbol (the huginn.m.r:pointer
-                                         (+ ,position
-                                            ,heap-pointer-symbol)))
-                 ,(huginn.m.r:tag huginn.m.r:+variable+
-                                  (access-variable-index marker)))
-          0))
+(defmethod cell-copy-form ((marker variable-marker) arguments)
+  (cl-ds.utils:with-slots-for (arguments cell-copy-form-arguments)
+    `(progn (setf (aref ,heap-symbol (the huginn.m.r:pointer
+                                          (+ ,position
+                                             ,heap-pointer-symbol)))
+                  ,(huginn.m.r:tag huginn.m.r:+variable+
+                                   (access-variable-index marker)))
+            0)))
 
 
-(defmethod cell-copy-form ((marker list-rest-marker)
-                           heap-symbol execution-state-symbol
-                           heap-pointer-symbol
-                           position database)
-  `(progn (setf (aref ,heap-symbol (the huginn.m.r:pointer
-                                        (+ ,position
-                                           ,heap-pointer-symbol)))
-                ,(huginn.m.r:tag huginn.m.r:+list-rest+
-                                 (access-variable-index marker)))
-          0))
+(defmethod cell-copy-form ((marker list-rest-marker) arguments)
+  (cl-ds.utils:with-slots-for (arguments cell-copy-form-arguments)
+    `(progn (setf (aref ,heap-symbol (the huginn.m.r:pointer
+                                          (+ ,position
+                                             ,heap-pointer-symbol)))
+                  ,(huginn.m.r:tag huginn.m.r:+list-rest+
+                                   (access-variable-index marker)))
+            0)))
 
 
-(defmethod cell-copy-form ((marker predicate-marker)
-                           heap-symbol execution-state-symbol
-                           heap-pointer-symbol position database)
-  `(progn (setf (aref ,heap-symbol (the huginn.m.r:pointer
-                                         (+ ,position
-                                            ,heap-pointer-symbol)))
-                ,(huginn.m.r:tag
-                  huginn.m.r:+predicate+
-                  (if (~> marker read-content variablep)
-                      0
-                      (~>> marker read-content
-                           (huginn.m.d:index-predicate database)))))
-          0))
+(defmethod cell-copy-form ((marker predicate-marker) arguments)
+  (cl-ds.utils:with-slots-for (arguments cell-copy-form-arguments)
+    `(progn (setf (aref ,heap-symbol (the huginn.m.r:pointer
+                                          (+ ,position
+                                             ,heap-pointer-symbol)))
+                  ,(huginn.m.r:tag
+                    huginn.m.r:+predicate+
+                    (if (~> marker read-content variablep)
+                        0
+                        (~>> marker read-content
+                             (huginn.m.d:index-predicate database)))))
+            0)))
 
 
 (defun generate-copying-lambda-form (compilation-state database start end)
