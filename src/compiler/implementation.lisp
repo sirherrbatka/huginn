@@ -384,105 +384,128 @@
     (let ((object-position (access-object-position marker)))
       (if (= position object-position)
           (call-next-method)
-          `(progn (setf (aref ,heap-symbol
-                              (the huginn.m.r:pointer (+ ,position
-                                                         ,heap-pointer-symbol)))
-                        (huginn.m.r:make-reference
-                         (the huginn.m.r:pointer (+ ,object-position
-                                                    ,heap-pointer-symbol))))
-                  0)))))
+          `(setf (aref ,heap-symbol
+                       (the huginn.m.r:pointer (+ ,position
+                                                  ,heap-pointer-symbol)))
+                 (huginn.m.r:make-reference
+                  (the huginn.m.r:pointer (+ ,object-position
+                                             ,heap-pointer-symbol))))))))
 
 
 (defmethod cell-copy-form ((marker list-end-marker) arguments)
   (cl-ds.utils:with-slots-for (arguments cell-copy-form-arguments)
-    `(progn (setf (aref ,heap-symbol
-                        (the huginn.m.r:pointer (+ ,position
-                                                   ,heap-pointer-symbol)))
-                  ,(huginn.m.r:tag huginn.m.r:+list-end+ 0))
-            0)))
+    `(setf (aref ,heap-symbol
+                 (the huginn.m.r:pointer (+ ,position
+                                            ,heap-pointer-symbol)))
+           ,(huginn.m.r:tag huginn.m.r:+list-end+ 0))))
 
 
 (defmethod cell-copy-form ((marker fixnum-marker) arguments)
   (cl-ds.utils:with-slots-for (arguments cell-copy-form-arguments)
-    `(progn (setf (aref ,heap-symbol (the huginn.m.r:pointer
-                                          (+ ,position
-                                             ,heap-pointer-symbol)))
-                  ,(huginn.m.r:tag huginn.m.r:+fixnum+ (read-content marker)))
-            0)))
+    `(setf (aref ,heap-symbol (the huginn.m.r:pointer
+                                   (+ ,position
+                                      ,heap-pointer-symbol)))
+           ,(huginn.m.r:tag huginn.m.r:+fixnum+ (read-content marker)))))
 
 
 (defmethod cell-copy-form ((marker pointer-mixin) arguments)
   (cl-ds.utils:with-slots-for (arguments cell-copy-form-arguments)
-    `(progn (setf (aref ,heap-symbol (the huginn.m.r:pointer
-                                          (+ ,position
-                                             ,heap-pointer-symbol)))
-                  ,(huginn.m.r:tag (marker-tag marker)
-                                   (access-destination marker)))
-            0)))
+    `(setf (aref ,heap-symbol (the huginn.m.r:pointer
+                                   (+ ,position
+                                      ,heap-pointer-symbol)))
+           (huginn.m.r:tag ,(marker-tag marker)
+                           (+ ,heap-pointer-symbol
+                              ,(access-destination marker))))))
 
 
 (defmethod cell-copy-form ((marker variable-marker) arguments)
   (cl-ds.utils:with-slots-for (arguments cell-copy-form-arguments)
-    `(progn (setf (aref ,heap-symbol (the huginn.m.r:pointer
-                                          (+ ,position
-                                             ,heap-pointer-symbol)))
-                  ,(huginn.m.r:tag huginn.m.r:+variable+
-                                   (access-variable-index marker)))
-            0)))
+    (if (~> marker read-content variablep)
+        `(setf (aref ,heap-symbol (the huginn.m.r:pointer
+                                       (+ ,position
+                                          ,heap-pointer-symbol)))
+               ,(huginn.m.r:tag huginn.m.r:+variable+ 0))
+        `(let* ((object (~> ,clause-symbol
+                            huginn.m.r:clause-variable-values
+                            (aref ,(1- (access-variable-index marker)))))
+                (new-index ,bindings-fill-pointer-symbol)
+                (index (huginn.machine.operations:index-object
+                        ,execution-state-symbol
+                        object
+                        new-index)))
+           (declare (type fixnum index new-index))
+           (when (eql index new-index)
+             (the fixnum (incf ,bindings-fill-pointer-symbol)))
+           (setf (aref ,heap-symbol
+                       (the huginn.m.r:pointer
+                            (+ ,position
+                               ,heap-pointer-symbol)))
+                 (huginn.m.r:tag huginn.m.r:+variable+
+                                 (the fixnum (1+ index))))))))
 
 
 (defmethod cell-copy-form ((marker list-rest-marker) arguments)
   (cl-ds.utils:with-slots-for (arguments cell-copy-form-arguments)
-    `(progn (setf (aref ,heap-symbol (the huginn.m.r:pointer
-                                          (+ ,position
-                                             ,heap-pointer-symbol)))
-                  ,(huginn.m.r:tag huginn.m.r:+list-rest+
-                                   (access-variable-index marker)))
-            0)))
+    `(setf (aref ,heap-symbol (the huginn.m.r:pointer
+                                   (+ ,position
+                                      ,heap-pointer-symbol)))
+           ,(huginn.m.r:tag huginn.m.r:+list-rest+
+                            (access-variable-index marker)))))
 
 
 (defmethod cell-copy-form ((marker predicate-marker) arguments)
   (cl-ds.utils:with-slots-for (arguments cell-copy-form-arguments)
-    `(progn (setf (aref ,heap-symbol (the huginn.m.r:pointer
-                                          (+ ,position
-                                             ,heap-pointer-symbol)))
-                  ,(huginn.m.r:tag
-                    huginn.m.r:+predicate+
-                    (if (~> marker read-content variablep)
-                        0
-                        (~>> marker read-content
-                             (huginn.m.d:index-predicate database)))))
-            0)))
+    `(setf (aref ,heap-symbol (the huginn.m.r:pointer
+                                   (+ ,position
+                                      ,heap-pointer-symbol)))
+           ,(huginn.m.r:tag
+             huginn.m.r:+predicate+
+             (if (~> marker read-content variablep)
+                 0
+                 (~>> marker read-content
+                      (huginn.m.d:index-predicate database)))))))
 
 
 (defun generate-copying-lambda-form (compilation-state database start end)
   (with-gensyms (!execution-state
-                 !heap-pointer !heap
-                 !bindings-fill-pointer
-                 !execution-stack-cell)
-    `(lambda (,!execution-state ,!heap-pointer ,!bindings-fill-pointer)
-       (declare (optimize (type huginn.m.r:execution-state
-                                ,!execution-state)
-                          (type huginn.m.r:pointer ,!heap-pointer
+                 !heap-pointer !heap !clause
+                 !bindings-fill-pointer)
+    (if (zerop end)
+        `(lambda (a b c) (declare (ignore b a)) c)
+        `(lambda (,!execution-state ,!heap-pointer ,!bindings-fill-pointer
+                  ,!clause)
+           (declare  (type huginn.m.r:execution-state ,!execution-state)
+                     (ignorable ,!execution-state
+                                ,!heap-pointer
+                                ,!clause
                                 ,!bindings-fill-pointer)
-                          (optimize (speed 3) (debug 0) (safety 0)
-                                    (compilation-speed 0))))
-       (let ((,!heap (huginn.m.r:execution-state-heap execution-state)))
-         (declare (type (simple-array 'huginn.m.r:cell (*)) heap))
-         ,@(iterate
-             (with flat = (read-flat-representation compilation-state))
-             (for i from start below end)
-             (for marker = (aref flat i))
-             (for arguments = (make-instance
-                               'cell-copy-form-arguments
-                               :heap-symbol !heap
-                               :execution-state-symbol !execution-state
-                               :bindings-fill-pointer-symbol !bindings-fill-pointer
-                               :heap-pointer-symbol !heap-pointer
-                               :database database
-                               :position i))
-             (collect `(incf ','!bindings-fill-pointer
-                             (cell-copy-form marker arguments))))))))
+                     (type huginn.m.r:pointer ,!heap-pointer
+                           ,!bindings-fill-pointer)
+                     (optimize (speed 3) (debug 0) (safety 0)
+                               (compilation-speed 0) (space 0)))
+           (huginn.m.r:expand-state-heap ,!execution-state
+                                         (the fixnum
+                                              (+ ,!heap-pointer
+                                                 ,end)))
+           (let ((,!heap (huginn.m.r:execution-state-heap ,!execution-state)))
+             (declare (type (simple-array huginn.m.r:cell (*)) ,!heap)
+                      (ignorable ,!heap))
+             ,@(iterate
+                 (with flat = (read-flat-representation compilation-state))
+                 (for i from start below end)
+                 (for marker = (aref flat i))
+                 (for arguments =
+                      (make-instance
+                       'cell-copy-form-arguments
+                       :heap-symbol !heap
+                       :clause-symbol !clause
+                       :execution-state-symbol !execution-state
+                       :bindings-fill-pointer-symbol !bindings-fill-pointer
+                       :heap-pointer-symbol !heap-pointer
+                       :database database
+                       :position i))
+                 (collect (cell-copy-form marker arguments))))
+           ,!bindings-fill-pointer))))
 
 
 (defmethod optimized-relocate-cells-function ((compilation-state
@@ -491,6 +514,6 @@
                                               start end)
   (check-type start huginn.m.r:pointer)
   (check-type end huginn.m.r:pointer)
-  (compile (generate-copying-lambda-form compilation-state
-                                         database
-                                         start end)))
+  (compile nil (generate-copying-lambda-form compilation-state
+                                             database
+                                             start end)))

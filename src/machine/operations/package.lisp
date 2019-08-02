@@ -9,4 +9,5 @@
    #:pop-stack-cells-until-goal
    #:pop-stack-cell
    #:pop-stack-cells-until-possible-answer
+   #:index-object
    ))

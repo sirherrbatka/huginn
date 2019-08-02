@@ -130,7 +130,9 @@
                           fill-pointer)
           (funcall copy-head-function execution-state
                    (huginn.m.r:execution-stack-cell-heap-fill-pointer
-                    execution-stack-cell)))))
+                    execution-stack-cell)
+                   bindings-fill-pointer
+                   clause))))
 
 
   (defun clause-body-to-heap (execution-state execution-stack-cell)
@@ -160,20 +162,28 @@
               execution-stack-cell))
            (copy-body-function (huginn.m.r:clause-copy-body-function
                                 clause))
-           (new-bindings-fill-pointer (relocate-cells execution-state
-                                                      clause
-                                                      fill-pointer
-                                                      body-pointer
-                                                      full-length
-                                                      bindings-fill-pointer
-                                                      previous-fill-pointer))
+           (new-bindings-fill-pointer 0)
            (goals (~>> execution-stack-cell
                        huginn.m.r:execution-stack-cell-previous-cell
                        huginn.m.r:execution-stack-cell-goals
                        rest
                        (huginn.m.r:clause-goals clause
-                                                previous-fill-pointer)))
-           )
+                                                previous-fill-pointer))))
+      (if (or t (null copy-body-function))
+          (setf new-bindings-fill-pointer
+                (relocate-cells execution-state
+                                clause
+                                fill-pointer
+                                body-pointer
+                                full-length
+                                bindings-fill-pointer
+                                previous-fill-pointer))
+          (setf new-bindings-fill-pointer
+                (funcall copy-body-function
+                         execution-state
+                         previous-fill-pointer
+                         bindings-fill-pointer
+                         clause)))
       (setf (huginn.m.r:execution-stack-cell-bindings-fill-pointer
              execution-stack-cell)
             new-bindings-fill-pointer

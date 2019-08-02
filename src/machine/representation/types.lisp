@@ -24,9 +24,11 @@
 
   (defstruct clause
     (copy-head-function nil
-     :type (or null (-> (execution-state pointer pointer) t)))
+     :type (or null (-> (execution-state pointer pointer clause)
+                        pointer)))
     (copy-body-function nil
-     :type (or null (-> (execution-state pointer pointer) t)))
+     :type (or null (-> (execution-state pointer pointer clause)
+                        pointer)))
     (input)
     (goal-pointers +placeholder-pointer-array+ :type (simple-array pointer (*)))
     (variable-values +placeholder-array+ :type simple-vector)
@@ -124,7 +126,7 @@
   (defun expand-state-heap (state desired-size)
     (declare (type execution-state state)
              (type fixnum desired-size)
-             (optimize (speed 3) (safety 0)))
+             (optimize (speed 3) (safety 0) (debug 0)))
     (let* ((old-heap (execution-state-heap state))
            (old-heap-size (length old-heap))
            (new-heap-size
