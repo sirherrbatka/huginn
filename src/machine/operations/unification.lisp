@@ -648,6 +648,7 @@
                                      cell1 cell2)))))
 
 
+  (declaim (notinline unify))
   (-> unify (huginn.m.r:execution-state
              huginn.m.r:execution-stack-cell
              huginn.m.r:pointer)

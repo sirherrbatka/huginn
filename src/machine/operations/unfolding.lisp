@@ -5,6 +5,7 @@
   (declare (optimize (speed 3) (debug 0) (safety 0)
                      (compilation-speed 0) (space 0)))
 
+  (declaim (inline unfold))
   (defun unfold (execution-state stack-cell)
     (declare (type huginn.m.r:execution-stack-cell stack-cell)
              (type huginn.m.r:execution-state execution-state))
@@ -31,6 +32,7 @@
         (finally (return new-stack-cell)))))
 
 
+  (declaim (notinline unfold-all))
   (defun unfold-all (execution-state)
     (declare (type huginn.m.r:execution-state execution-state))
     (iterate
@@ -42,6 +44,7 @@
       (finally (return stack))))
 
 
+  (declaim (notinline find-answer))
   (defun find-answer (execution-state)
     (declare (type huginn.m.r:execution-state execution-state))
     (if (~> execution-state huginn.m.r:execution-state-stack null)

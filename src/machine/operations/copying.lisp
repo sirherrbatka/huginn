@@ -2,10 +2,11 @@
 
 
 (with-compilation-unit (:override nil)
-  (declare (optimize (speed 3) (debug 0) (safety 0) (space 0)
-                     (compilation-speed 0)))
+  (declare (optimize (speed 3) (debug 0) (safety 0)
+                     (space 0) (compilation-speed 0)))
   ;; this should be performed only after clause was already proven (and therefore copied to heap.
   ;; Code assumes that next stack cell is located DIRECTLY after the current one on the heap
+  (declaim (notinline push-stack-cell))
   (defun push-stack-cell (execution-stack-cell clause
                           bindings-fill-pointer)
     "Constructs new stack-cell based on the clause, trail and execution-stack-cell assuming that this cell is constructed from the first goal of the execution-stack-cell after data was already placed to the heap."
@@ -27,7 +28,7 @@
        :bindings-fill-pointer bindings-fill-pointer)))
 
 
-  ;; (declaim (inline index-object))
+  (declaim (inline index-object))
   (defun index-object (execution-state object bindings-fill-pointer)
     (declare (type huginn.m.r:execution-state execution-state)
              (type fixnum bindings-fill-pointer))
@@ -54,6 +55,7 @@
       lookup-result))
 
 
+  (declaim (notinline relocate-cells))
   (defun relocate-cells (execution-state
                          clause
                          destination-start
@@ -107,6 +109,7 @@
     bindings-fill-pointer)
 
 
+  (declaim (notinline clause-head-to-heap))
   (defun clause-head-to-heap (execution-state execution-stack-cell clause)
     (declare (optimize (speed 3))
              (type huginn.m.r:execution-state execution-state)
@@ -135,6 +138,7 @@
                    clause))))
 
 
+  (declaim (notinline clause-body-to-heap))
   (defun clause-body-to-heap (execution-state execution-stack-cell)
     "Copies clause body to heap. Will extend variable bindings in the state (or fail and return nil if can't do so). Will return: new trail, new bindings-heap-pointer, and success-info. To unroll changes do the execution-state performed by this function it is required to both unwind-variable-bindings-trail and unbind-range"
     (declare (type huginn.m.r:execution-state execution-state)

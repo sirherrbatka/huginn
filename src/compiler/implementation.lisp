@@ -192,7 +192,7 @@
 
 (defmethod content ((state compilation-state)
                     (database huginn.m.d:database))
-  (declare (optimize (speed 1) (debug 3)))
+  (declare (optimize (speed 3)))
   (bind ((result (make-array (cells-count state)
                              :element-type 'huginn.m.r:cell))
          ((:slots %flat-representation) state)
