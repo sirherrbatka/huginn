@@ -2,8 +2,10 @@
 
 
 (with-compilation-unit ()
-  (declare (optimize (speed 3) (safety 0) (debug 0)))
+  (declare (optimize (speed 3) (safety 0) (debug 0)
+                     (compilation-speed 0) (space 0)))
 
+  (declaim (notinline unwind-heap-cells-trail))
   (defun unwind-heap-cells-trail (execution-state execution-stack-cell)
     (declare (type huginn.m.r:execution-stack-cell execution-stack-cell)
              (type huginn.m.r:execution-state execution-state))
@@ -25,6 +27,7 @@
         (setf (aref heap address) old-value))))
 
 
+  (declaim (notinline unbind-range))
   (defun unbind-range (execution-state from below)
     (declare (type huginn.m.r:execution-state execution-state)
              (cl-ds.utils:index from below))
@@ -38,6 +41,7 @@
       (remhash (aref bindings i) objects-mapping)))
 
 
+  (declaim (notinline pop-stack-cell))
   (defun pop-stack-cell (execution-state execution-stack-cell)
     "Pop top stack-cell, adjust execution-state by clearing changes."
     (declare (type huginn.m.r:execution-stack-cell execution-stack-cell)
@@ -55,6 +59,7 @@
     (huginn.m.r:execution-stack-cell-previous-cell execution-stack-cell))
 
 
+  (declaim (notinline pop-stack-cells-until-goal))
   (defun pop-stack-cells-until-goal (execution-state)
     (iterate
       (for stack = (huginn.m.r:execution-state-stack execution-state))
@@ -72,6 +77,7 @@
                1))
 
 
+  (declaim (notinline pop-stack-cells-until-possible-answer))
   (defun pop-stack-cells-until-possible-answer (execution-state)
     (iterate
       (with stack = (huginn.m.r:execution-state-stack execution-state))

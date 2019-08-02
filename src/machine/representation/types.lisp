@@ -3,6 +3,9 @@
 (def <empty-range-placeholder> (make 'cl-ds:empty-range))
 
 (with-compilation-unit (:override nil)
+  (declare (optimize (speed 3) (safety 0) (debug 0)
+                     (space 0) (compilation-speed 0)))
+
   (deftype vector-representation ()
     `(simple-array cell (*)))
 
