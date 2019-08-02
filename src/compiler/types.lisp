@@ -237,7 +237,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
               :reader read-database)))
 
 
-(cl-ds.utils:define-list-of-slots cell-copy-form-arguments
+(cl-ds.utils:define-list-of-slots (cell-copy-form-arguments ())
   (%heap-symbol read-heap-symbol)
   (%position read-position)
   (%execution-state-symbol read-execution-state-symbol)
