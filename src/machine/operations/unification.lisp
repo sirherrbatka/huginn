@@ -26,7 +26,7 @@
                              (collect (list (cdr stag) body)))))))))))))
 
 
-(with-compilation-unit (:override nil)
+(locally
   (declare (optimize (speed 3) (debug 0) (safety 0)
                      (space 0) (compilation-speed 0)))
 
@@ -45,7 +45,7 @@
              goal-pointer)))
 
 
-  (declaim (inline alter-cell))
+  (declaim (notinline alter-cell))
   (-> alter-cell
       (huginn.m.r:execution-state
        huginn.m.r:execution-stack-cell
@@ -648,7 +648,7 @@
                                      cell1 cell2)))))
 
 
-  (declaim (notinline unify))
+  (declaim (inline unify))
   (-> unify (huginn.m.r:execution-state
              huginn.m.r:execution-stack-cell
              huginn.m.r:pointer)

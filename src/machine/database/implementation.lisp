@@ -40,25 +40,28 @@
          (expression (deref goal-pointer))
          (expression-position (huginn.m.r:detag expression))
          (arity-cell (~>  expression-position huginn.m.r:detag deref))
-         (arity (huginn.m.r:detag arity-cell)))
+         (arity (huginn.m.r:detag arity-cell))
+         (clauses (clauses database))
+         (length (fill-pointer clauses)))
+    (declare (type clauses vector))
     (assert (huginn.m.r:expression-cell-p expression))
     (assert (huginn.m.r:fixnum-cell-p arity-cell))
     (assert (> arity 1))
-    (~> database
-        clauses
-        cl-ds:whole-range
-        (cl-ds.alg:only
-         (lambda (clause)
-           (let* ((content (huginn.m.r:clause-content clause))
-                  (expression (aref content 0))
-                  (p (huginn.m.r:detag expression)))
-             (assert (huginn.m.r:expression-cell-p expression))
-             (and (eql (huginn.m.r:detag (aref content p)) arity) ; same arity
-                  (let ((clause-predicate (aref content (1+ p)))
-                        (goal-predicate (deref (1+ expression-position))))
-                    (or (huginn.m.r:predicate-unbound-p goal-predicate)
-                        (huginn.m.r:same-cells-p goal-predicate
-                                                 clause-predicate))))))))))
+    (cl-ds:xpr (:i 0)
+      (when (< i length)
+        (let* ((clause (aref clauses i))
+               (content (huginn.m.r:clause-content clause))
+               (expression (aref content 0))
+               (p (huginn.m.r:detag expression)))
+          (assert (huginn.m.r:expression-cell-p expression))
+          (if (and (eql (huginn.m.r:detag (aref content p)) arity) ; same arity
+                   (let ((clause-predicate (aref content (1+ p)))
+                         (goal-predicate (deref (1+ expression-position))))
+                     (or (huginn.m.r:predicate-unbound-p goal-predicate)
+                         (huginn.m.r:same-cells-p goal-predicate
+                                                  clause-predicate))))
+              (cl-ds:send-recur clause :i (1+ i))
+              (cl-ds:recur :i (1+ i))))))))
 
 
 (defmethod clear ((database database))

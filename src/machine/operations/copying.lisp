@@ -1,7 +1,7 @@
 (cl:in-package #:huginn.machine.operations)
 
 
-(with-compilation-unit (:override nil)
+(locally
   (declare (optimize (speed 3) (debug 0) (safety 0)
                      (space 0) (compilation-speed 0)))
   ;; this should be performed only after clause was already proven (and therefore copied to heap.
@@ -28,7 +28,7 @@
        :bindings-fill-pointer bindings-fill-pointer)))
 
 
-  (declaim (inline index-object))
+  (declaim (notinline index-object))
   (defun index-object (execution-state object bindings-fill-pointer)
     (declare (type huginn.m.r:execution-state execution-state)
              (type fixnum bindings-fill-pointer))

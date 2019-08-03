@@ -1,7 +1,7 @@
 (cl:in-package #:huginn.machine.operations)
 
 
-(with-compilation-unit ()
+(locally
   (declare (optimize (speed 3) (safety 0) (debug 0)
                      (compilation-speed 0) (space 0)))
 

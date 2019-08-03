@@ -1,3 +1,4 @@
+(ql:quickload :huginn)
 (cl:in-package #:huginn-user)
 
 (defparameter *data* (make-database 'huginn.m.d:database t))
@@ -50,23 +51,26 @@
   (defparameter *answer* (?- '(zebra ?houses)))
   (print (cl-ds:consume-front *answer*)))
 
-(use-package :iterate)
-
 (defmacro time-median ((times) &body body)
-  (alexandria:with-gensyms (!data)
-    `(iterate
-       (with ,!data = (serapeum:vect))
-       (repeat ,times)
-       (for start = (get-internal-real-time))
-       (progn ,@body)
-       (for end = (get-internal-real-time))
-       (for diff = (- end start))
-       (vector-push-extend diff ,!data)
-       (finally
-        (let ((median (alexandria:median ,!data)))
-          (print (coerce (/ median internal-time-units-per-second)
-                         'single-float)))))))
+  (alexandria:with-gensyms (!data !i !start !end)
+    `(let ((,!data (serapeum:vect)))
+       (dotimes (,!i ,times)
+         (let ((,!start 0)
+               (,!end 0))
+           (setf ,!start (get-internal-real-time))
+           (progn ,@body)
+           (setf ,!end (get-internal-real-time))
+           (vector-push-extend (- ,!end ,!start) ,!data)))
+       (let ((median (alexandria:median ,!data)))
+         (print (coerce (/ median internal-time-units-per-second)
+                        'single-float))))))
 
+(setf *shared-resources* (make-shared-resources))
 
-(time-median (100)
-  (cl-ds:consume-front (?- '(zebra ?houses))))
+(require :sb-sprof)
+
+(sb-sprof:with-profiling (:loop t :reset t)
+  (next-answer (?- '(zebra ?houses))))
+
+(time-median (50)
+  (next-answer (?- '(zebra ?houses))))

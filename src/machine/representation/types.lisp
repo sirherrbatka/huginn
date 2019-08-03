@@ -2,9 +2,9 @@
 
 (def <empty-range-placeholder> (make 'cl-ds:empty-range))
 
-(with-compilation-unit (:override nil)
-  (declare (optimize (speed 3) (safety 0) (debug 0)
-                     (space 0) (compilation-speed 0)))
+(locally
+    (declare (optimize (speed 3) (safety 0) (debug 0)
+                       (space 0) (compilation-speed 0)))
 
   (deftype vector-representation ()
     `(simple-array cell (*)))
@@ -93,19 +93,21 @@
     )
 
 
+  (declaim (notinline execution-stack-cell-more-goals-p))
   (-> execution-stack-cell-more-goals-p (execution-stack-cell) boolean)
-  (declaim (inline execution-stack-cell-more-goals-p))
   (defun execution-stack-cell-more-goals-p (execution-stack-cell)
     (declare (optimize (speed 3) (safety 0)))
     (~> execution-stack-cell execution-stack-cell-goals endp not))
 
 
+  (declaim (notinline clause-content-length))
   (-> clause-content-length (clause) cl-ds.utils:index)
   (defun clause-content-length (clause)
     (declare (optimize (speed 3) (safety 0)))
     (~> clause clause-content length))
 
 
+  (declaim (notinline clause-goals))
   (defun clause-goals (clause pointer-offset &optional (initial-list '()))
     (declare (type list initial-list)
              (type clause clause)
@@ -120,12 +122,14 @@
     initial-list)
 
 
+  (declaim (notinline clause-body-length))
   (-> clause-body-length (clause) cl-ds.utils:index)
   (defun clause-body-length (clause)
     (declare (optimize (speed 3) (safety 0)))
     (- (clause-content-length clause) (clause-body-pointer clause)))
 
 
+  (declaim (notinline expand-state-heap))
   (defun expand-state-heap (state desired-size)
     (declare (type execution-state state)
              (type fixnum desired-size)
@@ -142,7 +146,7 @@
       state))
 
 
-  (declaim (inline dereference-variable))
+  (declaim (notinline dereference-variable))
   (defun dereference-variable (state cell)
     (declare (type execution-state state)
              (type cell cell)
@@ -204,6 +208,7 @@
         (aref (follow-pointer execution-state pointer follow-references))))
 
 
+  (declaim (notinline clone-execution-stack-cell))
   (-> clone-execution-stack-cell ((or null execution-stack-cell))
       (or null execution-stack-cell))
   (defun clone-execution-stack-cell (execution-stack-cell)
@@ -227,6 +232,7 @@
                         clone-execution-stack-cell)))
 
 
+  (declaim (notinline clone-execution-state))
   (-> clone-execution-state (execution-state) execution-state)
   (defun clone-execution-state (execution-state)
     (make-execution-state
