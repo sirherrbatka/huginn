@@ -8,7 +8,8 @@
 
 (defgeneric cells-count (compilation-state))
 
-(defgeneric content (compilation-state database))
+(defgeneric content (compilation-state database
+                     &optional output))
 
 (defgeneric pointer-for-variable (compilation-state variable))
 

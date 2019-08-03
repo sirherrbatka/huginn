@@ -191,10 +191,15 @@
 
 
 (defmethod content ((state compilation-state)
-                    (database huginn.m.d:database))
-  (declare (optimize (speed 3)))
-  (bind ((result (make-array (cells-count state)
-                             :element-type 'huginn.m.r:cell))
+                    (database huginn.m.d:database)
+                    &optional output)
+  (bind ((cells-count (cells-count state))
+         (result (or (and output
+                          (if (< cells-count (length output))
+                              output
+                              (adjust-array output cells-count)))
+                     (make-array (cells-count state)
+                                 :element-type 'huginn.m.r:cell)))
          ((:slots %flat-representation) state)
          (index 0)
          ((:flet add (item))

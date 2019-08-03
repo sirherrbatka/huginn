@@ -31,13 +31,13 @@
 
 
 (defmethod cl-ds:peek-front ((range answers-stream))
-  (~> range cl-ds:clone cl-ds:consume-front))
+  (~> range cl-ds:clone next-answer))
 
 
 (defmethod cl-ds:traverse ((range answers-stream) function)
   (ensure-functionf function)
   (iterate
-    (for (values data more) = (cl-ds:consume-front range))
+    (for (values data more) = (next-answer range))
     (while more)
     (funcall function data))
   range)
@@ -138,24 +138,46 @@
           pointers))
 
 
-(defmethod cl-ds:consume-front ((range answers-stream))
+(defun store-shared-resources (shared-resources execution-state)
+  (declare (type (or null shared-resources) shared-resources)
+           (type huginn.m.r:execution-state execution-state)
+           (optimize (speed 3)))
+  (unless (null shared-resources)
+    (setf (shared-resources-heap shared-resources)
+          (huginn.m.r:execution-state-heap execution-state)
+
+          (shared-resources-unification-stack shared-resources)
+          (huginn.m.r:execution-state-unification-stack execution-state)
+
+          (shared-resources-unwind-trail shared-resources)
+          (huginn.m.r:execution-state-unwind-trail execution-state))))
+
+
+(defun next-answer (range)
+  (declare (type answers-stream range)
+           (optimize (speed 3)))
   (let* ((execution-state (access-execution-state range))
          (variables (read-variables range))
          (pointers (read-pointers range)))
     (iterate
       (restart-case
           (let ((answer-found-p (huginn.m.o:find-answer execution-state)))
+            (store-shared-resources *shared-resources* execution-state)
             (unless answer-found-p
-              (return-from cl-ds:consume-front (values nil nil)))
+              (return-from next-answer (values nil nil)))
             (let ((result (extract-variable-bindings execution-state
                                                      variables
                                                      pointers)))
               (huginn.m.o:pop-stack-cells-until-goal execution-state)
-              (return-from cl-ds:consume-front (values result t))))
+              (return-from next-answer (values result t))))
         (go-to-next-answer ()
           (huginn.m.o:pop-stack-cells-until-goal execution-state))
         (end ()
-          (return-from cl-ds:consume-front (values nil nil)))))))
+          (return-from next-answer (values nil nil)))))))
+
+
+(defmethod cl-ds:consume-front ((range answers-stream))
+  (next-answer range))
 
 
 (defmethod cl-ds:reset! ((range answers-stream))

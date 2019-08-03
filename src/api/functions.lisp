@@ -72,8 +72,10 @@
 
 (defun ?- (&rest goals)
   (bind ((compilation (make-compilation-state (list* nil goals)))
-         (content (huginn.c:content compilation (database)))
-         (total-size (length content))
+         (resources (or *shared-resources* (make-shared-resources)))
+         (total-size (huginn.c:cells-count compilation))
+         (content (huginn.c:content compilation (database)
+                                    (shared-resources-heap resources)))
          (variable-bindings (huginn.c:variable-bindings compilation))
          (bindings-fill-pointer (length variable-bindings))
          (objects-mapping (iterate
@@ -93,6 +95,8 @@
             :database (database)
             :variable-bindings variable-bindings
             :heap content
+            :unification-stack (shared-resources-unification-stack resources)
+            :unwind-trail (shared-resources-unwind-trail resources)
             :objects-mapping objects-mapping))
          (clauses (huginn.m.d:matching-clauses database
                                                execution-state

@@ -173,7 +173,7 @@
                        rest
                        (huginn.m.r:clause-goals clause
                                                 previous-fill-pointer))))
-      (if (or t (null copy-body-function))
+      (if (null copy-body-function)
           (setf new-bindings-fill-pointer
                 (relocate-cells execution-state
                                 clause

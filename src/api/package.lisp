@@ -18,6 +18,10 @@
    #:database
    #:make-database
    #:with-database
+   #:shared-resources
+   #:*shared-resources*
+   #:next-answer
+   #:make-shared-resources
    #:clauses))
 
 
