@@ -43,7 +43,6 @@
          (arity (huginn.m.r:detag arity-cell))
          (clauses (clauses database))
          (length (fill-pointer clauses)))
-    (declare (type clauses vector))
     (assert (huginn.m.r:expression-cell-p expression))
     (assert (huginn.m.r:fixnum-cell-p arity-cell))
     (assert (> arity 1))

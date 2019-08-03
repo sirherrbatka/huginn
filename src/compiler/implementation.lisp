@@ -1,20 +1,25 @@
 (cl:in-package #:huginn.compiler)
 
 
-(defmethod marker-for ((flattening flattening) exp class)
+(defmethod marker-for ((flattening flattening) exp class
+                       &key (enforce-class nil))
   (if (anonymus-variable-p exp)
       (make-instance class :content exp)
       (bind ((markers (read-markers flattening))
-             (result (gethash exp markers)))
+             (result-list (gethash exp markers))
+             (result (find class result-list :key #'type-of)))
         (when (and (not (null class))
-                   (null result))
+                   (and (null result)
+                        (or (endp result-list)
+                            enforce-class)))
           (setf result (make-instance class :content exp)
-                (gethash exp markers) result)
+                result-list (cons result result-list)
+                (gethash exp markers) result-list)
           (when (and (typep result 'indexed-mixin)
                      (not (variablep exp)))
             (setf (access-variable-index result)
                   (incf (access-variable-index flattening)))))
-        result)))
+        (first result-list))))
 
 
 (defmethod enqueue-expression/variable/list/fixnum ((flattening flattening)
@@ -31,9 +36,9 @@
      (~>> (marker-for flattening exp 'variable-marker)
           (funcall direction flattening)))
     ((inlined-fixnum-p exp)
-     (~>> (make 'fixnum-marker :content exp)
+     (~>> (make 'fixnum-marker :content exp :enforce-class t)
           (funcall direction flattening)))
-    (t (~>> (marker-for flattening exp 'variable-marker)
+    (t (~>> (marker-for flattening exp 'variable-marker :enforce-class t)
             (funcall direction flattening)))))
 
 

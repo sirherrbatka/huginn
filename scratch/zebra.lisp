@@ -19,7 +19,7 @@
   (<- `(nextto ?x ?y ?list)
       `(iright ?y ?x ?list))
 
-  (<- `(zebra ?houses)
+  (<- `(zebra ?houses ?water-drinker ?zebra-owner)
       `(= ?houses ,(li '((house norwegian ? ? ? ?)
                          ?
                          (house ? ? ? milk ?)
@@ -46,9 +46,11 @@
                ?houses)
       `(nextto (house norwegian ? ? ? ?)
                (house ? ? ? ? blue)
-               ?houses))
+               ?houses)
+      `(member (house ?water-drinker ? ? water ?) ?houses)
+      `(member (house ?zebra-owner zebra ? ? ?) ?houses))
 
-  (defparameter *answer* (?- '(zebra ?houses)))
+  (defparameter *answer* (?- '(zebra ?houses ?water-drinker ?zebra-owner)))
   (print (cl-ds:consume-front *answer*)))
 
 (defmacro time-median ((times) &body body)
@@ -67,10 +69,10 @@
 
 (setf *shared-resources* (make-shared-resources))
 
+(time-median (50)
+  (next-answer (?- '(zebra ?houses ?water-drinker ?zebra-owner))))
+
 (require :sb-sprof)
 
 (sb-sprof:with-profiling (:loop t :reset t)
-  (next-answer (?- '(zebra ?houses))))
-
-(time-median (50)
-  (next-answer (?- '(zebra ?houses))))
+  (next-answer (?- '(zebra ?houses ?water-drinker ?zebra-owner))))

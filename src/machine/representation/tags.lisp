@@ -5,6 +5,8 @@
                                   (integer-length most-positive-fixnum)))
 (define-constant +tag-size+ 4)
 (define-constant +word-size+ (- +cell-size+ +tag-size+))
+(define-constant +tag-mask+ (ash (ldb (byte +tag-size+ +word-size+) most-positive-fixnum)
+                                 +word-size+))
 
 
 (deftype cell ()
@@ -29,7 +31,7 @@
 (declaim (inline detag))
 (defun detag (cell)
   (declare (type cell cell))
-  (ldb (byte +word-size+ 0) cell))
+  (logand cell #.(lognot +tag-mask+)))
 
 
 (declaim (inline tag-of))
@@ -38,7 +40,7 @@
   (declare (type cell cell)
            (optimize (speed 3) (safety 0) (debug 0)
                      (compilation-speed 0)))
-  (1+ (ldb (byte +tag-size+ +word-size+) cell)))
+  (1+ (ash (logand +tag-mask+ cell) #.(- +word-size+))))
 
 
 (defmacro define-tags (&body tags)
@@ -55,7 +57,8 @@
               (prog1 `(progn (define-constant ,tag-symbol ,i)
                              (declaim (inline ,predicate-symbol))
                              (defun ,predicate-symbol (cell)
-                               (declare (optimize (speed 3))
+                               (declare (optimize (speed 3) (debug 0)
+                                                  (safety 0))
                                         (type cell cell))
                                (eql (tag-of cell) ,tag-symbol)))
                 (incf i)))))
@@ -70,8 +73,8 @@
        :test 'equal)))
 
 
-(define-all-tags +variable+ +reference+ +fixnum+ +expression+
-  +predicate+ +list-start+ +list-end+ +list-rest+)
+(define-all-tags +variable+ +expression+ +list-start+
+  +list-rest+ +predicate+ +list-end+ +reference+ +fixnum+)
 
 
 (defun symbol-tag-of (cell)

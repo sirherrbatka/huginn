@@ -265,7 +265,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 (defgeneric execute (flattening operation))
 (defgeneric queue-size (flattening))
 (defgeneric next-object (flattening))
-(defgeneric marker-for (flattening exp class))
+(defgeneric marker-for (flattening exp class &key enforce-class))
 (defgeneric enqueue-expression/variable/list/fixnum (flattening exp
                                                      direction))
 (defgeneric marker->cell (marker position database))
