@@ -59,9 +59,9 @@
        (dotimes (,!i ,times)
          (let ((,!start 0)
                (,!end 0))
-           (setf ,!start (get-internal-real-time))
+           (setf ,!start (get-internal-run-time))
            (progn ,@body)
-           (setf ,!end (get-internal-real-time))
+           (setf ,!end (get-internal-run-time))
            (vector-push-extend (- ,!end ,!start) ,!data)))
        (let ((median (alexandria:median ,!data)))
          (print (coerce (/ median internal-time-units-per-second)
@@ -75,5 +75,5 @@
 (require :sb-sprof)
 
 (sb-sprof:with-profiling (:loop t :reset t)
-  (dotimes (i 500)
+  (dotimes (i 100)
     (next-answer (?- '(zebra ?houses ?water-drinker ?zebra-owner)))))

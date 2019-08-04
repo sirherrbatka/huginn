@@ -87,7 +87,8 @@
          (enqueue-back flattening))
     (~>> (marker-for flattening
                       (first content)
-                      'predicate-marker)
+                      'predicate-marker
+                      :enforce-class t)
          (enqueue-back flattening))
     (iterate
       (for c in (rest content))
