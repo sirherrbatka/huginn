@@ -61,21 +61,29 @@
              (type huginn.m.r:execution-stack-cell execution-stack-cell)
              (type huginn.m.r:pointer pointer)
              (type huginn.m.r:cell new-value))
-    (let* ((trail #1=(huginn.m.r:execution-state-unwind-trail execution-state))
-           (trail-pointer #2=(huginn.m.r:execution-stack-cell-unwind-trail-pointer
-                              execution-stack-cell))
-           (length (length trail)))
-      (when (= pointer 107)
-        (break))
-      (incf #2# 2)
-      (unless (< #2# length)
-        (setf trail (adjust-array trail (the fixnum (ash length 2)))
-              #1# trail))
-      (setf (aref trail trail-pointer) pointer
-            (aref trail (the fixnum (1+ trail-pointer)))
-            (shiftf (aref (huginn.m.r:execution-state-heap execution-state)
-                          pointer)
-                    new-value)))
+    (let* ((heap-pointer (huginn.m.r:execution-stack-cell-heap-pointer
+                          execution-stack-cell)))
+      (unless (< pointer heap-pointer)
+        ;; popping this stack-cell will unwind all the changes anyway, no need to worry with the undo stack
+        (setf (aref (huginn.m.r:execution-state-heap execution-state)
+                    pointer)
+              new-value)
+        (return-from alter-cell t))
+      (let* ((trail #1=(huginn.m.r:execution-state-unwind-trail
+                        execution-state))
+             (trail-pointer
+               #2=(huginn.m.r:execution-stack-cell-unwind-trail-pointer
+                   execution-stack-cell))
+             (length (length trail)))
+        (incf #2# 2)
+        (unless (< #2# length)
+          (setf trail (adjust-array trail (the fixnum (ash length 2)))
+                #1# trail))
+        (setf (aref trail trail-pointer) pointer
+              (aref trail (the fixnum (1+ trail-pointer)))
+              (shiftf (aref (huginn.m.r:execution-state-heap execution-state)
+                            pointer)
+                      new-value))))
     t)
 
 
@@ -219,20 +227,26 @@
         (cl-ds.utils:cond+ ((huginn.m.r:list-rest-cell-p cell1)
                             (huginn.m.r:list-rest-cell-p cell2))
           ((t t)
-           (let ((unbound1 (huginn.m.r:list-rest-unbound-p cell1))
-                 (unbound2 (huginn.m.r:list-rest-unbound-p cell2)))
-             (cond ((nor unbound1 unbound2)
-                    (setf p1 (huginn.m.r:detag cell1)
-                          p2 (huginn.m.r:detag cell2))
-                    (next-iteration))
-                   (unbound2
-                    (alter-cell execution-state execution-stack-cell
-                                p2 (huginn.m.r:make-reference p1))
-                    (done t))
-                   (unbound1
-                    (alter-cell execution-state execution-stack-cell
-                                p1 (huginn.m.r:make-reference p2))
-                    (done t)))))
+           (cl-ds.utils:cond+ ((huginn.m.r:list-rest-unbound-p cell1)
+                               (huginn.m.r:list-rest-unbound-p cell2))
+             ((nil nil)
+              (setf p1 (huginn.m.r:detag cell1)
+                    p2 (huginn.m.r:detag cell2))
+              (next-iteration))
+             ((nil t)
+              (alter-cell execution-state execution-stack-cell
+                          p2 cell1)
+              (done t))
+             ((t nil)
+              (alter-cell execution-state execution-stack-cell
+                          p1 cell2)
+              (done t))
+             ((t t)
+              (when (< p2 p1)
+                (rotatef p1 p2))
+              (alter-cell execution-state execution-stack-cell
+                          p2 (huginn.m.r:make-reference p1))
+              (done t))))
           ((nil t)
            (when (huginn.m.r:list-rest-unbound-p cell2)
              (alter-cell execution-state execution-stack-cell
@@ -423,19 +437,21 @@
              (type huginn.m.r:cell cell1 cell2))
     (assert (huginn.m.r:variable-cell-p cell1))
     (assert (huginn.m.r:variable-cell-p cell2))
-    (let ((first-unbound (huginn.m.r:variable-unbound-p cell1))
-          (second-unbound (huginn.m.r:variable-unbound-p cell2)))
-      (cond ((nor first-unbound second-unbound)
-             (huginn.m.r:same-cells-p cell1 cell2))
-            ((and first-unbound second-unbound)
-             (alter-cell execution-state execution-stack-cell
-                         pointer2 (huginn.m.r:make-reference pointer1)))
-            (first-unbound
-             (alter-cell execution-state execution-stack-cell
-                         pointer1 cell2))
-            (second-unbound
-             (alter-cell execution-state execution-stack-cell
-                         pointer2 cell1)))))
+    (cl-ds.utils:cond+ ((huginn.m.r:variable-unbound-p cell1)
+                        (huginn.m.r:variable-unbound-p cell2))
+      ((nil nil)
+       (huginn.m.r:same-cells-p cell1 cell2))
+      ((t t)
+       (when (< pointer2 pointer1)
+         (rotatef pointer1 pointer2))
+       (alter-cell execution-state execution-stack-cell
+                   pointer2 (huginn.m.r:make-reference pointer1)))
+      ((t nil)
+       (alter-cell execution-state execution-stack-cell
+                   pointer1 cell2))
+      ((nil t)
+       (alter-cell execution-state execution-stack-cell
+                   pointer2 cell1))))
 
 
   (declaim (notinline unify-variable/reference))
