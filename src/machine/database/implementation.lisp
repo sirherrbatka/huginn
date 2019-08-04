@@ -11,14 +11,20 @@
    (%predicates-index :initarg :predicates-index
                       :accessor access-predicates-index))
   (:default-initargs
-   :clauses (vect)
+   :clauses (make-hash-table :test 'equal)
    :reverse-predicate (vect)
    :predicates-index 1
    :predicates (make-hash-table)))
 
 
 (defmethod add-clause ((database database) clause)
-  (vector-push-extend clause (clauses database)))
+  (let* ((content (huginn.m.r:clause-content clause))
+         (expression-cell (aref content 0))
+         (expression-position (huginn.m.r:detag expression-cell))
+         (arity-cell (aref content expression-position))
+         (predicate-cell (aref content (1+ expression-position))))
+    (push clause (gethash (cons predicate-cell arity-cell)
+                          (clauses database)))))
 
 
 (defmethod make-database ((class (eql 'database))
@@ -40,32 +46,19 @@
          (expression (deref goal-pointer))
          (expression-position (huginn.m.r:detag expression))
          (arity-cell (~>  expression-position huginn.m.r:detag deref))
-         (arity (huginn.m.r:detag arity-cell))
-         (clauses (clauses database))
-         (length (fill-pointer clauses)))
+         (predicate-cell (~>  expression-position 1+ huginn.m.r:detag deref))
+         (clauses (clauses database)))
     (assert (huginn.m.r:expression-cell-p expression))
     (assert (huginn.m.r:fixnum-cell-p arity-cell))
-    (assert (> arity 1))
-    (cl-ds:xpr (:i 0)
-      (when (< i length)
-        (let* ((clause (aref clauses i))
-               (content (huginn.m.r:clause-content clause))
-               (expression (aref content 0))
-               (p (huginn.m.r:detag expression)))
-          (assert (huginn.m.r:expression-cell-p expression))
-          (if (and (eql (huginn.m.r:detag (aref content p)) arity) ; same arity
-                   (let ((clause-predicate (aref content (1+ p)))
-                         (goal-predicate (deref (1+ expression-position))))
-                     (or (huginn.m.r:predicate-unbound-p goal-predicate)
-                         (huginn.m.r:same-cells-p goal-predicate
-                                                  clause-predicate))))
-              (cl-ds:send-recur clause :i (1+ i))
-              (cl-ds:recur :i (1+ i))))))))
+    (assert (huginn.m.r:predicate-cell-p predicate-cell))
+    ;; TODO, this will not handle unbound predicates
+    (~> (gethash (cons predicate-cell arity-cell) clauses)
+        cl-ds:whole-range)))
 
 
 (defmethod clear ((database database))
-  (setf (~> database clauses fill-pointer) 0
-        (~> database access-reverse-predicates fill-pointer) 0
+  (~> database clauses clrhash)
+  (setf (~> database access-reverse-predicates fill-pointer) 0
         (access-predicates-index database) 1
         (access-predicates database) (make-hash-table)))
 

@@ -75,4 +75,5 @@
 (require :sb-sprof)
 
 (sb-sprof:with-profiling (:loop t :reset t)
-  (next-answer (?- '(zebra ?houses ?water-drinker ?zebra-owner))))
+  (dotimes (i 500)
+    (next-answer (?- '(zebra ?houses ?water-drinker ?zebra-owner)))))
