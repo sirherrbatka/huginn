@@ -170,24 +170,23 @@
              (type huginn.m.r:execution-state execution-state))
     (when (= pointer1 pointer2)
       (return-from unify-list-rests t))
-    (let ((first-unbound (huginn.m.r:list-rest-unbound-p cell1))
-          (second-unbound (huginn.m.r:list-rest-unbound-p cell2)))
-      (cond ((nor first-unbound second-unbound)
-             (if (huginn.m.r:same-cells-p cell1 cell2)
-                 t
-                 (unify-lists execution-state execution-stack-cell
-                              (huginn.m.r:detag cell1)
-                              (huginn.m.r:detag cell2))))
-            ((and first-unbound second-unbound)
-             (alter-cell execution-state execution-stack-cell
-                         pointer1
-                         (huginn.m.r:make-reference pointer2)))
-            (first-unbound
-             (alter-cell execution-state execution-stack-cell
-                         pointer1 cell2))
-            (second-unbound
-             (alter-cell execution-state execution-stack-cell
-                         pointer2 cell1)))))
+    (cl-ds.utils:cond+ ((huginn.m.r:list-rest-unbound-p cell1)
+                        (huginn.m.r:list-rest-unbound-p cell2))
+      ((nil nil)
+       (or (huginn.m.r:same-cells-p cell1 cell2)
+           (unify-lists execution-state execution-stack-cell
+                        (huginn.m.r:detag cell1)
+                        (huginn.m.r:detag cell2))))
+      ((t t)
+       (alter-cell execution-state execution-stack-cell
+                   pointer1
+                   (huginn.m.r:make-reference pointer2)))
+      ((t nil)
+       (alter-cell execution-state execution-stack-cell
+                   pointer1 cell2))
+      ((nil t)
+       (alter-cell execution-state execution-stack-cell
+                   pointer2 cell1))))
 
 
   (declaim (notinline unify-lists))
@@ -477,19 +476,15 @@
                            pointer2
                            cell1
                            cell2)
-    (let ((first-unbound (huginn.m.r:predicate-unbound-p cell1))
-          (second-unbound (huginn.m.r:predicate-unbound-p cell2)))
-      (cond ((nor first-unbound second-unbound)
-             (huginn.m.r:same-cells-p cell1 cell2))
-            ((and first-unbound second-unbound)
-             (alter-cell execution-state execution-stack-cell
+    (cl-ds.utils:cond+ ((huginn.m.r:predicate-unbound-p cell1)
+                        (huginn.m.r:predicate-unbound-p cell2))
+      ((nil nil) (huginn.m.r:same-cells-p cell1 cell2))
+      ((t t) (alter-cell execution-state execution-stack-cell
                          pointer1 (huginn.m.r:make-reference pointer2)))
-            (first-unbound
-             (alter-cell execution-state execution-stack-cell
-                         pointer1 cell2))
-            (second-unbound
-             (alter-cell execution-state execution-stack-cell
-                         pointer2 cell1)))))
+      ((t nil) (alter-cell execution-state execution-stack-cell
+                           pointer1 cell2))
+      ((nil t) (alter-cell execution-state execution-stack-cell
+                           pointer2 cell1))))
 
 
   (declaim (notinline unify-variable/expression))
