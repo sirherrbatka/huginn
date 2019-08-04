@@ -186,7 +186,8 @@
                    pointer1 cell2))
       ((nil t)
        (alter-cell execution-state execution-stack-cell
-                   pointer2 cell1))))
+                   pointer2 cell1)))
+    )
 
 
   (declaim (notinline unify-lists))
@@ -612,11 +613,12 @@
         (done t))
       (upop
        (first-pointer second-pointer)
-       (let ((result (unify-pair execution-state execution-stack-cell
-                                 (huginn.m.r:follow-pointer execution-state
-                                                            first-pointer t)
-                                 (huginn.m.r:follow-pointer execution-state
-                                                            second-pointer t))))
+       (let ((result
+               (unify-pair execution-state execution-stack-cell
+                           (huginn.m.r:follow-pointer execution-state
+                                                      first-pointer t)
+                           (huginn.m.r:follow-pointer execution-state
+                                                      second-pointer t))))
          (unless result
            (done nil)))
        (next)))))
