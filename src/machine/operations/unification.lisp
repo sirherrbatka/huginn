@@ -52,7 +52,7 @@
       (huginn.m.r:execution-state
        huginn.m.r:execution-stack-cell
        huginn.m.r:pointer huginn.m.r:cell)
-      boolean)
+      huginn.m.r:cell)
   (defun alter-cell (execution-state
                      execution-stack-cell
                      pointer
@@ -68,7 +68,7 @@
         (setf (aref (huginn.m.r:execution-state-heap execution-state)
                     pointer)
               new-value)
-        (return-from alter-cell t))
+        (return-from alter-cell new-value))
       (let* ((trail #1=(huginn.m.r:execution-state-unwind-trail
                         execution-state))
              (trail-pointer
@@ -84,7 +84,7 @@
               (shiftf (aref (huginn.m.r:execution-state-heap execution-state)
                             pointer)
                       new-value))))
-    t)
+    new-value)
 
 
   (declaim (notinline unify-variable/list-start))
@@ -93,7 +93,7 @@
        huginn.m.r:execution-stack-cell
        huginn.m.r:pointer huginn.m.r:pointer
        huginn.m.r:cell huginn.m.r:cell)
-      boolean)
+      (or huginn.m.r:cell boolean))
   (defun unify-variable/list-start (execution-state
                                     execution-stack-cell
                                     variable-pointer
@@ -120,7 +120,7 @@
        huginn.m.r:execution-stack-cell
        huginn.m.r:pointer huginn.m.r:pointer
        huginn.m.r:cell huginn.m.r:cell)
-      boolean)
+      (or huginn.m.r:cell boolean))
   (defun unify-list-rest/variable (execution-state
                                    execution-stack-cell
                                    list-rest-pointer
@@ -149,7 +149,7 @@
        huginn.m.r:pointer
        huginn.m.r:cell
        huginn.m.r:cell)
-      boolean)
+      (or huginn.m.r:cell boolean))
   (defun unify-list-end/list-rest (execution-state execution-stack-cell
                                    end-pointer rest-pointer
                                    end-cell rest-cell)
@@ -168,7 +168,7 @@
        huginn.m.r:pointer
        huginn.m.r:cell
        huginn.m.r:cell)
-      boolean)
+      (or huginn.m.r:cell boolean))
   (defun unify-list-rests (execution-state execution-stack-cell
                            pointer1 pointer2
                            cell1 cell2)
@@ -296,7 +296,8 @@
                          execution-stack-cell
                          list-rest-pointer
                          (huginn.m.r:tag huginn.m.r:+list-rest+
-                                         list-start-word)))
+                                         list-start-word))
+             t)
             (t (unify-lists execution-state
                             execution-stack-cell
                             list-start-word
@@ -366,41 +367,13 @@
           (done t))))
 
 
-  (declaim (notinline unify-references))
-  (-> unify-references
-      (huginn.m.r:execution-state
-       huginn.m.r:execution-stack-cell
-       huginn.m.r:pointer huginn.m.r:pointer
-       huginn.m.r:cell huginn.m.r:cell)
-      boolean)
-  (defun unify-references (execution-state
-                           execution-stack-cell
-                           pointer1 pointer2
-                           ref1 ref2)
-    (declare (type huginn.m.r:pointer pointer1 pointer2)
-             (type huginn.m.r:cell ref1 ref2)
-             (type huginn.m.r:execution-state execution-state)
-             (type huginn.m.r:execution-stack-cell execution-stack-cell)
-             (ignore pointer1 pointer2 execution-stack-cell))
-    (if (huginn.m.r:same-cells-p ref1 ref2) ; same reference, unification succesfull
-        t
-        (with-unification-stack (execution-state)
-          (upush (huginn.m.r:follow-pointer execution-state
-                                            (huginn.m.r:detag ref1)
-                                            t)
-                 (huginn.m.r:follow-pointer execution-state
-                                            (huginn.m.r:detag ref2)
-                                            t))
-          (done t))))
-
-
   (declaim (notinline unify-variable/fixnum))
   (-> unify-variable/fixnum
       (huginn.m.r:execution-state
        huginn.m.r:execution-stack-cell
        huginn.m.r:pointer huginn.m.r:pointer
        huginn.m.r:cell huginn.m.r:cell)
-      boolean)
+      (or huginn.m.r:cell boolean))
   (defun unify-variable/fixnum (execution-state
                                 execution-stack-cell
                                 variable-pointer
@@ -426,7 +399,7 @@
        huginn.m.r:execution-stack-cell
        huginn.m.r:pointer huginn.m.r:pointer
        huginn.m.r:cell huginn.m.r:cell)
-      boolean)
+      (or huginn.m.r:cell boolean))
   (defun unify-variables (execution-state
                           execution-stack-cell
                           pointer1
@@ -454,39 +427,13 @@
                    pointer2 cell1))))
 
 
-  (declaim (notinline unify-variable/reference))
-  (-> unify-variable/reference
-      (huginn.m.r:execution-state
-       huginn.m.r:execution-stack-cell
-       huginn.m.r:pointer huginn.m.r:pointer
-       huginn.m.r:cell huginn.m.r:cell)
-      boolean)
-  (defun unify-variable/reference (execution-state
-                                   execution-stack-cell
-                                   variable-pointer
-                                   reference-pointer
-                                   variable-cell
-                                   reference-cell)
-    (declare (type huginn.m.r:pointer variable-pointer reference-pointer)
-             (ignore reference-pointer))
-    (when-let ((new-pointer (huginn.m.r:follow-pointer
-                             execution-state
-                             (huginn.m.r:detag reference-cell)
-                             t)))
-      (unify-pair execution-state
-                  execution-stack-cell
-                  variable-pointer
-                  new-pointer
-                  variable-cell)))
-
-
   (declaim (notinline unify-predicates))
   (-> unify-predicates
       (huginn.m.r:execution-state
        huginn.m.r:execution-stack-cell
        huginn.m.r:pointer huginn.m.r:pointer
        huginn.m.r:cell huginn.m.r:cell)
-      boolean)
+      (or huginn.m.r:cell boolean))
   (defun unify-predicates (execution-state
                            execution-stack-cell
                            pointer1
@@ -510,7 +457,7 @@
        huginn.m.r:execution-stack-cell
        huginn.m.r:pointer huginn.m.r:pointer
        huginn.m.r:cell huginn.m.r:cell)
-      boolean)
+      (or huginn.m.r:cell boolean))
   (defun unify-variable/expression (execution-state
                                     execution-stack-cell
                                     variable-pointer
@@ -533,7 +480,7 @@
        &optional
        (or null huginn.m.r:cell)
        (or null huginn.m.r:cell))
-      boolean)
+      (or huginn.m.r:cell boolean))
   (declaim (notinline unify-pair))
   (defun unify-pair (execution-state execution-stack-cell pointer1 pointer2
                      &optional cell1 cell2)
@@ -616,7 +563,7 @@
   (-> unify (huginn.m.r:execution-state
              huginn.m.r:execution-stack-cell
              huginn.m.r:pointer)
-      boolean)
+      (or huginn.m.r:cell boolean))
   (defun unify (execution-state execution-stack-cell goal-pointer)
     (declare (type huginn.m.r:execution-stack-cell execution-stack-cell)
              (type huginn.m.r:execution-state execution-state)
