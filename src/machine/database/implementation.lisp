@@ -23,6 +23,8 @@
          (expression-position (huginn.m.r:detag expression-cell))
          (arity-cell (aref content expression-position))
          (predicate-cell (aref content (1+ expression-position))))
+    (assert (huginn.m.r:predicate-cell-p predicate-cell))
+    (assert (huginn.m.r:fixnum-cell-p arity-cell))
     (push clause (gethash (cons predicate-cell arity-cell)
                           (clauses database)))))
 
@@ -38,7 +40,7 @@
   (declare (type huginn.m.r:execution-state execution-state)
            (type huginn.m.r:pointer goal-pointer)
            (optimize (speed 3) (safety 0) (space 0)
-                     (compilation-speed 0)))
+                     (debug 0) (compilation-speed 0)))
   (bind (((:flet deref (i))
           (declare (type huginn.m.r:pointer i))
           (~> execution-state
@@ -46,8 +48,8 @@
               (aref i)))
          (expression (deref goal-pointer))
          (expression-position (huginn.m.r:detag expression))
-         (arity-cell (~> expression-position huginn.m.r:detag deref))
-         (predicate-cell (~> expression-position 1+ huginn.m.r:detag deref))
+         (arity-cell (~> expression-position deref))
+         (predicate-cell (~> expression-position 1+ deref))
          (clauses (clauses database)))
     (declare (type hash-table clauses))
     (assert (huginn.m.r:expression-cell-p expression))

@@ -85,4 +85,5 @@
    #:tag-of
    #:variable-cell-p
    #:variable-unbound-p
+   #:retag
    #:word))

@@ -5,12 +5,10 @@
                                   (integer-length most-positive-fixnum)))
 (define-constant +tag-size+ 4)
 (define-constant +word-size+ (- +cell-size+ +tag-size+))
-(define-constant +tag-mask+ (ash (ldb (byte +tag-size+ +word-size+) most-positive-fixnum)
-                                 +word-size+))
+(define-constant +tag-mask+ (ldb (byte +tag-size+ 0) most-positive-fixnum))
 
 
-(deftype cell ()
-  `(unsigned-byte ,+cell-size+))
+(deftype cell () 'fixnum)
 
 
 (deftype word ()
@@ -24,14 +22,26 @@
 (declaim (inline tag))
 (defun tag (tag word)
   (declare (type (or cell word) word)
+           (optimize (speed 3) (safety 0))
            (type tag tag))
-  (dpb (1- tag) (byte +tag-size+ +word-size+) word))
+  (logior (the fixnum (1- tag))
+          (the fixnum (ash word +tag-size+))))
 
 
 (declaim (inline detag))
 (defun detag (cell)
-  (declare (type cell cell))
-  (logand cell #.(lognot +tag-mask+)))
+  (declare (type cell cell)
+           (optimize (speed 3) (safety 0)
+                     (debug 0) (compilation-speed 0)))
+  (ash cell #.(- +tag-size+)))
+
+
+(declaim (inline retag))
+(defun retag (tag cell)
+  (declare (type cell cell)
+           (type tag tag)
+           (optimize (speed 3) (safety 0) (debug 0)))
+  (dpb (the fixnum (1- tag)) (byte +tag-size+ 0) cell))
 
 
 (declaim (inline tag-of))
@@ -40,7 +50,7 @@
   (declare (type cell cell)
            (optimize (speed 3) (safety 0) (debug 0)
                      (compilation-speed 0)))
-  (1+ (ash (logand +tag-mask+ cell) #.(- +word-size+))))
+  (1+ (logand +tag-mask+ cell)))
 
 
 (defmacro define-tags (&body tags)
@@ -118,12 +128,6 @@
                   `((eql ,!tag +fixnum+)
                     ,form)))
                (remove-if #'null _))))))
-
-
-(declaim (inline variable-or-reference-cell-p))
-(defun variable-or-reference-cell-p (cell)
-  (declare (type cell cell))
-  (< (tag-of cell) 2))
 
 
 (declaim (inline variable-unbound-p))

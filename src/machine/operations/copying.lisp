@@ -73,39 +73,46 @@
                                        (+ destination-start
                                           (the fixnum
                                                (- source-end source-start)))))
-    (iterate
-      (declare (type fixnum i j))
-      (with heap = (huginn.m.r:execution-state-heap execution-state))
-      (with source = (huginn.m.r:clause-content clause))
-      (with variable-values = (huginn.m.r:clause-variable-values
-                               clause))
-      (for i from destination-start)
-      (for j from source-start below source-end)
-      (for cell = (aref source j))
-      (setf (aref heap i) cell)
-      (for word = (huginn.m.r:detag cell))
-      (huginn.m.r:tag-case (cell)
-        :expression
-        (incf (aref heap i) offset)
-        :reference
-        (incf (aref heap i) offset)
-        :list-start
-        (incf (aref heap i) offset)
-        :list-rest
-        (unless (huginn.m.r:list-rest-unbound-p cell)
-          (incf (aref heap i) offset))
-        :variable
-        (unless (huginn.m.r:variable-unbound-p cell)
-          (let* ((object (aref variable-values (1- word)))
-                 (new-index bindings-fill-pointer)
-                 (index (index-object execution-state
-                                      object
-                                      new-index)))
-            (declare (type fixnum index new-index))
-            (setf (aref heap i) (huginn.m.r:tag huginn.m.r:+variable+
-                                                (1+ index)))
-            (when (eql index new-index)
-              (incf bindings-fill-pointer))))))
+    (flet ((move-pointer-cell (cell offset)
+             (let* ((tag (huginn.m.r:tag-of cell))
+                    (word (huginn.m.r:detag cell))
+                    (result (huginn.m.r:tag tag
+                                            (the fixnum (+ word offset)))))
+               (assert (eql (huginn.m.r:tag-of result) tag))
+               result)))
+      (iterate
+        (declare (type fixnum i j))
+        (with heap = (huginn.m.r:execution-state-heap execution-state))
+        (with source = (huginn.m.r:clause-content clause))
+        (with variable-values = (huginn.m.r:clause-variable-values
+                                 clause))
+        (for i from destination-start)
+        (for j from source-start below source-end)
+        (for cell = (aref source j))
+        (setf (aref heap i) cell)
+        (huginn.m.r:tag-case (cell)
+          :expression
+          (setf (aref heap i) (move-pointer-cell cell offset))
+          :reference
+          (setf (aref heap i) (move-pointer-cell cell offset))
+          :list-start
+          (setf (aref heap i) (move-pointer-cell cell offset))
+          :list-rest
+          (unless (huginn.m.r:list-rest-unbound-p cell)
+            (setf (aref heap i) (move-pointer-cell cell offset)))
+          :variable
+          (unless (huginn.m.r:variable-unbound-p cell)
+            (let* ((word (huginn.m.r:detag cell))
+                   (object (aref variable-values (1- word)))
+                   (new-index bindings-fill-pointer)
+                   (index (index-object execution-state
+                                        object
+                                        new-index)))
+              (declare (type fixnum index new-index))
+              (setf (aref heap i) (huginn.m.r:tag huginn.m.r:+variable+
+                                                  (1+ index)))
+              (when (eql index new-index)
+                (incf bindings-fill-pointer)))))))
     bindings-fill-pointer)
 
 

@@ -47,7 +47,7 @@
              goal-pointer)))
 
 
-  (declaim (inline alter-cell))
+  (declaim (notinline alter-cell))
   (-> alter-cell
       (huginn.m.r:execution-state
        huginn.m.r:execution-stack-cell
@@ -138,7 +138,8 @@
     (alter-cell execution-state execution-stack-cell variable-pointer
                 (if (huginn.m.r:list-rest-unbound-p list-rest-cell)
                     (huginn.m.r:make-reference list-rest-pointer)
-                    (huginn.m.r:tag huginn.m.r:+list-start+ list-rest-cell))))
+                    (huginn.m.r:retag huginn.m.r:+list-start+
+                                      list-rest-cell))))
 
 
   (declaim (notinline unify-list-end/list-rest))
@@ -194,8 +195,7 @@
                    pointer1 cell2))
       ((nil t)
        (alter-cell execution-state execution-stack-cell
-                   pointer2 cell1)))
-    )
+                   pointer2 cell1))))
 
 
   (declaim (notinline unify-lists))
@@ -204,7 +204,7 @@
        huginn.m.r:execution-stack-cell
        huginn.m.r:pointer
        huginn.m.r:pointer)
-      boolean)
+      (or boolean huginn.m.r:cell))
   (defun unify-lists (execution-state execution-stack-cell
                       first-pointer second-pointer)
     (declare (type huginn.m.r:pointer first-pointer second-pointer)
@@ -234,36 +234,30 @@
                     p2 (huginn.m.r:detag cell2))
               (next-iteration))
              ((nil t)
-              (alter-cell execution-state execution-stack-cell
-                          p2 cell1)
-              (done t))
+              (done (alter-cell execution-state execution-stack-cell
+                                p2 cell1)))
              ((t nil)
-              (alter-cell execution-state execution-stack-cell
-                          p1 cell2)
-              (done t))
+              (done (alter-cell execution-state execution-stack-cell
+                                p1 cell2)))
              ((t t)
-              (when (< p2 p1)
-                (rotatef p1 p2))
-              (alter-cell execution-state execution-stack-cell
-                          p2 (huginn.m.r:make-reference p1))
-              (done t))))
+              (when (< p2 p1) (rotatef p1 p2))
+              (done (alter-cell execution-state execution-stack-cell
+                                p2 (huginn.m.r:make-reference p1))))))
           ((nil t)
            (when (huginn.m.r:list-rest-unbound-p cell2)
-             (alter-cell execution-state execution-stack-cell
-                         p2 (huginn.m.r:tag huginn.m.r:+list-rest+ p1))
-             (done t))
+             (done (alter-cell execution-state execution-stack-cell
+                               p2 (huginn.m.r:tag huginn.m.r:+list-rest+ p1))))
            (setf p2 (huginn.m.r:follow-pointer execution-state
                                                (huginn.m.r:detag cell2)
-                                               t))
+                                               nil))
            (next-iteration))
           ((t nil)
            (when (huginn.m.r:list-rest-unbound-p cell1)
-             (alter-cell execution-state execution-stack-cell
-                         p1 (huginn.m.r:tag huginn.m.r:+list-rest+ p2))
-             (done t))
+             (done (alter-cell execution-state execution-stack-cell
+                               p1 (huginn.m.r:tag huginn.m.r:+list-rest+ p2))))
            (setf p1 (huginn.m.r:follow-pointer execution-state
                                                (huginn.m.r:detag cell1)
-                                               t))
+                                               nil))
            (next-iteration))
           ((nil nil) nil))
         (upush p1 p2)
@@ -325,9 +319,9 @@
              (type huginn.m.r:execution-state execution-state)
              (ignore list-start-pointer))
     (when (huginn.m.r:list-rest-unbound-p list-rest-cell)
-      (alter-cell execution-state execution-stack-cell list-rest-pointer
-                  (huginn.m.r:tag huginn.m.r:+list-rest+ list-start-cell))
-      (return-from unify-list-rest/list-start list-rest-cell))
+      (return-from unify-list-rest/list-start
+        (alter-cell execution-state execution-stack-cell list-rest-pointer
+                    (huginn.m.r:retag huginn.m.r:+list-rest+ list-start-cell))))
     (unify-lists execution-state execution-stack-cell
                  (huginn.m.r:detag list-start-cell)
                  (huginn.m.r:detag list-rest-cell)))
@@ -413,7 +407,7 @@
     (cl-ds.utils:cond+ ((huginn.m.r:variable-unbound-p cell1)
                         (huginn.m.r:variable-unbound-p cell2))
       ((nil nil)
-       (huginn.m.r:same-cells-p cell1 cell2))
+       (if (huginn.m.r:same-cells-p cell1 cell2) cell1 nil))
       ((t t)
        (when (< pointer2 pointer1)
          (rotatef pointer1 pointer2))
@@ -486,8 +480,7 @@
                      &optional cell1 cell2)
     (declare (type huginn.m.r:pointer pointer1 pointer2)
              (type huginn.m.r:execution-stack-cell execution-stack-cell)
-             (type huginn.m.r:execution-state execution-state)
-             (optimize (speed 3) (safety 0) (compilation-speed 0) (space 0)))
+             (type huginn.m.r:execution-state execution-state))
     (when (eql pointer1 pointer2)
       (return-from unify-pair t))
     (bind ((cell1 (or cell1
@@ -497,7 +490,8 @@
                       (huginn.m.r:dereference-heap-pointer execution-state
                                                            pointer2))))
       (declare (type huginn.m.r:cell cell1 cell2))
-      (unless (< cell1 cell2)
+      (unless (< (huginn.m.r:tag-of cell1)
+                 (huginn.m.r:tag-of cell2))
         (rotatef cell1 cell2)
         (rotatef pointer1 pointer2))
       (cell-combination-case (cell1 cell2)
@@ -537,7 +531,7 @@
         ((huginn.m.r:+fixnum+ huginn.m.r:+fixnum+)
          (huginn.m.r:same-cells-p cell1 cell2))
         ((huginn.m.r:+list-end+ huginn.m.r:+list-end+)
-         t)
+         cell1)
         ((huginn.m.r:+list-end+ huginn.m.r:+list-rest+)
          (unify-list-end/list-rest execution-state
                                    execution-stack-cell

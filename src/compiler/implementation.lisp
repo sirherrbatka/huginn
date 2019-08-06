@@ -425,8 +425,8 @@
                                    (+ ,position
                                       ,heap-pointer-symbol)))
            (huginn.m.r:tag ,(marker-tag marker)
-                           (+ ,heap-pointer-symbol
-                              ,(access-destination marker))))))
+                           (the fixnum (+ ,heap-pointer-symbol
+                                          ,(access-destination marker)))))))
 
 
 (defmethod cell-copy-form ((marker variable-marker) arguments)
