@@ -177,7 +177,7 @@
              (type huginn.m.r:execution-stack-cell execution-stack-cell)
              (type huginn.m.r:execution-state execution-state))
     (when (= pointer1 pointer2)
-      (return-from unify-list-rests t))
+      (return-from unify-list-rests cell1))
     (cl-ds.utils:cond+ ((huginn.m.r:list-rest-unbound-p cell1)
                         (huginn.m.r:list-rest-unbound-p cell2))
       ((nil nil)
@@ -310,7 +310,7 @@
        huginn.m.r:execution-stack-cell
        huginn.m.r:pointer huginn.m.r:pointer
        huginn.m.r:cell huginn.m.r:cell)
-      boolean)
+      (or huginn.m.r:cell boolean))
   (defun unify-list-rest/list-start (execution-state
                                      execution-stack-cell
                                      list-rest-pointer
@@ -327,7 +327,7 @@
     (when (huginn.m.r:list-rest-unbound-p list-rest-cell)
       (alter-cell execution-state execution-stack-cell list-rest-pointer
                   (huginn.m.r:tag huginn.m.r:+list-rest+ list-start-cell))
-      (return-from unify-list-rest/list-start t))
+      (return-from unify-list-rest/list-start list-rest-cell))
     (unify-lists execution-state execution-stack-cell
                  (huginn.m.r:detag list-start-cell)
                  (huginn.m.r:detag list-rest-cell)))
