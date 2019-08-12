@@ -81,7 +81,9 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 
 
 (defclass fundamental-marker ()
-  ())
+  ((%unification-function-symbol :initarg :unification-function-symbol
+                                 :reader read-unification-function-symbol))
+  (:default-initargs :unification-function-symbol (gensym)))
 
 
 (defclass flattening ()
@@ -98,6 +100,20 @@ This representation is pretty much the same as one used by norvig in the PAIP.
    :pointer 0
    :variable-index 0
    :markers (make-hash-table :test 'eq)))
+
+
+(defclass abstract-value-mixin (fundamental-marker)
+  ((%value-symbol :initarg :value-symbol
+                  :reader read-value-symbol))
+  (:default-initargs :value-symbol (gensym)))
+
+
+(defclass lazy-value-mixin (abstract-value-mixin)
+  ())
+
+
+(defclass eager-value-mixin (abstract-value-mixin)
+  ())
 
 
 (defclass referencable-mixin (fundamental-marker)
@@ -141,11 +157,12 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 (defclass list-rest-marker (referencable-mixin
                             content-mixin
                             indexed-mixin
-                            fundamental-marker)
+                            lazy-value-mixin)
   ())
 
 
-(defclass fixnum-marker (content-mixin)
+(defclass fixnum-marker (content-mixin
+                         eager-value-mixin)
   ())
 
 
@@ -153,13 +170,13 @@ This representation is pretty much the same as one used by norvig in the PAIP.
                            potentially-unbound-mixin
                            content-mixin
                            indexed-mixin
-                           fundamental-marker)
+                           lazy-value-mixin)
   ())
 
 
 (defclass expression-marker (complex-mixin
                              pointer-mixin
-                             fundamental-marker)
+                             eager-value-mixin)
   ((%arity :initarg :arity
            :reader read-arity)))
 
@@ -170,7 +187,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 
 
 (defclass predicate-marker (content-mixin
-                            fundamental-marker)
+                            eager-value-mixin)
   ())
 
 
@@ -180,7 +197,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 
 (defclass list-marker (pointer-mixin
                        complex-mixin
-                       fundamental-marker)
+                       eager-value-mixin)
   ())
 
 
