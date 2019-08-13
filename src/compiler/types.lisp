@@ -273,7 +273,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 (defun list-input (content)
   (make-list-input :content content))
 
-(defgeneric cell-value-form (marker position pointer))
+(defgeneric cell-value-form (marker context))
 (defgeneric ensure-object-position (object position))
 (defgeneric execute (flattening operation))
 (defgeneric queue-size (flattening))
