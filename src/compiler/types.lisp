@@ -246,6 +246,8 @@ This representation is pretty much the same as one used by norvig in the PAIP.
                             :reader read-execution-state-symbol)
    (%heap-pointer-symbol :initarg :heap-pointer-symbol
                          :reader read-heap-pointer-symbol)
+   (%execution-stack-cell-symbol :reader read-execution-stack-cell-symbol
+                                 :initarg :execution-stack-cell-symbol)
    (%clause-symbol :initarg :clause-symbol
                    :reader read-clause-symbol)
    (%position :initarg :position
@@ -261,6 +263,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
   (clause-symbol read-clause-symbol)
   (position read-position)
   (execution-state-symbol read-execution-state-symbol)
+  (execution-stack-cell-symbol read-execution-stack-cell-symbol)
   (heap-pointer-symbol read-heap-pointer-symbol)
   (bindings-fill-pointer-symbol read-bindings-fill-pointer-symbol)
   (database read-database))
@@ -296,6 +299,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 
 
 (defgeneric cell-value-form (marker arguments))
+(defgeneric cell-unification-form (marker arguments))
 (defgeneric ensure-object-position (object position))
 (defgeneric execute (flattening operation))
 (defgeneric queue-size (flattening))
