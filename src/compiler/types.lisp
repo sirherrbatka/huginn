@@ -157,7 +157,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 (defclass list-rest-marker (referencable-mixin
                             content-mixin
                             indexed-mixin
-                            lazy-value-mixin)
+                            eager-value-mixin)
   ())
 
 
