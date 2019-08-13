@@ -273,7 +273,29 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 (defun list-input (content)
   (make-list-input :content content))
 
-(defgeneric cell-value-form (marker context))
+
+(defclass unification-code-generation-arguments ()
+  ((%ponter :accessor access-pointer
+            :initarg :pointer)
+   (%execution-state-symbol :reader read-execution-state-symbol
+                            :initarg :execution-state-symbol)
+   (%heap-symbol :reader read-heap-symbol
+                 :initarg :heap-symbol)
+   (%database :reader read-database
+              :initarg :database)
+   (%position :accessor access-position
+              :initarg :position)))
+
+
+(cl-ds.utils:define-list-of-slots unification-code-generation-arguments ()
+  (pointer access-pointer)
+  (heap-symbol read-heap-symbol)
+  (database read-database)
+  (execution-state-symbol read-execution-state-symbol)
+  (position access-position))
+
+
+(defgeneric cell-value-form (marker arguments))
 (defgeneric ensure-object-position (object position))
 (defgeneric execute (flattening operation))
 (defgeneric queue-size (flattening))
