@@ -294,6 +294,19 @@ This representation is pretty much the same as one used by norvig in the PAIP.
               :initarg :position)))
 
 
+(defun make-unification-form-arguments (pointer execution-state-symbol
+                                        heap-symbol fail-symbol all-markers
+                                        database position)
+  (make-instance 'unification-form-arguments
+                 :pointer pointer
+                 :execution-state-symbol execution-state-symbol
+                 :heap-symbol heap-symbol
+                 :fail-symbol fail-symbol
+                 :all-markers all-markers
+                 :database database
+                 :position position))
+
+
 (cl-ds.utils:define-list-of-slots unification-form-arguments ()
   (pointer access-pointer)
   (heap-symbol read-heap-symbol)
@@ -304,10 +317,12 @@ This representation is pretty much the same as one used by norvig in the PAIP.
   (position access-position))
 
 
-(defgeneric cell-value-form (marker arguments))
-(defgeneric cell-unification-form (marker arguments))
-(defgeneric cell-store-form (marker arguments))
-(defgeneric cell-fail-form (marker arguments))
+(defgeneric cell-value-form (marker arguments)) ; needs to be implemented just for the abstract-value-mixin (this excludes list-end)
+(defgeneric cell-unification-form (marker arguments)) ; different for each marker
+(defgeneric cell-store-form (marker arguments)) ; different for fundamental, same for eager and lazy marker
+(defgeneric cell-fail-form (marker arguments) ; the same for every marker
+  (:method ((marker fundamental-marker) arguments)
+    (list (read-fail-symbol marker))))
 (defgeneric ensure-object-position (object position))
 (defgeneric execute (flattening operation))
 (defgeneric queue-size (flattening))
