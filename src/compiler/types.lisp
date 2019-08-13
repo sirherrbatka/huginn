@@ -286,6 +286,8 @@ This representation is pretty much the same as one used by norvig in the PAIP.
                  :initarg :heap-symbol)
    (%fail-symbol :reader read-fail-symbol
                  :initarg :fail-symbol)
+   (%all-markers :reader read-all-markers
+                 :initarg :all-markers)
    (%database :reader read-database
               :initarg :database)
    (%position :accessor access-position
@@ -296,6 +298,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
   (pointer access-pointer)
   (heap-symbol read-heap-symbol)
   (database read-database)
+  (all-markers read-all-markers)
   (fail-symbol read-fail-symbol)
   (execution-state-symbol read-execution-state-symbol)
   (position access-position))
