@@ -274,7 +274,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
   (make-list-input :content content))
 
 
-(defclass unification-code-generation-arguments ()
+(defclass unification-form-arguments ()
   ((%ponter :accessor access-pointer
             :initarg :pointer)
    (%execution-state-symbol :reader read-execution-state-symbol
@@ -287,7 +287,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
               :initarg :position)))
 
 
-(cl-ds.utils:define-list-of-slots unification-code-generation-arguments ()
+(cl-ds.utils:define-list-of-slots unification-form-arguments ()
   (pointer access-pointer)
   (heap-symbol read-heap-symbol)
   (database read-database)
