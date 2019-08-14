@@ -536,14 +536,15 @@
     `(aref ,heap-symbol (the fixnum (+ ,pointer-symbol ,position)))))
 
 
-(defmethod cell-value-form ((marker fixnum-marker) arguments)
-  (read-content marker))
-
-
 (defmethod cell-value-form ((marker pointer-mixin) arguments)
   (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
     `(huginn.m.r:tag ,(marker-tag marker)
                      (the huginn.m.r:word (+ ,pointer-symbol position)))))
+
+
+(defmethod cell-value-form ((marker fixnum-marker) arguments)
+  (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
+    (marker->cell marker (access-position marker) database)))
 
 
 (defmethod cell-value-form ((marker predicate-marker) arguments)
@@ -557,5 +558,10 @@
 
 
 (defmethod cell-value-form ((marker variable-marker) arguments)
+  (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
+    (marker->cell marker (access-position marker) database)))
+
+
+(defmethod cell-value-form ((marker list-end-marker) arguments)
   (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
     (marker->cell marker (access-position marker) database)))
