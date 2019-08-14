@@ -139,6 +139,8 @@
     huginn.m.r:+expression+)
   (:method ((marker list-rest-marker))
     huginn.m.r:+list-rest+)
+  (:method ((marker predicate-marker))
+    huginn.m.r:+predicate+)
   (:method ((marker variable-marker))
     huginn.m.r:+variable+))
 
@@ -540,4 +542,12 @@
 
 (defmethod cell-value-form ((marker pointer-mixin) arguments)
   (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
-    `(the fixnum (+ ,pointer-symbol position))))
+    `(huginn.m.r:tag ,(marker-tag marker)
+                     (the huginn.m.r:word (+ ,pointer-symbol position)))))
+
+
+(defmethod cell-value-form ((marker predicate-marker) arguments)
+  (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
+    `(huginn.m.r:tag ,(marker-tag marker)
+                     ,(huginn.m.d:index-predicate database
+                                                  (read-content marker)))))
