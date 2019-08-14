@@ -14,12 +14,13 @@
    #:expression
    #:expressions
    #:fundamental-compilation-state
-   #:optimized-relocate-cells-function
    #:head
    #:invalid-goal
    #:invalid-predicate
    #:list-input
    #:make-compilation-state
+   #:optimized-relocate-cells-function
+   #:optimized-unify-head-function
    #:pointer-for-expression
    #:pointer-for-list
    #:pointer-for-predicate

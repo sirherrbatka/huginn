@@ -39,3 +39,6 @@
 
 (defgeneric optimized-relocate-cells-function (compilation-state database
                                                start end))
+
+(defgeneric optimized-unify-head-function (compiliaton-state
+                                           database))
