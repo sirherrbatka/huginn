@@ -539,7 +539,7 @@
 (defmethod cell-value-form ((marker pointer-mixin) arguments)
   (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
     `(huginn.m.r:tag ,(marker-tag marker)
-                     (the huginn.m.r:word (+ ,pointer-symbol position)))))
+                     (the huginn.m.r:word (+ ,pointer-symbol ,position)))))
 
 
 (defmethod cell-value-form ((marker fixnum-marker) arguments)
