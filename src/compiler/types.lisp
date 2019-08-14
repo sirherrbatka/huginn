@@ -322,10 +322,18 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 (defgeneric cell-unification-form (marker arguments)) ; different for each marker
 (defgeneric unify-each-form (range arguments)) ; used for expressions and lists alike
 (defgeneric content-for-unification (marker arguments)) ; needs implementation for lists and expressions, returns range that should yield markers
-(defgeneric cell-store-form (marker arguments)) ; different for fundamental, same for eager and lazy marker
 (defgeneric cell-fail-form (marker arguments) ; the same for every marker
   (:method ((marker fundamental-marker) arguments)
     (list (read-fail-symbol marker))))
+(defgeneric cell-store-form (marker arguments)
+  (:method ((marker abstract-value-mixin) arguments)
+    (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
+      `(progn
+         (setf ,(read-value-symbol marker) ,(cell-unification-form marker arguments))
+         (when (null ,(read-value-symbol marker))
+           ,(cell-fail-form marker arguments))
+         (setf (aref ,heap-symbol (the fixnum (+ ,pointer-symbol ,position)))
+               ,(read-value-symbol marker))))))
 (defgeneric ensure-object-position (object position))
 (defgeneric execute (flattening operation))
 (defgeneric queue-size (flattening))
