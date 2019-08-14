@@ -22,3 +22,4 @@
 ** DONE Adjust stack unwinding logic, frame copying, execution-state copying, alter-cell.
    CLOSED: [2019-07-31 śro 20:10]
 ** This actually did not improve performance, but it reduced memory footprint so it is worth it i guess.
+* TODO move trivial stuff to a proper test files.
