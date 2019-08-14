@@ -320,6 +320,8 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 
 (defgeneric cell-value-form (marker arguments)) ; needs to be implemented just for the abstract-value-mixin (this excludes list-end)
 (defgeneric cell-unification-form (marker arguments)) ; different for each marker
+(defgeneric unify-each-form (range arguments)) ; used for expressions and lists alike
+(defgeneric content-for-unification (marker arguments)) ; needs implementation for lists and expressions, returns range that should yield markers
 (defgeneric cell-store-form (marker arguments)) ; different for fundamental, same for eager and lazy marker
 (defgeneric cell-fail-form (marker arguments) ; the same for every marker
   (:method ((marker fundamental-marker) arguments)
