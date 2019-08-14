@@ -99,7 +99,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
    (%markers :initarg :markers
              :reader read-markers)
    (%pointer :initarg :pointer
-             :accessor access-pointer-symbol)
+             :accessor access-pointer)
    (%variable-index :initarg :variable-index
                     :accessor access-variable-index))
   (:default-initargs
@@ -220,7 +220,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
   (let* ((marker (read-marker operation))
          (pin (read-pin operation))
          (marker-pinned (access-pinned marker))
-         (position (access-pointer-symbol flattening)))
+         (position (access-pointer flattening)))
     (unless marker-pinned
       (setf (access-object-position marker) position)
       (when pin
@@ -236,7 +236,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 (defmethod execute ((flattening flattening)
                     (operation set-destination-operation))
   (let* ((marker (read-marker operation))
-         (position (access-pointer-symbol flattening)))
+         (position (access-pointer flattening)))
     (setf (access-destination marker) position)))
 
 
