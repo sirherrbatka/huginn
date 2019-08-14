@@ -529,6 +529,15 @@
                                              start end)))
 
 
-(defmethod cell-value-form ((marker lazy-value-mixin) araguments)
+(defmethod cell-value-form ((marker lazy-value-mixin) arguments)
   (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
-    ))
+    `(aref ,heap-symbol (the fixnum (+ ,pointer-symbol ,position)))))
+
+
+(defmethod cell-value-form ((marker fixnum-marker) arguments)
+  (read-content marker))
+
+
+(defmethod cell-value-form ((marker pointer-mixin) arguments)
+  (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
+    `(the fixnum (+ ,pointer-symbol position))))

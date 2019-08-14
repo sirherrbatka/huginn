@@ -99,7 +99,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
    (%markers :initarg :markers
              :reader read-markers)
    (%pointer :initarg :pointer
-             :accessor access-pointer)
+             :accessor access-pointer-symbol)
    (%variable-index :initarg :variable-index
                     :accessor access-variable-index))
   (:default-initargs
@@ -220,7 +220,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
   (let* ((marker (read-marker operation))
          (pin (read-pin operation))
          (marker-pinned (access-pinned marker))
-         (position (access-pointer flattening)))
+         (position (access-pointer-symbol flattening)))
     (unless marker-pinned
       (setf (access-object-position marker) position)
       (when pin
@@ -236,7 +236,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 (defmethod execute ((flattening flattening)
                     (operation set-destination-operation))
   (let* ((marker (read-marker operation))
-         (position (access-pointer flattening)))
+         (position (access-pointer-symbol flattening)))
     (setf (access-destination marker) position)))
 
 
@@ -279,8 +279,8 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 
 
 (defclass unification-form-arguments ()
-  ((%ponter :accessor access-pointer
-            :initarg :pointer)
+  ((%ponter-symbol :accessor access-pointer-symbol
+                   :initarg :pointer-symbol)
    (%execution-state-symbol :reader read-execution-state-symbol
                             :initarg :execution-state-symbol)
    (%heap-symbol :reader read-heap-symbol
@@ -295,11 +295,11 @@ This representation is pretty much the same as one used by norvig in the PAIP.
               :initarg :position)))
 
 
-(defun make-unification-form-arguments (pointer execution-state-symbol
+(defun make-unification-form-arguments (pointer-symbol execution-state-symbol
                                         heap-symbol fail-symbol all-markers
                                         database position)
   (make-instance 'unification-form-arguments
-                 :pointer pointer
+                 :pointer-symbol pointer-symbol
                  :execution-state-symbol execution-state-symbol
                  :heap-symbol heap-symbol
                  :fail-symbol fail-symbol
@@ -309,7 +309,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 
 
 (cl-ds.utils:define-list-of-slots unification-form-arguments ()
-  (pointer access-pointer)
+  (pointer-symbol access-pointer-symbol)
   (heap-symbol read-heap-symbol)
   (database read-database)
   (all-markers read-all-markers)
