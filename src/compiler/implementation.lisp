@@ -548,6 +548,11 @@
 
 (defmethod cell-value-form ((marker predicate-marker) arguments)
   (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
-    `(huginn.m.r:tag ,(marker-tag marker)
-                     ,(huginn.m.d:index-predicate database
-                                                  (read-content marker)))))
+    (huginn.m.r:tag (marker-tag marker)
+                    (huginn.m.d:index-predicate database
+                                                (read-content marker)))))
+
+
+(defmethod cell-value-form ((marker list-rest-marker) arguments)
+  (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
+    (huginn.m.r:tag (marker-tag marker) 0)))
