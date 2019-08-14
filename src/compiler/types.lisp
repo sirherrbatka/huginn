@@ -82,8 +82,15 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 
 (defclass fundamental-marker ()
   ((%unification-function-symbol :initarg :unification-function-symbol
-                                 :reader read-unification-function-symbol))
-  (:default-initargs :unification-function-symbol (gensym)))
+                                 :reader read-unification-function-symbol)
+   (%object-position :initarg :object-position
+                     :accessor access-object-position)
+   (%pinned :initarg :pinned
+            :accessor access-pinned))
+  (:default-initargs
+   :unification-function-symbol (gensym)
+   :object-position nil
+   :pinned nil))
 
 
 (defclass flattening ()
@@ -117,13 +124,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 
 
 (defclass referencable-mixin (fundamental-marker)
-  ((%object-position :initarg :object-position
-                     :accessor access-object-position)
-   (%pinned :initarg :pinned
-            :accessor access-pinned))
-  (:default-initargs
-   :object-position nil
-   :pinned nil))
+  ())
 
 
 (defclass pointer-mixin (fundamental-marker)
@@ -343,7 +344,5 @@ This representation is pretty much the same as one used by norvig in the PAIP.
   (:method ((flattening flattening) (marker fundamental-marker))
     nil))
 (defgeneric flat-representation (flattening &optional result))
-(defgeneric ensure-object-position (marker pointer)
-  (:method ((marker fundamental-marker) pointer)
-    nil))
+(defgeneric ensure-object-position (marker pointer))
 (defgeneric cell-copy-form (marker arguments))

@@ -42,7 +42,7 @@
             (funcall direction flattening)))))
 
 
-(defmethod ensure-object-position ((marker referencable-mixin) pointer)
+(defmethod ensure-object-position ((marker fundamental-marker) pointer)
   (ensure (access-object-position marker) pointer))
 
 
@@ -67,8 +67,7 @@
        (ensure-object-position object (access-pointer flattening))
        (vector-push-extend object result)
        (enqueue-markers-content flattening object)
-       (incf (access-pointer flattening)
-             (marker-size object)))
+       (incf (access-pointer flattening)))
       (fundamental-operation
        (execute flattening object))
       (t (enqueue-expression/variable/list/fixnum flattening object
@@ -528,3 +527,8 @@
   (compile nil (generate-copying-lambda-form compilation-state
                                              database
                                              start end)))
+
+
+(defmethod cell-value-form ((marker lazy-value-mixin) araguments)
+  (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
+    ))
