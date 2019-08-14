@@ -333,7 +333,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
          (when (null ,(read-value-symbol marker))
            ,(cell-fail-form marker arguments))
          (setf (aref ,heap-symbol (the fixnum (+ ,pointer-symbol ,position)))
-               ,(read-value-symbol marker))))))
+               (the huginn.m.r:word ,(read-value-symbol marker)))))))
 (defgeneric ensure-object-position (object position))
 (defgeneric execute (flattening operation))
 (defgeneric queue-size (flattening))
