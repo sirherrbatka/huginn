@@ -175,6 +175,14 @@ This representation is pretty much the same as one used by norvig in the PAIP.
   ())
 
 
+(defclass unbound-variable-marker (variable-marker)
+  ())
+
+
+(defclass bound-variable-marker (variable-marker)
+  ())
+
+
 (defclass expression-marker (complex-mixin
                              pointer-mixin
                              eager-value-mixin)

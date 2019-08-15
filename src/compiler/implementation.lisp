@@ -33,12 +33,14 @@
                                           'list-marker)
                              (funcall direction flattening)))
     ((variablep exp)
-     (~>> (marker-for flattening exp 'variable-marker)
+     (~>> (marker-for flattening exp 'unbound-variable-marker)
           (funcall direction flattening)))
     ((inlined-fixnum-p exp)
      (~>> (make 'fixnum-marker :content exp)
           (funcall direction flattening)))
-    (t (~>> (marker-for flattening exp 'variable-marker :enforce-class t)
+    (t (~>> (marker-for flattening exp
+                        'bound-variable-marker
+                        :enforce-class t)
             (funcall direction flattening)))))
 
 
