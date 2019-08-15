@@ -138,12 +138,6 @@ This representation is pretty much the same as one used by norvig in the PAIP.
   ())
 
 
-(defclass potentially-unbound-mixin (fundamental-marker)
-  ((%bound :initarg :bound
-           :accessor access-bound))
-  (:default-initargs :bound nil))
-
-
 (defclass content-mixin (fundamental-marker)
   ((%content :initarg :content
              :reader read-content)))
@@ -168,7 +162,6 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 
 
 (defclass variable-marker (referencable-mixin
-                           potentially-unbound-mixin
                            content-mixin
                            indexed-mixin
                            lazy-value-mixin)
