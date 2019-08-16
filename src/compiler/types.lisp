@@ -188,10 +188,10 @@ This representation is pretty much the same as one used by norvig in the PAIP.
   ())
 
 
-(defclass expression-marker (complex-mixin
+(defclass expression-marker (immutable-cell-mixin
+                             complex-mixin
                              pointer-mixin
-                             eager-value-mixin
-                             immutable-cell-mixin)
+                             eager-value-mixin)
   ((%arity :initarg :arity
            :reader read-arity)))
 
@@ -220,10 +220,10 @@ This representation is pretty much the same as one used by norvig in the PAIP.
   ())
 
 
-(defclass list-marker (pointer-mixin
+(defclass list-marker (immutable-cell-mixin
+                       pointer-mixin
                        complex-mixin
-                       eager-value-mixin
-                       mutable-cell-mixin)
+                       eager-value-mixin)
   ())
 
 

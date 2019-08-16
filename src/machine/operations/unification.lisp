@@ -434,11 +434,15 @@
                            pointer2
                            cell1
                            cell2)
+    (declare (type huginn.m.r:pointer pointer1 pointer2))
     (cl-ds.utils:cond+ ((huginn.m.r:predicate-unbound-p cell1)
                         (huginn.m.r:predicate-unbound-p cell2))
       ((nil nil) (huginn.m.r:same-cells-p cell1 cell2))
-      ((t t) (alter-cell execution-state execution-stack-cell
-                         pointer1 (huginn.m.r:make-reference pointer2)))
+      ((t t)
+       (unless (> pointer1 pointer2)
+         (rotatef pointer1 pointer2))
+       (alter-cell execution-state execution-stack-cell
+                   pointer1 (huginn.m.r:make-reference pointer2)))
       ((t nil) (alter-cell execution-state execution-stack-cell
                            pointer1 cell2))
       ((nil t) (alter-cell execution-state execution-stack-cell
