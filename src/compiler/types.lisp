@@ -157,16 +157,16 @@ This representation is pretty much the same as one used by norvig in the PAIP.
   (:default-initargs :variable-index 0))
 
 
-(defclass list-rest-marker (referencable-mixin
+(defclass list-rest-marker (mutable-cell-mixin
+                            referencable-mixin
                             content-mixin
                             indexed-mixin
-                            mutable-cell-mixin
                             eager-value-mixin)
   ())
 
 
-(defclass fixnum-marker (content-mixin
-                         immutable-cell-mixin
+(defclass fixnum-marker (immutable-cell-mixin
+                         content-mixin
                          eager-value-mixin)
   ())
 
