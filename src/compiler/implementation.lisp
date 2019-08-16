@@ -88,7 +88,9 @@
          (enqueue-back flattening))
     (~>> (marker-for flattening
                       (first content)
-                      'predicate-marker
+                      (if (variablep (first content))
+                          'unbound-predicate-marker
+                          'bound-predicate-marker)
                       :enforce-class t)
          (enqueue-back flattening))
     (iterate

@@ -127,6 +127,14 @@ This representation is pretty much the same as one used by norvig in the PAIP.
   ())
 
 
+(defclass immutable-cell-mixin (fundamental-marker)
+  ())
+
+
+(defclass mutable-cell-mixin (fundamental-marker)
+  ())
+
+
 (defclass pointer-mixin (fundamental-marker)
   ((%destination :initarg :destination
                  :accessor access-destination))
@@ -152,11 +160,13 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 (defclass list-rest-marker (referencable-mixin
                             content-mixin
                             indexed-mixin
+                            mutable-cell-mixin
                             eager-value-mixin)
   ())
 
 
 (defclass fixnum-marker (content-mixin
+                         immutable-cell-mixin
                          eager-value-mixin)
   ())
 
@@ -168,17 +178,20 @@ This representation is pretty much the same as one used by norvig in the PAIP.
   ())
 
 
-(defclass unbound-variable-marker (variable-marker)
+(defclass unbound-variable-marker (mutable-cell-mixin
+                                   variable-marker)
   ())
 
 
-(defclass bound-variable-marker (variable-marker)
+(defclass bound-variable-marker (immutable-cell-mixin
+                                 variable-marker)
   ())
 
 
 (defclass expression-marker (complex-mixin
                              pointer-mixin
-                             eager-value-mixin)
+                             eager-value-mixin
+                             immutable-cell-mixin)
   ((%arity :initarg :arity
            :reader read-arity)))
 
@@ -193,13 +206,24 @@ This representation is pretty much the same as one used by norvig in the PAIP.
   ())
 
 
-(defclass list-end-marker (fundamental-marker)
+(defclass unbound-predicate-marker (mutable-cell-mixin
+                                    predicate-marker)
+  ())
+
+
+(defclass bound-predicate-marker (immutable-cell-mixin
+                                  predicate-marker)
+  ())
+
+
+(defclass list-end-marker (immutable-cell-mixin)
   ())
 
 
 (defclass list-marker (pointer-mixin
                        complex-mixin
-                       eager-value-mixin)
+                       eager-value-mixin
+                       mutable-cell-mixin)
   ())
 
 
