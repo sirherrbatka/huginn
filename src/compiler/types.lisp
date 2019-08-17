@@ -380,10 +380,10 @@ This representation is pretty much the same as one used by norvig in the PAIP.
            ,(cell-fail-form marker arguments))
          (when (huginn.m.r:reference-cell-p ,(read-value-symbol marker))
            (setf ,(read-value-symbol marker)
-                 (huginn.m.r:dereference-heap-pointer ,execution-state-symbol
-                                                      (huginn.m.r:detag ,(read-value-symbol
-                                                                          marker))
-                                                      t)))
+                 (huginn.m.r:dereference-heap-pointer
+                  ,execution-state-symbol
+                  (huginn.m.r:detag ,(read-value-symbol marker))
+                  t)))
          t))))
 (defgeneric ensure-object-position (object position))
 (defgeneric execute (flattening operation))
