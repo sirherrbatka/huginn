@@ -306,13 +306,17 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 (defclass unification-form-arguments ()
   ((%ponter-symbol :accessor access-pointer-symbol
                    :initarg :pointer-symbol)
+   (%goal-pointer-symbol :accessor access-goal-pointer-symbol
+                         :initarg :goal-pointer-symbol)
    (%execution-state-symbol :reader read-execution-state-symbol
                             :initarg :execution-state-symbol)
+   (%execution-stack-cell-symbol :reader read-execution-stack-cell-symbol
+                                 :initarg :execution-stack-cell-symbol)
    (%heap-symbol :reader read-heap-symbol
                  :initarg :heap-symbol)
    (%fail-symbol :reader read-fail-symbol
                  :initarg :fail-symbol)
-   (%all-markers :reader read-all-markers
+   (%all-markers :reader read-all-marke
                  :initarg :all-markers)
    (%database :reader read-database
               :initarg :database)
@@ -320,11 +324,14 @@ This representation is pretty much the same as one used by norvig in the PAIP.
               :initarg :position)))
 
 
-(defun make-unification-form-arguments (pointer-symbol execution-state-symbol
+(defun make-unification-form-arguments (pointer-symbol goal-pointer-symbol
+                                        execution-state-symbol
                                         heap-symbol fail-symbol all-markers
-                                        database position)
+                                        database position execution-stack-cell-symbol)
   (make-instance 'unification-form-arguments
                  :pointer-symbol pointer-symbol
+                 :goal-pointer-symbol goal-pointer-symbol
+                 :execution-stack-cell-symbol execution-stack-cell-symbol
                  :execution-state-symbol execution-state-symbol
                  :heap-symbol heap-symbol
                  :fail-symbol fail-symbol
@@ -335,6 +342,8 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 
 (cl-ds.utils:define-list-of-slots unification-form-arguments ()
   (pointer-symbol access-pointer-symbol)
+  (goal-pointer-symbol access-goal-pointer-symbol)
+  (execution-stack-cell-symbol read-execution-stack-cell-symbol)
   (heap-symbol read-heap-symbol)
   (database read-database)
   (all-markers read-all-markers)
@@ -344,7 +353,13 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 
 
 (defgeneric cell-value-form (marker arguments)) ; needs to be implemented just for the abstract-value-mixin (this excludes list-end)
-(defgeneric cell-unification-form (marker arguments)) ; different for each marker
+(defgeneric cell-unification-form (marker arguments) ; different for each marker
+  (:method ((marker fundamental-marker) arguments)
+    (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
+      `(huginn.m.o:unify-pair ,execution-state-symbol ,execution-stack-cell-symbol
+                              ,goal-pointer-symbol
+                              (the huginn.m.r:word (+ ,(access-position marker)
+                                                      ,pointer-symbol))))))
 (defgeneric unify-each-form (range arguments)) ; used for expressions and lists alike
 (defgeneric content-for-unification (marker arguments)) ; needs implementation for lists and expressions, returns range that should yield markers
 (defgeneric cell-fail-form (marker arguments) ; the same for every marker

@@ -93,7 +93,6 @@
              :key #'cdr)))
 
 
-+all-tags+
 (defmacro tag-case ((cell) &body cases)
   (assert (every (rcurry #'member '(:variable :reference :expression
                                     :fixnum :predicate :list-start
