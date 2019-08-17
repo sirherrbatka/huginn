@@ -330,17 +330,8 @@ This representation is pretty much the same as one used by norvig in the PAIP.
    :fail-symbol (gensym)))
 
 
-(defun make-unification-form-arguments (pointer-symbol goal-pointer-symbol
-                                        execution-state-symbol
-                                        heap-symbol fail-symbol all-markers
-                                        database position execution-stack-cell-symbol)
+(defun make-unification-form-arguments (all-markers database position)
   (make-instance 'unification-form-arguments
-                 :pointer-symbol pointer-symbol
-                 :goal-pointer-symbol goal-pointer-symbol
-                 :execution-stack-cell-symbol execution-stack-cell-symbol
-                 :execution-state-symbol execution-state-symbol
-                 :heap-symbol heap-symbol
-                 :fail-symbol fail-symbol
                  :all-markers all-markers
                  :database database
                  :position position))
