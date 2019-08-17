@@ -321,7 +321,13 @@ This representation is pretty much the same as one used by norvig in the PAIP.
    (%database :reader read-database
               :initarg :database)
    (%position :accessor access-position
-              :initarg :position)))
+              :initarg :position))
+  (:default-initargs
+   :pointer-symbol (gensym)
+   :goal-pointer-symbol (gensym)
+   :execution-state-symbol (gensym)
+   :heap-symbol (gensym)
+   :fail-symbol (gensym)))
 
 
 (defun make-unification-form-arguments (pointer-symbol goal-pointer-symbol
@@ -358,7 +364,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
     (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
       `(huginn.m.o:unify-pair ,execution-state-symbol ,execution-stack-cell-symbol
                               ,goal-pointer-symbol
-                              (the huginn.m.r:word (+ ,(access-position marker)
+                              (the huginn.m.r:word (+ ,(access-object-position marker)
                                                       ,pointer-symbol))))))
 (defgeneric unify-each-form (range arguments)) ; used for expressions and lists alike
 (defgeneric content-for-unification (marker arguments)) ; needs implementation for lists and expressions, returns range that should yield markers
