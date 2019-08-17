@@ -356,7 +356,9 @@ This representation is pretty much the same as one used by norvig in the PAIP.
       `(huginn.m.o:unify-pair ,execution-state-symbol ,execution-stack-cell-symbol
                               (the huginn.m.r:pointer (+ ,(access-object-position marker)
                                                          ,pointer-symbol))
-                              ,goal-pointer-symbol
+                              (huginn.m.r:follow-pointer ,execution-state-symbol
+                                                         ,goal-pointer-symbol
+                                                         t)
                               ,(read-value-symbol marker)))))
 (defgeneric unify-each-form (range arguments)) ; used for expressions and lists alike
 (defgeneric content-for-unification (marker arguments)) ; needs implementation for lists and expressions, returns range that should yield markers
