@@ -186,9 +186,9 @@
   (defun follow-pointer (execution-state pointer &optional recursive)
     (declare (type execution-state execution-state)
              (type pointer pointer)
-             (optimize (speed 3) (safety 0)))
+             (optimize (speed 3) (space 0) (debug 0)
+                       (safety 0) (compilation-speed 0)))
     (iterate
-      ;; (with initial = pointer)
       (with heap = (execution-state-heap execution-state))
       (for heap-cell = (aref heap pointer))
       (if (and recursive (reference-cell-p heap-cell))
