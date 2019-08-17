@@ -354,9 +354,10 @@ This representation is pretty much the same as one used by norvig in the PAIP.
   (:method ((marker fundamental-marker) arguments)
     (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
       `(huginn.m.o:unify-pair ,execution-state-symbol ,execution-stack-cell-symbol
+                              (the huginn.m.r:pointer (+ ,(access-object-position marker)
+                                                         ,pointer-symbol))
                               ,goal-pointer-symbol
-                              (the huginn.m.r:word (+ ,(access-object-position marker)
-                                                      ,pointer-symbol))))))
+                              ,(read-value-symbol marker)))))
 (defgeneric unify-each-form (range arguments)) ; used for expressions and lists alike
 (defgeneric content-for-unification (marker arguments)) ; needs implementation for lists and expressions, returns range that should yield markers
 (defgeneric cell-fail-form (marker arguments) ; the same for every marker
