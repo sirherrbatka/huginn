@@ -173,17 +173,18 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 
 (defclass variable-marker (referencable-mixin
                            content-mixin
-                           indexed-mixin
-                           lazy-value-mixin)
+                           indexed-mixin)
   ())
 
 
 (defclass unbound-variable-marker (mutable-cell-mixin
+                                   eager-value-mixin
                                    variable-marker)
   ())
 
 
 (defclass bound-variable-marker (immutable-cell-mixin
+                                 lazy-value-mixin
                                  variable-marker)
   ())
 

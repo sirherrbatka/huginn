@@ -561,7 +561,7 @@
     (marker->cell marker (access-position marker) database)))
 
 
-(defmethod cell-value-form ((marker variable-marker) arguments)
+(defmethod cell-value-form ((marker unbound-variable-marker) arguments)
   (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
     (marker->cell marker (access-position marker) database)))
 
