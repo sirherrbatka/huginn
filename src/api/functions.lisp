@@ -46,20 +46,25 @@
          (content (huginn.c:content compilation (database)))
          (body-pointer (huginn.c:body-pointer compilation))
          (variable-bindings (huginn.c:variable-bindings compilation))
+         (database (database))
+         (unify-head-function (huginn.c:optimized-unify-head-function
+                               compilation
+                               database))
          (copy-head-function (huginn.c:optimized-relocate-cells-function
                               compilation
-                              (database)
+                              database
                               0
                               body-pointer))
          (copy-body-function (huginn.c:optimized-relocate-cells-function
                               compilation
-                              (database)
+                              database
                               body-pointer
                               (length content))))
     (~> (huginn.m.r:make-clause
          :copy-head-function copy-head-function
          :copy-body-function copy-body-function
          :body-pointer body-pointer
+         :unify-head-function unify-head-function
          :variable-values variable-bindings
          :input (list* head goals)
          :content content

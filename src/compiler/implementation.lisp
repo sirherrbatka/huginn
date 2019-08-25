@@ -537,35 +537,124 @@
 
 (defmethod cell-value-form ((marker lazy-value-mixin) arguments)
   (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
-    `(aref ,heap-symbol (the fixnum (+ ,pointer-symbol ,position)))))
+    `(aref ,heap-symbol
+           (the fixnum (+ ,pointer-symbol
+                          ,(access-object-position marker))))))
+
+
+(defmethod content-for-unification ((marker list-marker) arguments)
+  (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
+    (cl-ds:xpr (:i (access-destination marker))
+      (let ((result (aref all-markers i)))
+        (if (or (typep result 'list-end-marker)
+                (typep result 'list-rest-marker))
+            (cl-ds:send-finish result)
+            (cl-ds:send-recur result :i (1+ i)))))))
+
+
+(defmethod content-for-unification ((marker expression-marker) arguments)
+  (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
+    (let ((length (read-arity marker))
+          (destination (access-destination marker)))
+      (cl-ds:xpr (:i 0)
+        (when (<= i length)
+          (cl-ds:send-recur (aref all-markers (+ i destination))
+                            :i (1+ i)))))))
 
 
 (defmethod cell-value-form ((marker pointer-mixin) arguments)
   (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
     `(huginn.m.r:tag ,(marker-tag marker)
-                     (the huginn.m.r:word (+ ,pointer-symbol ,position)))))
+                     (the huginn.m.r:word
+                          (+ ,pointer-symbol ,(access-destination marker))))))
 
 
 (defmethod cell-value-form ((marker fixnum-marker) arguments)
   (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
-    (marker->cell marker (access-position marker) database)))
+    (marker->cell marker (access-object-position marker) database)))
 
 
 (defmethod cell-value-form ((marker predicate-marker) arguments)
   (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
-    (marker->cell marker (access-position marker) database)))
+    (marker->cell marker (access-object-position marker) database)))
 
 
 (defmethod cell-value-form ((marker list-rest-marker) arguments)
   (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
-    (marker->cell marker (access-position marker) database)))
+    (marker->cell marker (access-object-position marker) database)))
 
 
 (defmethod cell-value-form ((marker unbound-variable-marker) arguments)
   (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
-    (marker->cell marker (access-position marker) database)))
+    (marker->cell marker (access-object-position marker) database)))
 
 
 (defmethod cell-value-form ((marker list-end-marker) arguments)
   (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
-    (marker->cell marker (access-position marker) database)))
+    (marker->cell marker (access-object-position marker) database)))
+
+
+(defun optimized-unify-head-function-form (compilation-state database)
+  (let* ((filtered-markers
+           (~> compilation-state
+               read-flat-representation
+               (take (read-body-pointer compilation-state) _)
+               (remove-duplicates :test #'eq :from-end t)))
+         (eager-markers (~>> filtered-markers
+                             (remove-if-not (rcurry #'typep  'eager-value-mixin))))
+         (arguments (make-unification-form-arguments
+                    (read-flat-representation compilation-state)
+                    database)))
+    (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
+      (if (emptyp filtered-markers)
+          `(lambda (,execution-state-symbol ,execution-stack-cell-symbol ,goal-pointer-symbol)
+             (declare (ignore ,execution-stack-cell-symbol
+                              ,execution-stack-cell-symbol
+                              ,goal-pointer-symbol))
+             t)
+          `(lambda (,execution-state-symbol
+                    ,execution-stack-cell-symbol
+                    ,goal-pointer-symbol)
+             (declare (optimize (speed 0) (debug 3)))
+             (block ,function-symbol
+               (let* ((,heap-symbol (huginn.m.r:execution-state-heap
+                                     ,execution-state-symbol))
+                      (,pointer-symbol (huginn.m.r:execution-stack-cell-heap-pointer
+                                        ,execution-stack-cell-symbol))
+                      ,@(map 'list
+                             (lambda (marker)
+                               (list (read-value-symbol marker)
+                                     (cell-value-form marker arguments)))
+                             eager-markers))
+                 (declare (ignorable ,heap-symbol ,pointer-symbol
+                                     ,@(map 'list #'read-value-symbol
+                                            eager-markers)))
+                 (cl-ds.utils:lazy-let
+                     ,(~>> filtered-markers
+                           (remove-if-not (rcurry #'typep 'lazy-value-mixin))
+                           (map 'list
+                                (lambda (marker)
+                                  (list (read-value-symbol marker)
+                                        (cell-value-form marker arguments)))))
+                   (labels ((,fail-symbol ()
+                              (return-from ,function-symbol nil))
+                            ,@(map 'list
+                                (lambda (marker)
+                                  (list (read-unification-function-symbol marker)
+                                        (list goal-pointer-symbol)
+                                        (cell-store-form marker arguments)))
+                                filtered-markers))
+                     (declare (notinline ,@(map 'list
+                                             #'read-unification-function-symbol
+                                             filtered-markers)))
+                     (,(~> filtered-markers first-elt read-unification-function-symbol)
+                      ,goal-pointer-symbol)
+                     t)))))))))
+
+
+(defmethod optimized-unify-head-function ((compilation-state compilation-state)
+                                          database)
+  (let ((*error-output* (make-broadcast-stream)))
+    (~>> (optimized-unify-head-function-form compilation-state
+                                             database)
+         (compile nil))))

@@ -12,6 +12,9 @@
    #:index-object
    #:unify
    #:unify-pair
+   #:unify-inner-list-rest
+   #:unify-lists
+   #:alter-cell
    #:unify-variable/expression
    #:unify-predicates
    #:unify-list-end/list-rest

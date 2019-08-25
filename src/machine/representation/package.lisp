@@ -86,4 +86,5 @@
    #:variable-cell-p
    #:variable-unbound-p
    #:retag
+   #:clause-unify-head-function
    #:word))

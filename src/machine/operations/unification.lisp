@@ -177,8 +177,6 @@
              (type huginn.m.r:pointer pointer1 pointer2)
              (type huginn.m.r:execution-stack-cell execution-stack-cell)
              (type huginn.m.r:execution-state execution-state))
-    (when (= pointer1 pointer2)
-      (return-from unify-list-rests cell1))
     (cl-ds.utils:cond+ ((huginn.m.r:list-rest-unbound-p cell1)
                         (huginn.m.r:list-rest-unbound-p cell2))
       ((nil nil)
@@ -187,9 +185,11 @@
                         (huginn.m.r:detag cell1)
                         (huginn.m.r:detag cell2))))
       ((t t)
-       (alter-cell execution-state execution-stack-cell
-                   pointer1
-                   (huginn.m.r:make-reference pointer2)))
+       (when (> pointer2 pointer1)
+         (rotatef pointer1 pointer2)
+         (alter-cell execution-state execution-stack-cell
+                     pointer1
+                     (huginn.m.r:make-reference pointer2))))
       ((t nil)
        (alter-cell execution-state execution-stack-cell
                    pointer1 cell2))
@@ -471,6 +471,37 @@
                 expression-cell))
 
 
+  (declaim (notinline unify-inner-list-rest))
+  (-> unify-inner-list-rest
+      (huginn.m.r:execution-state
+       huginn.m.r:execution-stack-cell
+       huginn.m.r:pointer huginn.m.r:pointer)
+      (or huginn.m.r:cell boolean))
+  (defun unify-inner-list-rest (execution-state
+                                execution-stack-cell
+                                list-rest-pointer
+                                other-pointer)
+    (let ((list-rest-cell (huginn.m.r:dereference-heap-pointer
+                           execution-state
+                           list-rest-pointer))
+          (other-cell (huginn.m.r:dereference-heap-pointer
+                       execution-state
+                       other-pointer
+                       t)))
+      (cond ((huginn.m.r:list-rest-cell-p other-cell)
+             (unify-list-rests execution-state execution-stack-cell
+                               list-rest-pointer other-pointer
+                               list-rest-cell other-cell))
+            ((huginn.m.r:list-rest-unbound-p list-rest-cell)
+             (alter-cell execution-state execution-stack-cell
+                         list-rest-pointer
+                         (huginn.m.r:tag huginn.m.r:+list-rest+
+                                         other-pointer)))
+            (t (unify-lists execution-state execution-stack-cell
+                            (huginn.m.r:detag list-rest-cell)
+                            other-pointer)))))
+
+
   (-> unify-pair
       (huginn.m.r:execution-state
        huginn.m.r:execution-stack-cell
@@ -557,18 +588,10 @@
                                      cell1 cell2)))))
 
 
-  (declaim (notinline unify))
-  (-> unify (huginn.m.r:execution-state
-             huginn.m.r:execution-stack-cell
-             huginn.m.r:pointer)
-      (or huginn.m.r:cell boolean))
-  (defun unify (execution-state execution-stack-cell goal-pointer)
+  (defun unify-loop (execution-state execution-stack-cell)
     (declare (type huginn.m.r:execution-stack-cell execution-stack-cell)
              (type huginn.m.r:execution-state execution-state)
-             (type huginn.m.r:pointer goal-pointer))
-    (prepare-unification-stack execution-state
-                               execution-stack-cell
-                               goal-pointer)
+             (optimize (debug 3) (speed 0)))
     (with-unification-stack (execution-state)
       (when (uemptyp)
         (done t))
@@ -582,4 +605,27 @@
                                                       second-pointer t))))
          (unless result
            (done nil)))
-       (next)))))
+       (next))))
+
+
+  (declaim (notinline unify))
+  (-> unify (huginn.m.r:execution-state
+             huginn.m.r:execution-stack-cell
+             huginn.m.r:pointer)
+      (or huginn.m.r:cell boolean))
+  (defun unify (execution-state execution-stack-cell goal-pointer)
+    (declare (type huginn.m.r:execution-stack-cell execution-stack-cell)
+             (type huginn.m.r:execution-state execution-state)
+             (type huginn.m.r:pointer goal-pointer))
+    (let ((unify-head-function (~> execution-stack-cell
+                                   huginn.m.r:execution-stack-cell-clause
+                                   huginn.m.r:clause-unify-head-function)))
+      (if (null unify-head-function)
+          (prepare-unification-stack execution-state
+                                     execution-stack-cell
+                                     goal-pointer)
+          (funcall unify-head-function
+                   execution-state
+                   execution-stack-cell
+                   goal-pointer))
+      (unify-loop execution-state execution-stack-cell))))

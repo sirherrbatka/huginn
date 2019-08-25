@@ -81,16 +81,21 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 
 
 (defclass fundamental-marker ()
-  ((%unification-function-symbol :initarg :unification-function-symbol
-                                 :reader read-unification-function-symbol)
+  ((%unification-function-symbol :reader read-unification-function-symbol)
    (%object-position :initarg :object-position
                      :accessor access-object-position)
    (%pinned :initarg :pinned
             :accessor access-pinned))
   (:default-initargs
-   :unification-function-symbol (gensym)
    :object-position nil
    :pinned nil))
+
+
+(defmethod initialize-instance :after ((marker fundamental-marker)
+                                       &rest initargs)
+  (declare (ignore initargs))
+  (setf (slot-value marker '%unification-function-symbol)
+        (~> marker class-of class-name symbol-name gensym)))
 
 
 (defclass flattening ()
@@ -157,11 +162,9 @@ This representation is pretty much the same as one used by norvig in the PAIP.
   (:default-initargs :variable-index 0))
 
 
-(defclass list-rest-marker (mutable-cell-mixin
-                            referencable-mixin
+(defclass list-rest-marker (referencable-mixin
                             content-mixin
-                            indexed-mixin
-                            eager-value-mixin)
+                            indexed-mixin)
   ())
 
 
@@ -171,13 +174,13 @@ This representation is pretty much the same as one used by norvig in the PAIP.
   ())
 
 
-(defclass variable-marker (referencable-mixin
-                           content-mixin
+(defclass variable-marker (content-mixin
                            indexed-mixin)
   ())
 
 
 (defclass unbound-variable-marker (mutable-cell-mixin
+                                   referencable-mixin
                                    eager-value-mixin
                                    variable-marker)
   ())
@@ -317,25 +320,26 @@ This representation is pretty much the same as one used by norvig in the PAIP.
                  :initarg :heap-symbol)
    (%fail-symbol :reader read-fail-symbol
                  :initarg :fail-symbol)
-   (%all-markers :reader read-all-marke
+   (%all-markers :reader read-all-markers
                  :initarg :all-markers)
+   (%function-symbol :reader read-function-symbol
+                     :initarg :function-symbol)
    (%database :reader read-database
-              :initarg :database)
-   (%position :accessor access-position
-              :initarg :position))
+              :initarg :database))
   (:default-initargs
-   :pointer-symbol (gensym)
-   :goal-pointer-symbol (gensym)
-   :execution-state-symbol (gensym)
-   :heap-symbol (gensym)
-   :fail-symbol (gensym)))
+   :function-symbol (gensym "FUNCTION")
+   :pointer-symbol (gensym "POINTER")
+   :goal-pointer-symbol (gensym "GOAL-POINTER")
+   :execution-state-symbol (gensym "EXECUTION-STATE")
+   :execution-stack-cell-symbol (gensym "EXECUTION-STACK-CELL")
+   :heap-symbol (gensym "HEAP")
+   :fail-symbol (gensym "FAIL")))
 
 
-(defun make-unification-form-arguments (all-markers database position)
+(defun make-unification-form-arguments (all-markers database)
   (make-instance 'unification-form-arguments
                  :all-markers all-markers
-                 :database database
-                 :position position))
+                 :database database))
 
 
 (cl-ds.utils:define-list-of-slots unification-form-arguments ()
@@ -344,10 +348,10 @@ This representation is pretty much the same as one used by norvig in the PAIP.
   (execution-stack-cell-symbol read-execution-stack-cell-symbol)
   (heap-symbol read-heap-symbol)
   (database read-database)
+  (function-symbol read-function-symbol)
   (all-markers read-all-markers)
   (fail-symbol read-fail-symbol)
-  (execution-state-symbol read-execution-state-symbol)
-  (position access-position))
+  (execution-state-symbol read-execution-state-symbol))
 
 
 (defgeneric cell-value-form (marker arguments)) ; needs to be implemented just for the abstract-value-mixin (this excludes list-end)
@@ -360,18 +364,84 @@ This representation is pretty much the same as one used by norvig in the PAIP.
                               (huginn.m.r:follow-pointer ,execution-state-symbol
                                                          ,goal-pointer-symbol
                                                          t)
-                              ,(read-value-symbol marker)))))
+                              ,(read-value-symbol marker))))
+  (:method ((marker list-rest-marker) arguments)
+    (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
+      (with-gensyms (!this-pointer !result)
+        `(let* ((,!this-pointer (+ ,(access-object-position marker)
+                                   ,pointer-symbol)))
+           (declare (type huginn.m.r:pointer ,!this-pointer))
+           (let ((,!result
+                   (huginn.machine.operations:unify-inner-list-rest
+                    ,execution-state-symbol
+                    ,execution-stack-cell-symbol
+                    ,!this-pointer
+                    ,goal-pointer-symbol)))
+             (when (null ,!result)
+               ,(cell-fail-form marker arguments))
+             t)))))
+  (:method ((marker list-marker) arguments)
+    (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
+      (with-gensyms (!other-cell !word !start)
+        `(tagbody ,!start
+           (let* ((,!other-cell (aref ,heap-symbol ,goal-pointer-symbol))
+                  (,!word (huginn.m.r:detag ,!other-cell)))
+             (cond ((huginn.m.r:variable-cell-p ,!other-cell)
+                    (if (huginn.m.r:variable-unbound-p ,!other-cell)
+                        (huginn.m.o:alter-cell ,execution-state-symbol
+                                               ,execution-stack-cell-symbol
+                                               ,goal-pointer-symbol
+                                               ,(read-value-symbol marker))
+                        nil))
+                   ((huginn.m.r:reference-cell-p ,!other-cell)
+                    (setf ,goal-pointer-symbol ,!word)
+                    (go ,!start))
+                   ((huginn.m.r:list-start-cell-p ,!other-cell)
+                    (setf ,goal-pointer-symbol ,!word)
+                    ,@(iterate
+                        (with range = (content-for-unification marker arguments))
+                        (for (values content more) = (cl-ds:consume-front range))
+                        (while more)
+                        (collect
+                            `(tagbody ,!start
+                               (setf ,!other-cell
+                                     (aref ,heap-symbol ,goal-pointer-symbol))
+                               (if (huginn.m.r:list-rest-cell-p ,!other-cell)
+                                   (progn
+                                     (setf ,goal-pointer-symbol
+                                           (huginn.m.r:detag ,!other-cell))
+                                     (go ,!start))
+                                   (progn
+                                     (,(read-unification-function-symbol content)
+                                      ,goal-pointer-symbol)
+                                     (incf ,goal-pointer-symbol)))))))
+                   (t nil)))))))
+  (:method ((marker expression-marker) arguments)
+    (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
+      (with-gensyms (!other-expression)
+        `(let ((,!other-expression (~> ,heap-symbol
+                                       (aref ,goal-pointer-symbol)
+                                       huginn.m.r:detag)))
+          ,@(iterate
+              (with range = (content-for-unification marker arguments))
+              (for (values content more) = (cl-ds:consume-front range))
+              (for i from 0)
+              (while more)
+              (collect (list (read-unification-function-symbol content)
+                             `(+ ,!other-expression ,i)))))))))
 (defgeneric unify-each-form (range arguments)) ; used for expressions and lists alike
 (defgeneric content-for-unification (marker arguments)) ; needs implementation for lists and expressions, returns range that should yield markers
 (defgeneric cell-fail-form (marker arguments) ; the same for every marker
   (:method ((marker fundamental-marker) arguments)
-    (list (read-fail-symbol marker))))
+    (list (read-fail-symbol arguments))))
 (defgeneric cell-store-form (marker arguments)
   (:method ((marker immutable-cell-mixin) arguments)
     (with-gensyms (!result)
-      `(let ((,!result (cell-unification-form marker arguments)))
+      `(let ((,!result ,(cell-unification-form marker arguments)))
          (when (null ,!result) ,(cell-fail-form marker arguments))
          t)))
+  (:method ((marker list-rest-marker) arguments)
+    (cell-unification-form marker arguments))
   (:method ((marker mutable-cell-mixin) arguments)
     (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
       `(progn
@@ -379,7 +449,8 @@ This representation is pretty much the same as one used by norvig in the PAIP.
                ,(cell-unification-form marker arguments))
          (when (null ,(read-value-symbol marker))
            ,(cell-fail-form marker arguments))
-         (when (huginn.m.r:reference-cell-p ,(read-value-symbol marker))
+         (when (huginn.m.r:reference-cell-p
+                ,(read-value-symbol marker))
            (setf ,(read-value-symbol marker)
                  (huginn.m.r:dereference-heap-pointer
                   ,execution-state-symbol
