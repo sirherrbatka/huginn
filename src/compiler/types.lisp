@@ -392,10 +392,21 @@ This representation is pretty much the same as one used by norvig in the PAIP.
                                                ,execution-stack-cell-symbol
                                                ,goal-pointer-symbol
                                                ,(read-value-symbol marker))
-                        nil))
+                        ,(cell-fail-form marker arguments)))
                    ((huginn.m.r:reference-cell-p ,!other-cell)
                     (setf ,goal-pointer-symbol ,!word)
                     (go ,!start))
+                   ((huginn.m.r:list-rest-cell-p ,!other-cell)
+                    (if (huginn.m.r:list-rest-unbound-p ,!other-cell)
+                        (huginn.m.o:alter-cell ,execution-state-symbol
+                                               ,execution-stack-cell-symbol
+                                               ,goal-pointer-symbol
+                                               (huginn.m.r:tag huginn.m.r:+list-rest+
+                                                               (+ ,pointer-symbol
+                                                                  ,(access-destination marker))))
+                        (progn
+                          (setf ,goal-pointer-symbol ,!word)
+                          (go ,!start))))
                    ((huginn.m.r:list-start-cell-p ,!other-cell)
                     (setf ,goal-pointer-symbol ,!word)
                     ,@(iterate
@@ -415,7 +426,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
                                      (,(read-unification-function-symbol content)
                                       ,goal-pointer-symbol)
                                      (incf ,goal-pointer-symbol)))))))
-                   (t nil)))))))
+                   (t ,(cell-fail-form marker arguments))))))))
   (:method ((marker expression-marker) arguments)
     (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
       (with-gensyms (!other-expression)

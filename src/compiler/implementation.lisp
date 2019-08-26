@@ -615,7 +615,7 @@
           `(lambda (,execution-state-symbol
                     ,execution-stack-cell-symbol
                     ,goal-pointer-symbol)
-             (declare (optimize (speed 0) (debug 3)))
+             (declare (optimize (speed 0) (debug 3) (safety 3)))
              (block ,function-symbol
                (let* ((,heap-symbol (huginn.m.r:execution-state-heap
                                      ,execution-state-symbol))
@@ -657,4 +657,5 @@
   (let ((*error-output* (make-broadcast-stream)))
     (~>> (optimized-unify-head-function-form compilation-state
                                              database)
+         print
          (compile nil))))
