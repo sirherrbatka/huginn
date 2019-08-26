@@ -421,9 +421,8 @@ This representation is pretty much the same as one used by norvig in the PAIP.
                            ,execution-state-symbol
                            ,execution-stack-cell-symbol
                            ,goal-pointer-symbol
-                           (huginn.m.r:tag huginn.m.r:+list-rest+
-                                           (+ ,pointer-symbol
-                                              ,(access-destination marker))))
+                           (huginn.m.r:retag huginn.m.r:+list-rest+
+                                           ,(read-value-symbol marker)))
                           (,!walk)))
                      ((huginn.m.r:list-start-cell-p ,!other-cell)
                       (,!walk))
