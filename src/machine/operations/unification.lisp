@@ -626,12 +626,13 @@
                                    huginn.m.r:execution-stack-cell-clause
                                    huginn.m.r:clause-unify-head-function)))
       (if (null unify-head-function)
-          (prepare-unification-stack execution-state
-                                     execution-stack-cell
-                                     goal-pointer)
-          (funcall unify-head-function
-                   execution-state
-                   execution-stack-cell
-                   goal-pointer))
-      (break)
-      (unify-loop execution-state execution-stack-cell))))
+          (progn
+            (prepare-unification-stack execution-state
+                                       execution-stack-cell
+                                       goal-pointer)
+            (unify-loop execution-state execution-stack-cell))
+          (and (funcall unify-head-function
+                        execution-state
+                        execution-stack-cell
+                        goal-pointer)
+               (unify-loop execution-state execution-stack-cell))))))

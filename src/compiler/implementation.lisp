@@ -657,5 +657,4 @@
   (let ((*error-output* (make-broadcast-stream)))
     (~>> (optimized-unify-head-function-form compilation-state
                                              database)
-         print
          (compile nil))))
