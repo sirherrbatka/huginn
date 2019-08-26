@@ -481,6 +481,7 @@
                                 execution-stack-cell
                                 list-rest-pointer
                                 other-pointer)
+    (declare (optimize (speed 0) (debug 3)))
     (let ((list-rest-cell (huginn.m.r:dereference-heap-pointer
                            execution-state
                            list-rest-pointer))
@@ -489,17 +490,19 @@
                        other-pointer
                        t)))
       (cond ((huginn.m.r:list-rest-cell-p other-cell)
+             (break)
              (unify-list-rests execution-state execution-stack-cell
                                list-rest-pointer other-pointer
                                list-rest-cell other-cell))
             ((huginn.m.r:list-rest-unbound-p list-rest-cell)
+             (break)
              (alter-cell execution-state execution-stack-cell
                          list-rest-pointer
                          (huginn.m.r:tag huginn.m.r:+list-rest+
                                          other-pointer)))
-            (t (unify-lists execution-state execution-stack-cell
-                            (huginn.m.r:detag list-rest-cell)
-                            other-pointer)))))
+            (t (break) (unify-lists execution-state execution-stack-cell
+                               (huginn.m.r:detag list-rest-cell)
+                               other-pointer)))))
 
 
   (-> unify-pair

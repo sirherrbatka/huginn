@@ -368,8 +368,8 @@ This representation is pretty much the same as one used by norvig in the PAIP.
   (:method ((marker list-rest-marker) arguments)
     (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
       (with-gensyms (!this-pointer !result)
-        `(let* ((,!this-pointer (+ ,(access-object-position marker)
-                                   ,pointer-symbol)))
+        `(let ((,!this-pointer (+ ,(access-object-position marker)
+                                  ,pointer-symbol)))
            (declare (type huginn.m.r:pointer ,!this-pointer))
            (let ((,!result
                    (huginn.machine.operations:unify-inner-list-rest
