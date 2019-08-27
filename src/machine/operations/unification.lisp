@@ -494,14 +494,10 @@
                                list-rest-pointer other-pointer
                                list-rest-cell other-cell))
             ((huginn.m.r:list-rest-unbound-p list-rest-cell)
-             (if (huginn.m.r:list-end-cell-p other-cell)
-                 (alter-cell execution-state execution-stack-cell
-                             list-rest-pointer
-                             other-cell)
-                 (alter-cell execution-state execution-stack-cell
-                             list-rest-pointer
-                             (huginn.m.r:tag huginn.m.r:+list-rest+
-                                             other-pointer))))
+             (alter-cell execution-state execution-stack-cell
+                         list-rest-pointer
+                         (huginn.m.r:tag huginn.m.r:+list-rest+
+                                         other-pointer)))
             (t (unify-lists execution-state execution-stack-cell
                             (huginn.m.r:detag list-rest-cell)
                             other-pointer)))))

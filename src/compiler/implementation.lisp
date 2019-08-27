@@ -637,6 +637,7 @@
                                   (list (read-value-symbol marker)
                                         (cell-value-form marker arguments)))))
                    (labels ((,fail-symbol ()
+                              (break)
                               (return-from ,function-symbol nil))
                             ,@(map 'list
                                 (lambda (marker)
