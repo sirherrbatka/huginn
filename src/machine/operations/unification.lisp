@@ -616,8 +616,17 @@
     (declare (type huginn.m.r:execution-stack-cell execution-stack-cell)
              (type huginn.m.r:execution-state execution-state)
              (type huginn.m.r:pointer goal-pointer))
-    (prepare-unification-stack execution-state
-                               execution-stack-cell
-                               goal-pointer)
-    (unify-loop execution-state execution-stack-cell)
-    ))
+    (let ((unify-head-function (~> execution-stack-cell
+                                   huginn.m.r:execution-stack-cell-clause
+                                   huginn.m.r:clause-unify-head-function)))
+      (if (or t (null unify-head-function))
+          (progn
+            (prepare-unification-stack execution-state
+                                       execution-stack-cell
+                                       goal-pointer)
+            (unify-loop execution-state execution-stack-cell))
+          (and (funcall unify-head-function
+                        execution-state
+                        execution-stack-cell
+                        goal-pointer)
+               (unify-loop execution-state execution-stack-cell))))))
