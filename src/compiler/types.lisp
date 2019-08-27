@@ -406,13 +406,17 @@ This representation is pretty much the same as one used by norvig in the PAIP.
          t)))
   (:method ((marker list-marker) arguments)
     (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
-      `(huginn.m.o:unify-pair ,execution-state-symbol ,execution-stack-cell-symbol
-                              (the huginn.m.r:pointer (+ ,(access-object-position marker)
-                                                         ,pointer-symbol))
-                              (huginn.m.r:follow-pointer ,execution-state-symbol
-                                                         ,goal-pointer-symbol
-                                                         t)
-                              ,(read-value-symbol marker))))
+      (with-gensyms (!result)
+        `(let ((,!result
+                 (huginn.m.o:unify-pair ,execution-state-symbol ,execution-stack-cell-symbol
+                                        (the huginn.m.r:pointer (+ ,(access-object-position marker)
+                                                                   ,pointer-symbol))
+                                        (huginn.m.r:follow-pointer ,execution-state-symbol
+                                                                   ,goal-pointer-symbol
+                                                                   t)
+                                        ,(read-value-symbol marker))))
+           (when (null ,!result)
+             ,(cell-fail-form marker arguments))))))
   (:method ((marker expression-marker) arguments)
     (cell-unification-form marker arguments))
   (:method ((marker list-rest-marker) arguments)
