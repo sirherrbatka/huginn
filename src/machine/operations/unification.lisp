@@ -481,7 +481,6 @@
                                 execution-stack-cell
                                 list-rest-pointer
                                 other-pointer)
-    (declare (optimize (speed 0) (debug 3)))
     (let ((list-rest-cell (huginn.m.r:dereference-heap-pointer
                            execution-state
                            list-rest-pointer))
@@ -591,8 +590,7 @@
 
   (defun unify-loop (execution-state execution-stack-cell)
     (declare (type huginn.m.r:execution-stack-cell execution-stack-cell)
-             (type huginn.m.r:execution-state execution-state)
-             (optimize (debug 3) (speed 0)))
+             (type huginn.m.r:execution-state execution-state))
     (with-unification-stack (execution-state)
       (when (uemptyp)
         (done t))
@@ -618,17 +616,8 @@
     (declare (type huginn.m.r:execution-stack-cell execution-stack-cell)
              (type huginn.m.r:execution-state execution-state)
              (type huginn.m.r:pointer goal-pointer))
-    (let ((unify-head-function (~> execution-stack-cell
-                                   huginn.m.r:execution-stack-cell-clause
-                                   huginn.m.r:clause-unify-head-function)))
-      (if (null unify-head-function)
-          (progn
-            (prepare-unification-stack execution-state
-                                       execution-stack-cell
-                                       goal-pointer)
-            (unify-loop execution-state execution-stack-cell))
-          (and (funcall unify-head-function
-                        execution-state
-                        execution-stack-cell
-                        goal-pointer)
-               (unify-loop execution-state execution-stack-cell))))))
+    (prepare-unification-stack execution-state
+                               execution-stack-cell
+                               goal-pointer)
+    (unify-loop execution-state execution-stack-cell)
+    ))

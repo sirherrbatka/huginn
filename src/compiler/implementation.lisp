@@ -610,7 +610,8 @@
           `(lambda (,execution-state-symbol ,execution-stack-cell-symbol ,goal-pointer-symbol)
              (declare (ignore ,execution-stack-cell-symbol
                               ,execution-stack-cell-symbol
-                              ,goal-pointer-symbol))
+                              ,goal-pointer-symbol)
+                      (optimize (speed 3) (safety 0) (debug 0) (space 0)))
              t)
           `(lambda (,execution-state-symbol
                     ,execution-stack-cell-symbol
@@ -637,7 +638,6 @@
                                   (list (read-value-symbol marker)
                                         (cell-value-form marker arguments)))))
                    (labels ((,fail-symbol ()
-                              (break)
                               (return-from ,function-symbol nil))
                             ,@(map 'list
                                 (lambda (marker)
@@ -645,7 +645,7 @@
                                         (list goal-pointer-symbol)
                                         (cell-store-form marker arguments)))
                                 filtered-markers))
-                     (declare (notinline ,@(map 'list
+                     (declare (inline ,@(map 'list
                                              #'read-unification-function-symbol
                                              filtered-markers)))
                      (,(~> filtered-markers first-elt read-unification-function-symbol)
