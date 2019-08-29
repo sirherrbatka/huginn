@@ -406,7 +406,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
          t)))
   (:method ((marker list-marker) arguments)
     (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
-      (with-gensyms (!other-cell !word !start !walk)
+      (with-gensyms (!other-cell !word !start !walk !sub)
         `(tagbody ,!start
             (let* ((,!other-cell (aref ,heap-symbol ,goal-pointer-symbol))
                    (,!word (huginn.m.r:detag ,!other-cell)))
@@ -418,8 +418,23 @@ This representation is pretty much the same as one used by norvig in the PAIP.
                            (for (values content more) = (cl-ds:consume-front range))
                            (for i from 0)
                            (while more)
-                           (collect `(,(read-unification-function-symbol content)
-                                      (+ ,i ,goal-pointer-symbol))))))
+                           (collect `(tagbody ,!sub
+                                        (let ((,!other-cell (aref ,heap-symbol ,goal-pointer-symbol)))
+                                          (when (huginn.m.r:list-rest-cell-p ,!other-cell)
+                                            (when (huginn.m.r:list-rest-unbound-p ,!other-cell)
+                                              (huginn.m.o:alter-cell
+                                               ,execution-state-symbol
+                                               ,execution-stack-cell-symbol
+                                               ,goal-pointer-symbol
+                                               (huginn.m.r:tag huginn.m.r:+list-rest+
+                                                               (+ ,pointer-symbol
+                                                                  ,i
+                                                                  ,(access-destination marker))))
+                                              (return-from ,!start t))
+                                            (setf ,goal-pointer-symbol (huginn.m.r:detag ,!other-cell))
+                                            (goal ,!sub))
+                                          (,(read-unification-function-symbol content)
+                                           (incf ,goal-pointer-symbol))))))))
                 (cond ((huginn.m.r:reference-cell-p ,!other-cell)
                        (setf ,goal-pointer-symbol ,!word)
                        (go ,!start))
