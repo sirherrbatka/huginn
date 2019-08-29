@@ -410,7 +410,6 @@ This representation is pretty much the same as one used by norvig in the PAIP.
         `(tagbody ,!start
             (let* ((,!other-cell (aref ,heap-symbol ,goal-pointer-symbol))
                    (,!word (huginn.m.r:detag ,!other-cell)))
-              (print ,goal-pointer-symbol)
               (flet ((,!walk ()
                        (setf ,goal-pointer-symbol ,!word)
                        ,@(iterate
