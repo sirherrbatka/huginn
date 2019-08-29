@@ -365,6 +365,26 @@ This representation is pretty much the same as one used by norvig in the PAIP.
                                                          ,goal-pointer-symbol
                                                          t)
                               ,(read-value-symbol marker))))
+  (:method ((marker mutable-cell-mixin) arguments)
+    (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
+      (with-gensyms (!pointer !value !reference-p)
+        `(let* ((,!value ,(read-value-symbol marker))
+                (,!reference-p (huginn.m.r:reference-cell-p ,!value))
+                (,!pointer
+                  (if ,!reference-p
+                      (huginn.m.r:follow-pointer ,execution-state-symbol
+                                                 (huginn.m.r:detag ,!value)
+                                                 t)
+                      (the huginn.m.r:pointer
+                           (+ ,(access-object-position marker)
+                              ,pointer-symbol)))))
+           (huginn.m.o:unify-pair ,execution-state-symbol ,execution-stack-cell-symbol
+                                  ,!pointer
+                                  (huginn.m.r:follow-pointer ,execution-state-symbol
+                                                             ,goal-pointer-symbol
+                                                             t)
+                                  (unless ,!reference-p
+                                    ,!value))))))
   (:method ((marker list-rest-marker) arguments)
     (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
       (with-gensyms (!this-pointer !result)
@@ -468,13 +488,6 @@ This representation is pretty much the same as one used by norvig in the PAIP.
                ,(cell-unification-form marker arguments))
          (when (null ,(read-value-symbol marker))
            ,(cell-fail-form marker arguments))
-         (when (huginn.m.r:reference-cell-p
-                ,(read-value-symbol marker))
-           (setf ,(read-value-symbol marker)
-                 (huginn.m.r:dereference-heap-pointer
-                  ,execution-state-symbol
-                  (huginn.m.r:detag ,(read-value-symbol marker))
-                  t)))
          t))))
 (defgeneric ensure-object-position (object position))
 (defgeneric execute (flattening operation))
