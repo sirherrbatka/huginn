@@ -431,7 +431,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
                                                                   ,(access-destination marker))))
                                               (return-from ,!start t))
                                             (setf ,goal-pointer-symbol (huginn.m.r:detag ,!other-cell))
-                                            (goal ,!sub))
+                                            (go ,!sub))
                                           (,(read-unification-function-symbol content)
                                            (incf ,goal-pointer-symbol))))))))
                 (cond ((huginn.m.r:reference-cell-p ,!other-cell)
