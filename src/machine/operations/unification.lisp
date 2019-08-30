@@ -29,7 +29,7 @@
 
 
 (locally
-  (declare (optimize (speed 3) (debug 0) (safety 0)
+  (declare (optimize (speed 0) (debug 3) (safety 3)
                      (space 0) (compilation-speed 0)))
 
   (-> prepare-unification-stack
@@ -189,7 +189,8 @@
          (rotatef pointer1 pointer2)
          (alter-cell execution-state execution-stack-cell
                      pointer1
-                     (huginn.m.r:make-reference pointer2))))
+                     (huginn.m.r:tag huginn.m.r:+list-rest+
+                                     pointer2))))
       ((t nil)
        (alter-cell execution-state execution-stack-cell
                    pointer1 cell2))
@@ -487,16 +488,27 @@
           (other-cell (huginn.m.r:dereference-heap-pointer
                        execution-state
                        other-pointer
-                       t)))
-      (cond ((huginn.m.r:list-rest-cell-p other-cell)
-             (unify-list-rests execution-state execution-stack-cell
-                               list-rest-pointer other-pointer
-                               list-rest-cell other-cell))
+                       nil)))
+      (cond ((and (huginn.m.r:variable-cell-p other-cell)
+                  (huginn.m.r:variable-unbound-p other-cell))
+             (alter-cell execution-state
+                         execution-stack-cell
+                         other-pointer
+                         (huginn.m.r:tag huginn.m.r:+list-start+
+                                         list-rest-pointer)))
             ((huginn.m.r:list-rest-unbound-p list-rest-cell)
              (alter-cell execution-state execution-stack-cell
                          list-rest-pointer
                          (huginn.m.r:tag huginn.m.r:+list-rest+
                                          other-pointer)))
+            ((huginn.m.r:list-rest-cell-p other-cell)
+             (unify-list-rests execution-state execution-stack-cell
+                               list-rest-pointer other-pointer
+                               list-rest-cell other-cell))
+            ((huginn.m.r:list-start-cell-p other-cell)
+             (unify-lists execution-state execution-stack-cell
+                          (huginn.m.r:detag list-rest-cell)
+                          (huginn.m.r:detag other-cell)))
             (t (unify-lists execution-state execution-stack-cell
                             (huginn.m.r:detag list-rest-cell)
                             other-pointer)))))
@@ -619,7 +631,7 @@
     (let ((unify-head-function (~> execution-stack-cell
                                    huginn.m.r:execution-stack-cell-clause
                                    huginn.m.r:clause-unify-head-function)))
-      (if (or t (null unify-head-function))
+      (if (null unify-head-function)
           (progn
             (prepare-unification-stack execution-state
                                        execution-stack-cell

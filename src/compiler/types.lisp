@@ -91,11 +91,9 @@ This representation is pretty much the same as one used by norvig in the PAIP.
    :pinned nil))
 
 
-(defmethod initialize-instance :after ((marker fundamental-marker)
-                                       &rest initargs)
-  (declare (ignore initargs))
-  (setf (slot-value marker '%unification-function-symbol)
-        (~> marker class-of class-name symbol-name gensym)))
+(defmethod read-unification-function-symbol ((marker fundamental-marker))
+  (ensure (slot-value marker '%unification-function-symbol)
+    (~> marker class-of class-name symbol-name gensym)))
 
 
 (defclass flattening ()
@@ -396,7 +394,9 @@ This representation is pretty much the same as one used by norvig in the PAIP.
                     ,execution-state-symbol
                     ,execution-stack-cell-symbol
                     ,!this-pointer
-                    ,goal-pointer-symbol)))
+                    (huginn.m.r:follow-pointer ,execution-state-symbol
+                                               ,goal-pointer-symbol
+                                               t))))
              (when (null ,!result)
                ,(cell-fail-form marker arguments))
              t)))))
@@ -438,7 +438,10 @@ This representation is pretty much the same as one used by norvig in the PAIP.
                            (for i from 0)
                            (while more)
                            (collect `(tagbody ,!sub
-                                        (let ((,!other-cell (aref ,heap-symbol ,goal-pointer-symbol)))
+                                        (let ((,!other-cell (huginn.m.r:dereference-heap-pointer
+                                                             ,execution-state-symbol
+                                                             ,goal-pointer-symbol
+                                                             t)))
                                           (when (huginn.m.r:list-rest-cell-p ,!other-cell)
                                             (when (huginn.m.r:list-rest-unbound-p ,!other-cell)
                                               (huginn.m.o:alter-cell
