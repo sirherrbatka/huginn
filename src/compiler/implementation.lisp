@@ -645,7 +645,7 @@
                                         (list goal-pointer-symbol)
                                         (cell-store-form marker arguments)))
                                 filtered-markers))
-                     (declare (inline ,@(map 'list
+                     (declare (notinline ,@(map 'list
                                              #'read-unification-function-symbol
                                              filtered-markers)))
                      (,(~> filtered-markers first-elt read-unification-function-symbol)

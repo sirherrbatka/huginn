@@ -89,7 +89,7 @@
                 cell)
     :fixnum (huginn.m.r:detag cell)
     :list-start (list-from-heap execution-state pointer)
-    ))
+    :list-rest (list-from-heap execution-state pointer)))
 
 
 (more-conditions:define-condition-translating-method
@@ -155,7 +155,7 @@
 
 (defun next-answer (range)
   (declare (type answers-stream range)
-           (optimize (speed 3)))
+           (optimize (debug 0) (speed 3)))
   (let* ((execution-state (access-execution-state range))
          (variables (read-variables range))
          (pointers (read-pointers range)))

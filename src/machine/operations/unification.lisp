@@ -29,7 +29,7 @@
 
 
 (locally
-  (declare (optimize (speed 0) (debug 3) (safety 3)
+  (declare (optimize (speed 3) (debug 0) (safety 0)
                      (space 0) (compilation-speed 0)))
 
   (-> prepare-unification-stack
@@ -220,9 +220,9 @@
         (when (= p1 p2)
           (done t))
         (for cell1 = (huginn.m.r:dereference-heap-pointer execution-state
-                                                          p1 t))
+                                                          p1))
         (for cell2 = (huginn.m.r:dereference-heap-pointer execution-state
-                                                          p2 t))
+                                                          p2))
         (for cell1-rest-p = (huginn.m.r:list-rest-cell-p cell1))
         (for cell2-rest-p = (huginn.m.r:list-rest-cell-p cell2))
         (cl-ds.utils:cond+ ((huginn.m.r:list-rest-cell-p cell1)
@@ -243,7 +243,7 @@
              ((t t)
               (when (< p2 p1) (rotatef p1 p2))
               (done (alter-cell execution-state execution-stack-cell
-                                p2 (huginn.m.r:make-reference p1))))))
+                                p2 (huginn.m.r:tag huginn.m.r:+list-rest+ p1))))))
           ((nil t)
            (when (huginn.m.r:list-rest-unbound-p cell2)
              (done (alter-cell execution-state execution-stack-cell
@@ -489,29 +489,11 @@
                        execution-state
                        other-pointer
                        nil)))
-      (cond ((and (huginn.m.r:variable-cell-p other-cell)
-                  (huginn.m.r:variable-unbound-p other-cell))
-             (alter-cell execution-state
-                         execution-stack-cell
-                         other-pointer
-                         (huginn.m.r:tag huginn.m.r:+list-start+
-                                         list-rest-pointer)))
-            ((huginn.m.r:list-rest-unbound-p list-rest-cell)
-             (alter-cell execution-state execution-stack-cell
-                         list-rest-pointer
-                         (huginn.m.r:tag huginn.m.r:+list-rest+
-                                         other-pointer)))
-            ((huginn.m.r:list-rest-cell-p other-cell)
-             (unify-list-rests execution-state execution-stack-cell
-                               list-rest-pointer other-pointer
-                               list-rest-cell other-cell))
-            ((huginn.m.r:list-start-cell-p other-cell)
-             (unify-lists execution-state execution-stack-cell
-                          (huginn.m.r:detag list-rest-cell)
-                          (huginn.m.r:detag other-cell)))
-            (t (unify-lists execution-state execution-stack-cell
-                            (huginn.m.r:detag list-rest-cell)
-                            other-pointer)))))
+      (assert (not (huginn.m.r:list-rest-cell-p other-cell)))
+      (assert (huginn.m.r:list-rest-cell-p list-rest-cell))
+      (unify-lists execution-state execution-stack-cell
+                   list-rest-pointer
+                   other-pointer)))
 
 
   (-> unify-pair
