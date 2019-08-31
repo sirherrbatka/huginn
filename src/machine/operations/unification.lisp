@@ -609,6 +609,25 @@
            execution-state) 0))
 
 
+  (declaim (notinline invoke-unification-function))
+  (-> invoke-unification-function ((-> (huginn.m.r:execution-state
+                                        huginn.m.r:execution-stack-cell
+                                        huginn.m.r:pointer)
+                                       boolean)
+                                   huginn.m.r:execution-state
+                                   huginn.m.r:execution-stack-cell
+                                   huginn.m.r:pointer)
+      boolean)
+  (defun invoke-unification-function (unify-head-function
+                                      execution-state
+                                      execution-stack-cell
+                                      goal-pointer)
+    (funcall unify-head-function
+             execution-state
+             execution-stack-cell
+             goal-pointer))
+
+
   (declaim (notinline unify))
   (-> unify (huginn.m.r:execution-state
              huginn.m.r:execution-stack-cell
@@ -629,8 +648,8 @@
             (unify-loop execution-state execution-stack-cell))
           (progn
             (clear-ustack execution-state)
-            (and (funcall unify-head-function
-                          execution-state
-                          execution-stack-cell
-                          goal-pointer)
+            (and (invoke-unification-function unify-head-function
+                                              execution-state
+                                              execution-stack-cell
+                                              goal-pointer)
                  (unify-loop execution-state execution-stack-cell)))))))

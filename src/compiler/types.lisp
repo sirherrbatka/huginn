@@ -411,7 +411,8 @@ This representation is pretty much the same as one used by norvig in the PAIP.
               (for i from 0)
               (while more)
               (collect (list (read-unification-function-symbol content)
-                             `(+ ,!other-expression ,i)))))))))
+                             `(the huginn.m.r:pointer
+                                   (+ ,!other-expression ,i))))))))))
 (defgeneric unify-each-form (range arguments)) ; used for expressions and lists alike
 (defgeneric content-for-unification (marker arguments)) ; needs implementation for lists and expressions, returns range that should yield markers
 (defgeneric cell-fail-form (marker arguments) ; the same for every marker
@@ -427,65 +428,68 @@ This representation is pretty much the same as one used by norvig in the PAIP.
     (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
       (with-gensyms (!other-cell !word !start !walk !sub !pointer)
         `(tagbody ,!start
-            (let* ((,!other-cell (aref ,heap-symbol ,goal-pointer-symbol))
-                   (,!word (huginn.m.r:detag ,!other-cell)))
-              (flet ((,!walk ()
-                       (setf ,goal-pointer-symbol ,!word)
-                       ,@(iterate
-                           (with range = (content-for-unification marker arguments))
-                           (for (values content more) = (cl-ds:consume-front range))
-                           (for i from 0)
-                           (while more)
-                           (collect `(tagbody ,!sub
-                                        (let ((,!other-cell (huginn.m.r:dereference-heap-pointer
-                                                             ,execution-state-symbol
-                                                             ,goal-pointer-symbol
-                                                             t))
-                                              (,!pointer (+ ,pointer-symbol
-                                                            ,i
-                                                            ,(access-destination marker))))
-                                          (when (huginn.m.r:list-rest-cell-p ,!other-cell)
-                                            (when (huginn.m.r:list-rest-unbound-p ,!other-cell)
-                                              (huginn.m.o:alter-cell
-                                               ,execution-state-symbol
-                                               ,execution-stack-cell-symbol
-                                               ,goal-pointer-symbol
-                                               (huginn.m.r:tag huginn.m.r:+list-rest+
-                                                               ,!pointer))
-                                              (return-from ,!start t))
-                                            (setf ,goal-pointer-symbol (huginn.m.r:detag ,!other-cell))
-                                            (go ,!sub))
-                                          ,(if (typep content 'list-rest-marker)
-                                               (list 'huginn.m.o:unify-lists
-                                                     execution-state-symbol
-                                                     execution-stack-cell-symbol
-                                                     goal-pointer-symbol
-                                                     !pointer)
-                                               (list (read-unification-function-symbol content)
-                                                     goal-pointer-symbol)))
-                                        (incf ,goal-pointer-symbol))))))
-                (cond ((huginn.m.r:reference-cell-p ,!other-cell)
-                       (setf ,goal-pointer-symbol ,!word)
-                       (go ,!start))
-                      ((huginn.m.r:variable-cell-p ,!other-cell)
-                       (if (huginn.m.r:variable-unbound-p ,!other-cell)
-                           (huginn.m.o:alter-cell ,execution-state-symbol
-                                                  ,execution-stack-cell-symbol
-                                                  ,goal-pointer-symbol
-                                                  ,(read-value-symbol marker))
-                           ,(cell-fail-form marker arguments)))
-                      ((huginn.m.r:list-rest-cell-p ,!other-cell)
-                       (if (huginn.m.r:list-rest-unbound-p ,!other-cell)
-                           (huginn.m.o:alter-cell
-                            ,execution-state-symbol
-                            ,execution-stack-cell-symbol
-                            ,goal-pointer-symbol
-                            (huginn.m.r:retag huginn.m.r:+list-rest+
-                                              ,(read-value-symbol marker)))
-                           (,!walk)))
-                      ((huginn.m.r:list-start-cell-p ,!other-cell)
-                       (,!walk))
-                      (t ,(cell-fail-form marker arguments)))))))))
+            (block ,!start
+              (let* ((,!other-cell (aref ,heap-symbol ,goal-pointer-symbol))
+                     (,!word (huginn.m.r:detag ,!other-cell)))
+                (flet ((,!walk ()
+                         (setf ,goal-pointer-symbol ,!word)
+                         ,@(iterate
+                             (with range = (content-for-unification marker arguments))
+                             (for (values content more) = (cl-ds:consume-front range))
+                             (for i from 0)
+                             (while more)
+                             (collect `(tagbody ,!sub
+                                          (let ((,!other-cell (huginn.m.r:dereference-heap-pointer
+                                                               ,execution-state-symbol
+                                                               ,goal-pointer-symbol
+                                                               t))
+                                                (,!pointer (+ ,pointer-symbol
+                                                              ,i
+                                                              ,(access-destination marker))))
+                                            (declare (type huginn.m.r:cell ,!other-cell)
+                                                     (type huginn.m.r:pointer ,!pointer))
+                                            (when (huginn.m.r:list-rest-cell-p ,!other-cell)
+                                              (when (huginn.m.r:list-rest-unbound-p ,!other-cell)
+                                                (huginn.m.o:alter-cell
+                                                 ,execution-state-symbol
+                                                 ,execution-stack-cell-symbol
+                                                 ,goal-pointer-symbol
+                                                 (huginn.m.r:tag huginn.m.r:+list-rest+
+                                                                 ,!pointer))
+                                                (return-from ,!start t))
+                                              (setf ,goal-pointer-symbol (huginn.m.r:detag ,!other-cell))
+                                              (go ,!sub))
+                                            ,(if (typep content 'list-rest-marker)
+                                                 (list 'huginn.m.o:unify-lists
+                                                       execution-state-symbol
+                                                       execution-stack-cell-symbol
+                                                       goal-pointer-symbol
+                                                       !pointer)
+                                                 (list (read-unification-function-symbol content)
+                                                       goal-pointer-symbol)))
+                                          (the huginn.m.r:pointer (incf ,goal-pointer-symbol)))))))
+                  (cond ((huginn.m.r:reference-cell-p ,!other-cell)
+                         (setf ,goal-pointer-symbol ,!word)
+                         (go ,!start))
+                        ((huginn.m.r:variable-cell-p ,!other-cell)
+                         (if (huginn.m.r:variable-unbound-p ,!other-cell)
+                             (huginn.m.o:alter-cell ,execution-state-symbol
+                                                    ,execution-stack-cell-symbol
+                                                    ,goal-pointer-symbol
+                                                    ,(read-value-symbol marker))
+                             ,(cell-fail-form marker arguments)))
+                        ((huginn.m.r:list-rest-cell-p ,!other-cell)
+                         (if (huginn.m.r:list-rest-unbound-p ,!other-cell)
+                             (huginn.m.o:alter-cell
+                              ,execution-state-symbol
+                              ,execution-stack-cell-symbol
+                              ,goal-pointer-symbol
+                              (huginn.m.r:retag huginn.m.r:+list-rest+
+                                                ,(read-value-symbol marker)))
+                             (,!walk)))
+                        ((huginn.m.r:list-start-cell-p ,!other-cell)
+                         (,!walk))
+                        (t ,(cell-fail-form marker arguments))))))))))
   (:method ((marker expression-marker) arguments)
     (cell-unification-form marker arguments))
   (:method ((marker list-rest-marker) arguments)

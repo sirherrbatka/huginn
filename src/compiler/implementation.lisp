@@ -648,12 +648,18 @@
                                 (lambda (marker)
                                   (list (read-unification-function-symbol marker)
                                         (list goal-pointer-symbol)
+                                        `(declare (type huginn.m.r:pointer ,goal-pointer-symbol))
                                         (cell-store-form marker arguments)))
                                 filtered-markers))
                      (declare (inline ,@(map 'list
                                              #'read-unification-function-symbol
                                              filtered-markers)
-                                      ,fail-symbol))
+                                      ,fail-symbol)
+                              (ignorable ,@(map 'list
+                                                (compose
+                                                 (curry #'list 'function)
+                                                 #'read-unification-function-symbol)
+                                                filtered-markers)))
                      (,(~> filtered-markers first-elt read-unification-function-symbol)
                       ,goal-pointer-symbol)
                      t)))))))))
