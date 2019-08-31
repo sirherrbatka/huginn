@@ -51,7 +51,8 @@
       `(member (house ?zebra-owner zebra ? ? ?) ?houses))
 
   (defparameter *answer* (?- '(zebra ?houses ?water-drinker ?zebra-owner)))
-  (print (cl-ds:consume-front *answer*)))
+  (print (cl-ds:consume-front *answer*))
+  )
 
 (defmacro time-median ((times) &body body)
   (alexandria:with-gensyms (!data !i !start !end)

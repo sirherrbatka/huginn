@@ -523,6 +523,8 @@
                  (huginn.m.r:tag-of cell2))
         (rotatef cell1 cell2)
         (rotatef pointer1 pointer2))
+      (assert (~> cell1 huginn.m.r:reference-cell-p not))
+      (assert (~> cell2 huginn.m.r:reference-cell-p not))
       (cell-combination-case (cell1 cell2)
         ((huginn.m.r:+variable+ huginn.m.r:+variable+)
          (unify-variables execution-state
@@ -601,6 +603,12 @@
        (next))))
 
 
+  (declaim (inline clear-ustack))
+  (defun clear-ustack (execution-state)
+    (setf (huginn.m.r:execution-state-unification-stack-fill-pointer
+           execution-state) 0))
+
+
   (declaim (notinline unify))
   (-> unify (huginn.m.r:execution-state
              huginn.m.r:execution-stack-cell
@@ -619,8 +627,10 @@
                                        execution-stack-cell
                                        goal-pointer)
             (unify-loop execution-state execution-stack-cell))
-          (and (funcall unify-head-function
-                        execution-state
-                        execution-stack-cell
-                        goal-pointer)
-               (unify-loop execution-state execution-stack-cell))))))
+          (progn
+            (clear-ustack execution-state)
+            (and (funcall unify-head-function
+                          execution-state
+                          execution-stack-cell
+                          goal-pointer)
+                 (unify-loop execution-state execution-stack-cell)))))))

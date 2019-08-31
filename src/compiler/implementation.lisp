@@ -204,6 +204,7 @@
 (defmethod content ((state compilation-state)
                     (database huginn.m.d:database)
                     &optional output)
+  (declare (optimize (debug 3)))
   (bind ((cells-count (cells-count state))
          (result (or (and output
                           (if (< cells-count (length output))
@@ -616,7 +617,8 @@
           `(lambda (,execution-state-symbol
                     ,execution-stack-cell-symbol
                     ,goal-pointer-symbol)
-             (declare (optimize (speed 0) (debug 3) (safety 3)))
+             (declare (optimize (speed 3) (debug 0) (safety 0)
+                                (space 0) (compilation-speed 0)))
              (block ,function-symbol
                (let* ((,heap-symbol (huginn.m.r:execution-state-heap
                                      ,execution-state-symbol))
@@ -629,7 +631,10 @@
                              eager-markers))
                  (declare (ignorable ,heap-symbol ,pointer-symbol
                                      ,@(map 'list #'read-value-symbol
-                                            eager-markers)))
+                                            eager-markers))
+                          (type (or null huginn.m.r:cell)
+                                ,@(map 'list #'read-value-symbol
+                                       eager-markers)))
                  (cl-ds.utils:lazy-let
                      ,(~>> filtered-markers
                            (remove-if-not (rcurry #'typep 'lazy-value-mixin))
@@ -645,9 +650,10 @@
                                         (list goal-pointer-symbol)
                                         (cell-store-form marker arguments)))
                                 filtered-markers))
-                     (declare (notinline ,@(map 'list
+                     (declare (inline ,@(map 'list
                                              #'read-unification-function-symbol
-                                             filtered-markers)))
+                                             filtered-markers)
+                                      ,fail-symbol))
                      (,(~> filtered-markers first-elt read-unification-function-symbol)
                       ,goal-pointer-symbol)
                      t)))))))))

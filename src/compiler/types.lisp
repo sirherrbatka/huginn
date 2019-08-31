@@ -371,12 +371,12 @@ This representation is pretty much the same as one used by norvig in the PAIP.
                 (,!pointer
                   (if ,!reference-p
                       (huginn.m.r:follow-pointer ,execution-state-symbol
-                                                 (huginn.m.r:detag ,!value)
-                                                 t)
+                                                 (huginn.m.r:detag ,!value))
                       (the huginn.m.r:pointer
                            (+ ,(access-object-position marker)
                               ,pointer-symbol)))))
-           (huginn.m.o:unify-pair ,execution-state-symbol ,execution-stack-cell-symbol
+           (huginn.m.o:unify-pair ,execution-state-symbol
+                                  ,execution-stack-cell-symbol
                                   ,!pointer
                                   (huginn.m.r:follow-pointer ,execution-state-symbol
                                                              ,goal-pointer-symbol
@@ -385,16 +385,18 @@ This representation is pretty much the same as one used by norvig in the PAIP.
                                     ,!value))))))
   (:method ((marker list-rest-marker) arguments)
     (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
-      (with-gensyms (!this-pointer)
+      (with-gensyms (!this-pointer !other-pointer)
         `(let ((,!this-pointer (+ ,(access-object-position marker)
-                                  ,pointer-symbol)))
-           (declare (type huginn.m.r:pointer ,!this-pointer))
+                                  ,pointer-symbol))
+               (,!other-pointer (huginn.m.r:follow-pointer ,execution-state-symbol
+                                                           ,goal-pointer-symbol
+                                                           t)))
+           (declare (type huginn.m.r:pointer ,!this-pointer ,!other-pointer))
            (when (null (huginn.machine.operations:unify-pair
                         ,execution-state-symbol
                         ,execution-stack-cell-symbol
                         ,!this-pointer
-                        (huginn.m.r:follow-pointer ,execution-state-symbol
-                                                   ,goal-pointer-symbol)))
+                        ,!other-pointer))
              ,(cell-fail-form marker arguments))
            t))))
   (:method ((marker expression-marker) arguments)
