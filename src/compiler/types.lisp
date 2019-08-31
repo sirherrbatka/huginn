@@ -363,6 +363,46 @@ This representation is pretty much the same as one used by norvig in the PAIP.
                                                          ,goal-pointer-symbol
                                                          t)
                               ,(read-value-symbol marker))))
+  (:method ((marker bound-predicate-marker) arguments)
+    (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
+      (with-gensyms (!other-cell)
+        `(let* ((,goal-pointer-symbol (huginn.m.r:follow-pointer
+                                       ,execution-state-symbol
+                                       ,goal-pointer-symbol
+                                       t))
+                (,!other-cell (aref ,heap-symbol ,goal-pointer-symbol)))
+           (unless (huginn.m.r:predicate-cell-p ,!other-cell)
+             ,(cell-fail-form marker arguments))
+           (cond ((huginn.m.r:predicate-unbound-p ,!other-cell)
+                  (huginn.machine.operations:alter-cell
+                   ,execution-state-symbol
+                   ,execution-stack-cell-symbol
+                   ,goal-pointer-symbol
+                   ,(read-value-symbol marker)))
+                 ((huginn.m.r:same-cells-p ,!other-cell
+                                           ,(read-value-symbol marker))
+                  t)
+                 ((t ,(cell-fail-form marker arguments))))))))
+  (:method ((marker bound-variable-marker) arguments)
+    (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
+      (with-gensyms (!other-cell)
+        `(let* ((,goal-pointer-symbol (huginn.m.r:follow-pointer
+                                       ,execution-state-symbol
+                                       ,goal-pointer-symbol
+                                       t))
+                (,!other-cell (aref ,heap-symbol ,goal-pointer-symbol)))
+           (unless (huginn.m.r:variable-cell-p ,!other-cell)
+             ,(cell-fail-form marker arguments))
+           (cond ((huginn.m.r:variable-unbound-p ,!other-cell)
+                  (huginn.machine.operations:alter-cell
+                   ,execution-state-symbol
+                   ,execution-stack-cell-symbol
+                   ,goal-pointer-symbol
+                   ,(read-value-symbol marker)))
+                 ((huginn.m.r:same-cells-p ,!other-cell
+                                           ,(read-value-symbol marker))
+                  t)
+                 ((t ,(cell-fail-form marker arguments))))))))
   (:method ((marker mutable-cell-mixin) arguments)
     (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
       (with-gensyms (!pointer !value !reference-p)
