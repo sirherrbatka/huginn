@@ -221,6 +221,7 @@
       (for elt in-vector %flat-representation)
       (~> elt (marker->cell index database) add))
     (iterate
+      (for i from 0 below cells-count)
       (for elt in-vector result)
       (huginn.m.r:tag-case (elt)
         :expression (let ((pointer (huginn.m.r:detag elt)))
