@@ -6,7 +6,7 @@
      ,@body))
 
 
-(defmacro with-options ((&key (compile nil) (database '*database*))
+(defmacro with-options ((&key (compile '*compile*) (database '*database*))
                         &body body)
   `(let ((*compile* ,compile)
          (*database* ,database))
