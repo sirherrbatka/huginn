@@ -14,3 +14,6 @@
    :type (simple-array fixnum (*)))
   (unwind-trail (make-array 64 :element-type 'fixnum)
    :type (simple-array fixnum (*))))
+
+
+(defvar *compile* nil)

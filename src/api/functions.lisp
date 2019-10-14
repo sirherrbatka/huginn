@@ -47,19 +47,22 @@
          (body-pointer (huginn.c:body-pointer compilation))
          (variable-bindings (huginn.c:variable-bindings compilation))
          (database (database))
-         (unify-head-function (huginn.c:optimized-unify-head-function
-                               compilation
-                               database))
-         (copy-head-function (huginn.c:optimized-relocate-cells-function
-                              compilation
-                              database
-                              0
-                              body-pointer))
-         (copy-body-function (huginn.c:optimized-relocate-cells-function
-                              compilation
-                              database
-                              body-pointer
-                              (length content))))
+         (unify-head-function (when *compile*
+                                (huginn.c:optimized-unify-head-function
+                                 compilation
+                                 database)))
+         (copy-head-function (when *compile*
+                               (huginn.c:optimized-relocate-cells-function
+                                compilation
+                                database
+                                0
+                                body-pointer)))
+         (copy-body-function (when *compile*
+                               (huginn.c:optimized-relocate-cells-function
+                                compilation
+                                database
+                                body-pointer
+                                (length content)))))
     (~> (huginn.m.r:make-clause
          :copy-head-function copy-head-function
          :copy-body-function copy-body-function

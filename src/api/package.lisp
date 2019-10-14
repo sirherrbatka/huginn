@@ -21,6 +21,8 @@
    #:shared-resources
    #:*shared-resources*
    #:next-answer
+   #:*compile*
+   #:with-options
    #:make-shared-resources
    #:clauses))
 

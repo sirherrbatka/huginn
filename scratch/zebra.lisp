@@ -3,7 +3,7 @@
 
 (defparameter *data* (make-database 'huginn.m.d:database t))
 
-(progn
+(with-options (:compile nil)
   (clear)
 
   (<- `(house ? ? ? ? ?))
