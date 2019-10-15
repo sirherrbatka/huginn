@@ -20,7 +20,7 @@
   (<- `(member ?item ,(li '(?item . ?rest))))
   (<- `(member ?item ,(li '(? . ?rest)))
       '(member ?item ?rest))
-  (<- ' (= ?item ?item))
+  (<- '(= ?item ?item))
 
   (defparameter *answer* (?- `(member ?zuzia ,(li `(nie-zuzia zuzia)))
                              '(= ?zuzia zuzia)))
