@@ -45,4 +45,6 @@
                              (:file "variables")
                              (:file "macros")
                              (:file "internal")
-                             (:file "functions")))))
+                             (:file "functions")))
+               (:module "tests"
+                :components ((:test-file "trivial")))))
