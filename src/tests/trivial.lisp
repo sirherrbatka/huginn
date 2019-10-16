@@ -10,8 +10,8 @@
 
   (defparameter *answer* (?- '(lubi zuzia ?cos)))
 
-  (print (cl-ds:consume-front *answer*))
-  (print (cl-ds:consume-front *answer*))
+  (prove:is (cl-ds:consume-front *answer*) '((?cos . sansa)) :test 'equal)
+  (prove:is (cl-ds:consume-front *answer*) nil)
   )
 
 (progn
@@ -25,14 +25,16 @@
   (defparameter *answer* (?- `(member ?zuzia ,(li `(nie-zuzia zuzia)))
                              '(= ?zuzia zuzia)))
 
-  (print (cl-ds:consume-front *answer*))
-  (print (cl-ds:consume-front *answer*)))
+  (prove:is (cl-ds:consume-front *answer*) '((?zuzia . zuzia)) :test 'equal)
+  (prove:is (cl-ds:consume-front *answer*) nil)
+  )
 
 (progn
   (clear)
   (<- `(rest ?rest ,(li '(? . ?rest))))
   (defparameter *answer* (?- `(rest ?rest ,(li `(nie-zuzia zuzia)))))
-  (print (cl-ds:consume-front *answer*))
+  (prove:is (cl-ds:consume-front *answer*) '((?rest . (zuzia))) :test 'equal)
+  (prove:is (cl-ds:consume-front *answer*) nil)
   )
 
 (progn
@@ -47,6 +49,7 @@
   (defparameter *answer* (?- `(= ?list ,(li `(? ? ?)))
                              `(member (s a) ?list)
                              `(member (s b) ?list)))
+
   (cl-ds:traverse *answer*
                   (lambda (x)
                     (print x))))
