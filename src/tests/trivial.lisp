@@ -50,9 +50,15 @@
                              `(member (s a) ?list)
                              `(member (s b) ?list)))
 
-  (cl-ds:traverse *answer*
-                  (lambda (x)
-                    (print x))))
+  (prove:is (cl-ds.alg:to-list *answer*)
+            '(((?LIST :? (S B) (S A)))
+              ((?LIST (S B) :? (S A)))
+              ((?LIST :? (S A) (S B)))
+              ((?LIST (S B) (S A) :?))
+              ((?LIST (S A) :? (S B)))
+              ((?LIST (S A) (S B) :?)))
+            :test 'equal)
+  )
 
 (progn
   (clear)
@@ -65,12 +71,31 @@
   (<- `(nextto ?x ?y ?list)
       `(iright ?y ?x ?list))
 
-  (cl-ds:traverse (?- `(iright ?left ?right
-                               ,(li '(a b c d e f g))))
-                  #'print)
-  (cl-ds:traverse (?- `(nextto ?x ?y
-                               ,(li '(a b c d e f g))))
-                  #'print))
+  (prove:is (cl-ds.alg:to-list
+             (?- `(iright ?left ?right ,(li '(a b c d e f g)))))
+            '(((?LEFT . F) (?RIGHT . G))
+              ((?LEFT . E) (?RIGHT . F))
+              ((?LEFT . D) (?RIGHT . E))
+              ((?LEFT . C) (?RIGHT . D))
+              ((?LEFT . B) (?RIGHT . C))
+              ((?LEFT . A) (?RIGHT . B)))
+            :test 'equal)
+  (prove:is (cl-ds.alg:to-list
+             (?- `(nextto ?x ?y
+                          ,(li '(a b c d e f g)))))
+            '(((?X . G) (?Y . F))
+              ((?X . F) (?Y . E))
+              ((?X . E) (?Y . D))
+              ((?X . D) (?Y . C))
+              ((?X . C) (?Y . B))
+              ((?X . B) (?Y . A))
+              ((?X . F) (?Y . G))
+              ((?X . E) (?Y . F))
+              ((?X . D) (?Y . E))
+              ((?X . C) (?Y . D))
+              ((?X . B) (?Y . C))
+              ((?X . A) (?Y . B)))
+            :test 'equal))
 
 (progn
   (clear)
@@ -85,9 +110,36 @@
                              `(member (h a ? ?) ?list)
                              `(member (h ? b ?) ?list)
                              `(member (h ? ? c) ?list)))
-  (cl-ds:traverse *answer*
-                  (lambda (x)
-                    (print x))))
+
+  (prove:is (cl-ds.alg:to-list *answer*)
+            '(((?LIST :? :? (H A B C)))
+              ((?LIST :? (H :? :? C) (H A B :?)))
+              ((?LIST (H :? :? C) :? (H A B :?)))
+              ((?LIST :? (H :? B :?) (H A :? C)))
+              ((?LIST :? (H :? B C) (H A :? :?)))
+              ((?LIST (H :? :? C) (H :? B :?) (H A :? :?)))
+              ((?LIST (H :? B :?) :? (H A :? C)))
+              ((?LIST (H :? B :?) (H :? :? C) (H A :? :?)))
+              ((?LIST (H :? B C) :? (H A :? :?)))
+              ((?LIST :? (H A :? :?) (H :? B C)))
+              ((?LIST :? (H A :? C) (H :? B :?)))
+              ((?LIST (H :? :? C) (H A :? :?) (H :? B :?)))
+              ((?LIST :? (H A B :?) (H :? :? C)))
+              ((?LIST :? (H A B C) :?))
+              ((?LIST (H :? :? C) (H A B :?) :?))
+              ((?LIST (H :? B :?) (H A :? :?) (H :? :? C)))
+              ((?LIST (H :? B :?) (H A :? C) :?))
+              ((?LIST (H :? B C) (H A :? :?) :?))
+              ((?LIST (H A :? :?) :? (H :? B C)))
+              ((?LIST (H A :? :?) (H :? :? C) (H :? B :?)))
+              ((?LIST (H A :? C) :? (H :? B :?)))
+              ((?LIST (H A :? :?) (H :? B :?) (H :? :? C)))
+              ((?LIST (H A :? :?) (H :? B C) :?))
+              ((?LIST (H A :? C) (H :? B :?) :?))
+              ((?LIST (H A B :?) :? (H :? :? C)))
+              ((?LIST (H A B :?) (H :? :? C) :?))
+              ((?LIST (H A B C) :? :?)))
+            :test 'equal))
 
 (progn
   (clear)
@@ -102,9 +154,28 @@
                              `(member (h a ?) ?list)
                              `(member (h ? b) ?list)
                              `(member (h ? c) ?list)))
-  (cl-ds:traverse *answer*
-                  (lambda (x)
-                    (print x))))
+
+  (prove:is (cl-ds.alg:to-list *answer*)
+            '(((?LIST :? (H :? C) (H A B)) (?A . :?))
+              ((?LIST (H :? C) :? (H A B)) (?A H :? C))
+              ((?LIST :? (H :? B) (H A C)) (?A . :?))
+              ((?LIST (H :? C) (H :? B) (H A :?)) (?A H :? C))
+              ((?LIST (H :? B) :? (H A C)) (?A H :? B))
+              ((?LIST (H :? B) (H :? C) (H A :?)) (?A H :? B))
+              ((?LIST :? (H A C) (H :? B)) (?A . :?))
+              ((?LIST (H :? C) (H A :?) (H :? B)) (?A H :? C))
+              ((?LIST :? (H A B) (H :? C)) (?A . :?))
+              ((?LIST (H :? C) (H A B) :?) (?A H :? C))
+              ((?LIST (H :? B) (H A :?) (H :? C)) (?A H :? B))
+              ((?LIST (H :? B) (H A C) :?) (?A H :? B))
+              ((?LIST (H A :?) (H :? C) (H :? B)) (?A H A :?))
+              ((?LIST (H A C) :? (H :? B)) (?A H A C))
+              ((?LIST (H A :?) (H :? B) (H :? C)) (?A H A :?))
+              ((?LIST (H A C) (H :? B) :?) (?A H A C))
+              ((?LIST (H A B) :? (H :? C)) (?A H A B))
+              ((?LIST (H A B) (H :? C) :?) (?A H A B)))
+            :test 'equal)
+  )
 
 (progn
   (clear)
@@ -117,12 +188,37 @@
   (<- `(nextto ?x ?y ?list)
       `(iright ?y ?x ?list))
 
-  (cl-ds:traverse (?- `(iright ?left ?right
-                               ,(li '(a b c d e f g))))
-                  #'print)
-  (cl-ds:traverse (?- `(nextto ?x ?y
-                               ,(li '(a b c d e f g))))
-                  #'print))
+  (prove:is (cl-ds.alg:to-list (?- `(iright ?left ?right
+                                            ,(li '(a b c d e f g)))))
+            '(((?LEFT . F) (?RIGHT . G))
+              ((?LEFT . E) (?RIGHT . F))
+              ((?LEFT . D) (?RIGHT . E))
+              ((?LEFT . C) (?RIGHT . D))
+              ((?LEFT . B) (?RIGHT . C))
+              ((?LEFT . A) (?RIGHT . B))))
+
+
+  (prove:is (cl-ds.alg:to-list (?- `(iright ?left ?right ,(li '(a b c d e f g)))))
+            '(((?LEFT . F) (?RIGHT . G))
+              ((?LEFT . E) (?RIGHT . F))
+              ((?LEFT . D) (?RIGHT . E))
+              ((?LEFT . C) (?RIGHT . D))
+              ((?LEFT . B) (?RIGHT . C))
+              ((?LEFT . A) (?RIGHT . B))))
+
+  (prove:is (cl-ds.alg:to-list (?- `(nextto ?x ?y ,(li '(a b c d e f g)))))
+            '(((?X . G) (?Y . F))
+              ((?X . F) (?Y . E))
+              ((?X . E) (?Y . D))
+              ((?X . D) (?Y . C))
+              ((?X . C) (?Y . B))
+              ((?X . B) (?Y . A))
+              ((?X . F) (?Y . G))
+              ((?X . E) (?Y . F))
+              ((?X . D) (?Y . E))
+              ((?X . C) (?Y . D))
+              ((?X . B) (?Y . C))
+              ((?X . A) (?Y . B)))))
 (progn
   (clear)
 
@@ -144,5 +240,7 @@
   )
 
   (defparameter *answer* (?- '(zebra ?houses)))
-  (print (cl-ds:consume-front *answer*))
-  )
+  (prove:is (cl-ds:consume-front *answer*)
+            '((?HOUSES (HOUSE NORWEGIAN :? :? :? :?) (HOUSE UKRAINIAN :? :? TEA :?)
+               (HOUSE SPANIARD DOG :? MILK :?) (HOUSE :? SNAILS OLD-GOLD COFFE GREEN)
+               (HOUSE :? ZEBRA KOOLS WATER YELLOW)))))
