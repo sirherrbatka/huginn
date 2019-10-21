@@ -2,13 +2,14 @@
 
 
 (defmacro with/without-compilation (&body body)
-  (progn
-    `(with-options (:compile t)
-       ,@body)
-    `(with-options (:compile t)
-       ,@body)))
+  `(flet ((impl ()
+           ,@body))
+    (with-options (:compile nil)
+      (impl))
+    (with-options (:compile t)
+      (impl))))
 
-(prove:plan 15)
+(prove:plan 30)
 
 (with/without-compilation
   (with-options (:database (make-database 'huginn.m.d:database))
