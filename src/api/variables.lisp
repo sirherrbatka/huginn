@@ -3,7 +3,7 @@
 
 (defvar *compiler* 'huginn.c:compilation-state)
 
-(defvar *database*)
+(defvar *database* nil)
 
 (defvar *shared-resources* nil)
 
