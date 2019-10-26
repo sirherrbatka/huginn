@@ -1,7 +1,6 @@
 (ql:quickload :huginn)
 (cl:in-package #:huginn-user)
 
-(defparameter *data* (make-database 'huginn.m.d:database t))
 
 (with-options (:compile nil)
   (clear)

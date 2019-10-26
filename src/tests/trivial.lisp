@@ -1,4 +1,4 @@
-(cl:in-package #:huginn-user)
+(cl:in-package #:huginn-tests)
 
 
 (defmacro with/without-compilation (&body body)

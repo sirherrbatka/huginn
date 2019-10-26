@@ -47,4 +47,6 @@
                              (:file "internal")
                              (:file "functions")))
                (:module "tests"
-                :components ((:test-file "trivial")))))
+                :components ((:file "package")
+                             (:test-file "trivial")
+                             (:test-file "zebra")))))
