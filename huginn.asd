@@ -30,7 +30,8 @@
                                            (:file "copying")
                                            (:file "undo")
                                            (:file "unification")
-                                           (:file "unfolding")))))
+                                           (:file "unfolding")
+                                           (:file "tail-call")))))
                (:module "compiler"
                 :components ((:file "package")
                              (:file "utils")
