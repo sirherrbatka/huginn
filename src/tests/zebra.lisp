@@ -5,8 +5,6 @@
 
 (with/without-compilation
   (with-options (:database (make-database 'huginn.m.d:database))
-    (clear)
-
     (<- `(house ? ? ? ? ?))
     (<- `(= ?item ?item))
     (<- `(member ?item ,(li '(?item . ?rest))))

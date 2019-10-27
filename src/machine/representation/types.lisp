@@ -56,8 +56,15 @@
     ;; heap fill pointer (actual heap is represented as a simple-array
     (previous-cell nil :type (or null execution-stack-cell))
     ;; well, it is stack, what did you expect?
-    (unwind-trail-pointer 0 :type fixnum)
+    (unwind-trail-pointer 0 :type cl-ds.utils:index)
     )
+
+
+  (defstruct (recursive-execution-stack-cell
+              (:include execution-stack-cell))
+    (tail-call-position 0 :type pointer)
+    (head-unwind-trail-pointer 0 :type cl-ds.utils:index)
+    (head-heap-fill-pointer 0 :type pointer))
 
 
   (defun make-initial-execution-stack-cell (goal-pointers heap-fill-pointer

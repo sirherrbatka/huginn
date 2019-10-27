@@ -16,35 +16,37 @@
    #:+tag-size+
    #:+variable+
    #:cell
+   #:cell
    #:clause
    #:clause-body-length
    #:clause-body-pointer
    #:clause-content
    #:clause-content-length
+   #:clause-copy-body-function
+   #:clause-copy-head-function
    #:clause-goal-pointers
    #:clause-goals
    #:clause-input
    #:clause-length
+   #:clause-unify-head-function
    #:clause-variable-values
    #:clone-execution-stack-cell
    #:clone-execution-state
    #:dereference-heap-pointer
    #:dereference-variable
    #:detag
-   #:clause-copy-head-function
-   #:clause-copy-body-function
    #:execution-stack-cell
    #:execution-stack-cell-bindings-fill-pointer
    #:execution-stack-cell-clause
    #:execution-stack-cell-clauses
    #:execution-stack-cell-clausese
    #:execution-stack-cell-goals
-   #:execution-stack-cell-unwind-trail-pointer
-   #:execution-state-unwind-trail
    #:execution-stack-cell-heap-fill-pointer
    #:execution-stack-cell-heap-pointer
    #:execution-stack-cell-more-goals-p
+   #:execution-stack-cell-p
    #:execution-stack-cell-previous-cell
+   #:execution-stack-cell-unwind-trail-pointer
    #:execution-state
    #:execution-state-database
    #:execution-state-heap
@@ -52,12 +54,12 @@
    #:execution-state-objects-mapping
    #:execution-state-stack
    #:execution-state-unification-stack
+   #:execution-state-unification-stack-fill-pointer
+   #:execution-state-unwind-trail
    #:execution-state-variable-bindings
    #:expand-state-heap
    #:expression-cell-p
    #:fixnum-cell-p
-   #:symbol-tag-of
-   #:execution-state-unification-stack-fill-pointer
    #:follow-pointer
    #:index-object
    #:list-end-cell-p
@@ -69,22 +71,27 @@
    #:make-execution-stack-cell
    #:make-execution-state
    #:make-initial-execution-stack-cell
+   #:make-recursive-execution-stack-cell
    #:make-reference
    #:pointer
    #:predicate-cell-p
    #:predicate-unbound-p
-   #:scan-heap-list
-   #:cell
-   #:unknown-variable-error
-   #:variable-unbound-error
-   #:variable-dereference-error
+   #:recursive-execution-stack-cell-head-heap-fill-pointer
+   #:recursive-execution-stack-cell-head-unwind-trail-pointer
+   #:recursive-execution-stack-cell-p
+   #:recursive-execution-stack-cell-tail-call-position
    #:reference-cell-p
+   #:retag
    #:same-cells-p
+   #:scan-heap-list
+   #:symbol-tag-of
    #:tag
    #:tag-case
    #:tag-of
+   #:unknown-variable-error
    #:variable-cell-p
+   #:variable-dereference-error
+   #:variable-unbound-error
    #:variable-unbound-p
-   #:retag
-   #:clause-unify-head-function
-   #:word))
+   #:word
+   ))
