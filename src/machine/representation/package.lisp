@@ -83,6 +83,7 @@
    #:reference-cell-p
    #:retag
    #:same-cells-p
+   #:save-head-state
    #:scan-heap-list
    #:symbol-tag-of
    #:tag
