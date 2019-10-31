@@ -340,12 +340,12 @@
                                   (rcurry #'typep 'variable-marker)
                                   (rcurry #'typep 'list-rest-marker))
                       :key #'read-content)
-       (remove-if (lambda (name)
-                    (or (string= name "?")
-                        (not (eql (first-elt name) #\?))))
-                  _
-                  :key #'symbol-name)
-       (remove-duplicates _)))
+       (remove-if (lambda (symbol)
+                    (or (not (symbolp symbol))
+                        (let ((name (symbol-name symbol)))
+                          (or (string= name "?")
+                              (not (eql (first-elt name) #\?)))))))
+       remove-duplicates))
 
 
 (defmethod pointer-for-variable ((state compilation-state)
