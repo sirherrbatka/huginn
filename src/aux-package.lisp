@@ -14,7 +14,7 @@
                  symbols))))
 
 
-(cl-data-structures.aux-package::rexport :huginn.aux-package
+(rexport :huginn.aux-package
   alexandria:if-let
   alexandria:when-let
   alexandria:when-let*
