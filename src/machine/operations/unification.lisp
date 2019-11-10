@@ -595,9 +595,11 @@
        (let ((result
                (unify-pair execution-state execution-stack-cell
                            (huginn.m.r:follow-pointer execution-state
-                                                      first-pointer t)
+                                                      first-pointer
+                                                      t)
                            (huginn.m.r:follow-pointer execution-state
-                                                      second-pointer t))))
+                                                      second-pointer
+                                                      t))))
          (unless result
            (done nil)))
        (next))))

@@ -31,13 +31,25 @@
         (finish)
         (finally (return new-stack-cell)))))
 
+  #|
+  When unfolding recursive stack-cell, recursive goal is not present
+  in the goals list. Instead such goal needs to be matched before other goals.
+  |#
+  (declaim (inline recursive-unfold))
+  (defun recursive-unfold (execution-state stack-cell)
+    (declare (type huginn.m.r:execution-stack-cell stack-cell)
+             (type huginn.m.r:execution-state execution-state))
+    (when (huginn.m.r:recursive-execution-stack-cell-p stack-cell)
+      cl-ds.utils:todo)
+    (unfold execution-state stack-cell))
+
 
   (declaim (notinline unfold-all))
   (defun unfold-all (execution-state)
     (declare (type huginn.m.r:execution-state execution-state))
     (iterate
       (with stack = (huginn.m.r:execution-state-stack execution-state))
-      (setf stack (unfold execution-state stack)
+      (setf stack (recursive-unfold execution-state stack)
             (huginn.m.r:execution-state-stack execution-state) stack)
       (while (and (not (null stack))
                   (huginn.m.r:execution-stack-cell-more-goals-p stack)))
