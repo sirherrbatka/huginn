@@ -602,6 +602,7 @@
                read-flat-representation
                (take (read-body-pointer compilation-state) _)
                (remove-duplicates :test #'eq :from-end t)))
+         (!stop-on-failure (gensym "STOP-ON-FAILURE"))
          (eager-markers (~>> filtered-markers
                              (remove-if-not (rcurry #'typep  'eager-value-mixin))))
          (arguments (make-unification-form-arguments
@@ -609,7 +610,8 @@
                     database)))
     (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
       (if (emptyp filtered-markers)
-          `(lambda (,execution-state-symbol ,execution-stack-cell-symbol ,goal-pointer-symbol)
+          `(lambda (,execution-state-symbol ,execution-stack-cell-symbol
+                    ,goal-pointer-symbol ,!stop-on-failure)
              (declare (ignore ,execution-stack-cell-symbol
                               ,execution-stack-cell-symbol
                               ,goal-pointer-symbol)
@@ -617,9 +619,14 @@
              t)
           `(lambda (,execution-state-symbol
                     ,execution-stack-cell-symbol
-                    ,goal-pointer-symbol)
+                    ,goal-pointer-symbol
+                    ,!stop-on-failure)
              (declare (optimize (speed 3) (debug 0) (safety 0)
-                                (space 0) (compilation-speed 0)))
+                                (space 0) (compilation-speed 0))
+                      (type huginn.m.r:execution-stack-cell ,execution-stack-cell-symbol)
+                      (type huginn.m.r:execution-state ,execution-state-symbol)
+                      (type boolean ,!stop-on-failure)
+                      (type huginn.m.r:pointer ,goal-pointer-symbol))
              (block ,function-symbol
                (let* ((,heap-symbol (huginn.m.r:execution-state-heap
                                      ,execution-state-symbol))
@@ -644,7 +651,8 @@
                                   (list (read-value-symbol marker)
                                         (cell-value-form marker arguments)))))
                    (labels ((,fail-symbol ()
-                              (return-from ,function-symbol nil))
+                              (when ,!stop-on-failure
+                                (return-from ,function-symbol nil)))
                             ,@(map 'list
                                 (lambda (marker)
                                   (list (read-unification-function-symbol marker)

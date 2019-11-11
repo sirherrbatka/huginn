@@ -43,12 +43,14 @@
    #:execution-stack-cell-clauses
    #:execution-stack-cell-clausese
    #:execution-stack-cell-goals
+   #:execution-stack-cell-goal-pointer
    #:execution-stack-cell-heap-fill-pointer
    #:execution-stack-cell-heap-pointer
    #:execution-stack-cell-more-goals-p
    #:execution-stack-cell-p
    #:execution-stack-cell-previous-cell
    #:execution-stack-cell-recursive-call-position
+   #:execution-stack-cell-same-clause-p
    #:execution-stack-cell-unwind-trail-pointer
    #:execution-state
    #:execution-state-database

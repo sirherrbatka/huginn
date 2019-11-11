@@ -209,4 +209,19 @@
         (setf (huginn.m.r:execution-stack-cell-clauses execution-stack-cell)
               (huginn.m.d:matching-clauses database execution-state
                                            (first goals))))
-      nil)))
+      nil))
+
+
+  (-> dereference-body (huginn.m.r:execution-state
+                        huginn.m.r:execution-stack-cell)
+      t)
+  (defun dereference-body (huginn.m.r:execution-state
+                           huginn.m.r:execution-stack-cell)
+    cl-ds.utils:todo)
+
+
+  (-> dereference-head (huginn.m.r:execution-state
+                        huginn.m.r:execution-stack-cell)
+      t)
+  (defun dereference-head (execution-state stack-cell)
+    cl-ds.utils:todo))

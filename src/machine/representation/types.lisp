@@ -34,7 +34,7 @@
      :type (or null (-> (execution-state pointer pointer clause)
                         pointer)))
     (unify-head-function nil
-     :type (or null (-> (execution-state execution-stack-cell pointer) boolean)))
+     :type (or null (-> (execution-state execution-stack-cell pointer boolean) boolean)))
     (input)
     (goal-pointers +placeholder-pointer-array+ :type (simple-array pointer (*)))
     (variable-values +placeholder-array+ :type simple-vector)
@@ -58,7 +58,8 @@
     (previous-cell nil :type (or null execution-stack-cell))
     ;; well, it is stack, what did you expect?
     (unwind-trail-pointer 0 :type cl-ds.utils:index)
-    )
+    ;; goal realized by this cell
+    (goal-pointer 0 :type pointer))
 
 
   (defun make-initial-execution-stack-cell (goal-pointers heap-fill-pointer

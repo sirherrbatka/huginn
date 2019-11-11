@@ -584,8 +584,9 @@
                                      cell1 cell2)))))
 
 
-  (defun unify-loop (execution-state execution-stack-cell)
+  (defun unify-loop (execution-state execution-stack-cell stop-on-failure)
     (declare (type huginn.m.r:execution-stack-cell execution-stack-cell)
+             (type boolean stop-on-failure)
              (type huginn.m.r:execution-state execution-state))
     (with-unification-stack (execution-state)
       (when (uemptyp)
@@ -600,7 +601,7 @@
                            (huginn.m.r:follow-pointer execution-state
                                                       second-pointer
                                                       t))))
-         (unless result
+         (unless (and stop-on-failure result)
            (done nil)))
        (next))))
 
@@ -614,44 +615,85 @@
   (declaim (notinline invoke-unification-function))
   (-> invoke-unification-function ((-> (huginn.m.r:execution-state
                                         huginn.m.r:execution-stack-cell
-                                        huginn.m.r:pointer)
+                                        huginn.m.r:pointer
+                                        boolean)
                                        boolean)
                                    huginn.m.r:execution-state
                                    huginn.m.r:execution-stack-cell
-                                   huginn.m.r:pointer)
+                                   huginn.m.r:pointer
+                                   boolean)
       boolean)
   (defun invoke-unification-function (unify-head-function
                                       execution-state
                                       execution-stack-cell
-                                      goal-pointer)
+                                      goal-pointer
+                                      stop-on-failure)
     (funcall unify-head-function
              execution-state
              execution-stack-cell
-             goal-pointer))
+             goal-pointer
+             stop-on-failure))
+
+
+  (-> unify-head-with-recursive-goal (huginn.m.r:execution-state
+                                      huginn.m.r:execution-stack-cell)
+      boolean)
+  (defun unify-head-with-recursive-goal (execution-state stack-cell)
+    (bind ((goal-pointer
+            (huginn.m.r:execution-stack-cell-recursive-call-position
+             stack-cell))
+           (old-unwind-trail-fill-pointer
+            (huginn.m.r:execution-stack-cell-unwind-trail-pointer
+             stack-cell))
+           (unified-p nil))
+      (declare (type boolean unified-p)
+               (type huginn.m.r:pointer goal-pointer))
+      (setf unified-p (unify execution-state stack-cell goal-pointer))
+      (unless unified-p ; we will do cleanup right here
+        (unbind-range execution-state
+                      old-unwind-trail-fill-pointer
+                      (huginn.m.r:execution-stack-cell-unwind-trail-pointer
+                       stack-cell)))
+      ; this unwind trail fragment is not relevant anymore. It was either undone already OR modified cells will be overwritten with fresh body.
+      (setf (huginn.m.r:execution-stack-cell-unwind-trail-pointer
+             stack-cell)
+            old-unwind-trail-fill-pointer)
+      unified-p))
 
 
   (declaim (notinline unify))
   (-> unify (huginn.m.r:execution-state
              huginn.m.r:execution-stack-cell
-             huginn.m.r:pointer)
+             huginn.m.r:pointer
+             &optional
+             boolean)
       (or huginn.m.r:cell boolean))
-  (defun unify (execution-state execution-stack-cell goal-pointer)
+  (defun unify (execution-state execution-stack-cell goal-pointer
+                &optional (stop-on-failure t))
     (declare (type huginn.m.r:execution-stack-cell execution-stack-cell)
              (type huginn.m.r:execution-state execution-state)
              (type huginn.m.r:pointer goal-pointer))
     (let ((unify-head-function (~> execution-stack-cell
                                    huginn.m.r:execution-stack-cell-clause
                                    huginn.m.r:clause-unify-head-function)))
+      (when (zerop #5=(huginn.m.r:execution-stack-cell-goal-pointer
+                       execution-stack-cell)) ; zero is initial placeholder value
+        (setf #5# goal-pointer))
       (if (null unify-head-function)
           (progn
             (prepare-unification-stack execution-state
                                        execution-stack-cell
                                        goal-pointer)
-            (unify-loop execution-state execution-stack-cell))
+            (unify-loop execution-state
+                        execution-stack-cell
+                        stop-on-failure))
           (progn
             (clear-ustack execution-state)
             (and (invoke-unification-function unify-head-function
                                               execution-state
                                               execution-stack-cell
-                                              goal-pointer)
-                 (unify-loop execution-state execution-stack-cell)))))))
+                                              goal-pointer
+                                              stop-on-failure)
+                 (unify-loop execution-state
+                             execution-stack-cell
+                             stop-on-failure)))))))

@@ -44,3 +44,12 @@
        (~> cell
            execution-stack-cell-clause
            clause-recursive-p)))
+
+
+(-> execution-stack-cell-same-clause-p
+    (execution-stack-cell clause)
+    boolean)
+(defun execution-stack-cell-same-clause-p (stack-cell clause)
+  (declare (optimize (speed 3)))
+  (eq (execution-stack-cell-clause stack-cell)
+      clause))
