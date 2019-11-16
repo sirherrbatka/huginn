@@ -77,6 +77,7 @@
          :variable-values variable-bindings
          :input (list* head goals)
          :content content
+         ;; recursive goal can't show up as a head (because it is a goal) s' ot can't have value equal to 0. Therefore 0 is used as indicator for lack of the recursive goal
          :recursive-goal-pointer (or recursive-goal-pointer 0)
          :goal-pointers goal-pointers)
         add-clause)))

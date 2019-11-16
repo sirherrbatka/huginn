@@ -14,7 +14,7 @@
                          stack-cell)))
       (and stack-clause
            (eql goal-pointer
-                (huginn.m.r:clause-recursive-call-position stack-clause))
+                (huginn.m.r:clause-recursive-goal-pointer stack-clause))
            (eql stack-clause clause))))
 
 
