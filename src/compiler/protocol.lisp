@@ -4,6 +4,8 @@
 (defclass fundamental-compilation-state ()
   ())
 
+(defgeneric recursive-p (state))
+
 (defgeneric make-compilation-state (class content))
 
 (defgeneric cells-count (compilation-state))

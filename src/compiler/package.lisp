@@ -21,6 +21,7 @@
    #:make-compilation-state
    #:recursive-call
    #:multiple-recursive-goals
+   #:recursive-p
    #:optimized-relocate-cells-function
    #:optimized-unify-head-function
    #:pointer-for-expression
