@@ -26,6 +26,7 @@
    #:optimized-unify-head-function
    #:pointer-for-expression
    #:pointer-for-list
+   #:pointer-for-recursive-goal
    #:pointer-for-predicate
    #:pointer-for-variable
    #:predicate

@@ -319,6 +319,12 @@
                               (funcall predicate elt)))))
 
 
+(defmethod pointer-for-recursive-goal ((state compilation-state))
+  (pointer-for (read-flat-representation state)
+               #'read-recursive
+               :class 'expression-marker))
+
+
 (defmethod pointer-for-list ((state compilation-state)
                              (list list-input))
   (pointer-for (read-flat-representation state)
