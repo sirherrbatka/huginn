@@ -301,8 +301,16 @@ This representation is pretty much the same as one used by norvig in the PAIP.
   (content))
 
 
+(defstruct recursive-call
+  (content))
+
+
 (defun list-input (content)
   (make-list-input :content content))
+
+
+(defun recursive-call (content)
+  (make-recursive-call :content content))
 
 
 (defclass unification-form-arguments ()

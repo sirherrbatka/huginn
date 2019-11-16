@@ -19,6 +19,7 @@
    #:invalid-predicate
    #:list-input
    #:make-compilation-state
+   #:recursive-call
    #:optimized-relocate-cells-function
    #:optimized-unify-head-function
    #:pointer-for-expression
