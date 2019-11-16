@@ -1,6 +1,11 @@
 (cl:in-package #:huginn.compiler)
 
 
+(defun recursive-expression-marker-p (x)
+  (and (typep x 'expression-marker)
+       (read-recursive x)))
+
+
 (defmethod marker-for ((flattening flattening) exp class
                        &key (enforce-class nil) (extra-options '()))
   (if (anonymus-variable-p exp)
@@ -206,6 +211,13 @@
           :reader read-body)))
 
 
+(defmethod recursive-p ((state compilation-state))
+  (iterate
+    (for element in-vector (read-flat-representation state))
+    (when (recursive-expression-marker-p element)
+      (leave t))))
+
+
 (defmethod content ((state compilation-state)
                     (database huginn.m.d:database)
                     &optional output)
@@ -253,9 +265,7 @@
 
 
 (defun validate-flat-form (flat-form)
-  (let ((recursive-calls (remove-if-not (lambda (x)
-                                          (and (typep x 'expression-marker)
-                                               (read-recursive x)))
+  (let ((recursive-calls (remove-if-not #'recursive-expression-marker-p
                                         flat-form)))
     (unless (<= (length recursive-calls) 1)
       (error 'multiple-recursive-goals
