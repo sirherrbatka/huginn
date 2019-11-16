@@ -26,7 +26,7 @@
 
 
   (defstruct clause
-    (recursive-call-position 0 :type pointer)
+    (recursive-goal-pointer 0 :type pointer)
     (copy-head-function nil
      :type (or null (-> (execution-state pointer pointer clause)
                         pointer)))

@@ -62,7 +62,13 @@
                                 compilation
                                 database
                                 body-pointer
-                                (length content)))))
+                                (length content))))
+         (recursive-goal-pointer (huginn.c:pointer-for-recursive-goal
+                                  compilation))
+         (goal-pointers (map '(vector huginn.m.r:pointer)
+                             (curry #'huginn.c:pointer-for-expression
+                                    compilation)
+                             goals)))
     (~> (huginn.m.r:make-clause
          :copy-head-function copy-head-function
          :copy-body-function copy-body-function
@@ -71,10 +77,8 @@
          :variable-values variable-bindings
          :input (list* head goals)
          :content content
-         :goal-pointers (map '(vector huginn.m.r:pointer)
-                             (curry #'huginn.c:pointer-for-expression
-                                    compilation)
-                             goals))
+         :recursive-goal-pointer (or recursive-goal-pointer 0)
+         :goal-pointers goal-pointers)
         add-clause)))
 
 
