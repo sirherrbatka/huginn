@@ -106,7 +106,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
    (%variable-index :initarg :variable-index
                     :accessor access-variable-index))
   (:default-initargs
-   :queue (make 'flexichain:standard-flexichain)
+   :queue (make 'flexichain:standard-flexichain) ; can be replaced by queue from cl-ds
    :pointer 0
    :variable-index 0
    :markers (make-hash-table :test 'eq)))
@@ -195,7 +195,12 @@ This representation is pretty much the same as one used by norvig in the PAIP.
                              pointer-mixin
                              eager-value-mixin)
   ((%arity :initarg :arity
-           :reader read-arity)))
+           :reader read-arity)
+   (%recursive :initarg :recursive
+               :type boolean
+               :reader read-recursive))
+  (:default-initargs
+   :recursive nil))
 
 
 (defmethod initialize-instance :after ((marker expression-marker)
@@ -306,10 +311,12 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 
 
 (defun list-input (content)
+  (check-type content list)
   (make-list-input :content content))
 
 
 (defun recursive-call (content)
+  (check-type content expression)
   (make-recursive-call :content content))
 
 

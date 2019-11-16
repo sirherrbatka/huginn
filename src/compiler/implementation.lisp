@@ -2,7 +2,7 @@
 
 
 (defmethod marker-for ((flattening flattening) exp class
-                       &key (enforce-class nil))
+                       &key (enforce-class nil) (extra-options '()))
   (if (anonymus-variable-p exp)
       (make-instance class :content exp)
       (bind ((markers (read-markers flattening))
@@ -12,7 +12,8 @@
                    (and (null result)
                         (or (endp result-list)
                             enforce-class)))
-          (setf result (make-instance class :content exp)
+          (setf result (apply #'make-instance class
+                              :content exp extra-options)
                 result-list (cons result result-list)
                 (gethash exp markers) result-list)
           (when (and (typep result 'indexed-mixin)
@@ -28,6 +29,10 @@
   (cond
     ((expressionp exp) (~>> (marker-for flattening exp 'expression-marker)
                             (funcall direction flattening)))
+    ((recursive-call-p exp) (~>> (make 'expression-marker ; eventually this may use marker-for function for handling references. However right now it seems that there is no use case that would make it actually useful.
+                                       :content (recursive-call-content exp)
+                                       :recursive t)
+                                 (funcall direction flattening)))
     ((list-input-p exp) (~>> (marker-for flattening
                                           (list-input-content exp)
                                           'list-marker)
