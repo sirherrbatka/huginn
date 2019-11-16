@@ -29,6 +29,7 @@
    #:clause-input
    #:clause-length
    #:clause-recursive-goal-pointer
+   #:clause-head-length
    #:clause-recursive-p
    #:clause-unify-head-function
    #:clause-variable-values

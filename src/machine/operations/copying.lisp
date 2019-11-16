@@ -122,7 +122,7 @@
              (type huginn.m.r:execution-state execution-state)
              (type huginn.m.r:execution-stack-cell execution-stack-cell)
              (type huginn.m.r:clause clause))
-    (let ((head-length (huginn.m.r:clause-body-pointer clause))
+    (let ((head-length (huginn.m.r:clause-head-length clause))
           (fill-pointer
             (huginn.m.r:execution-stack-cell-heap-fill-pointer
              execution-stack-cell))
@@ -150,7 +150,7 @@
     "Copies clause body to heap. Will extend variable bindings in the state (or fail and return nil if can't do so). Will return: new trail, new bindings-heap-pointer, and success-info. To unroll changes do the execution-state performed by this function it is required to both unwind-variable-bindings-trail and unbind-range"
     (declare (type huginn.m.r:execution-state execution-state)
              (type huginn.m.r:execution-stack-cell execution-stack-cell))
-    (let* ((clause (huginn.m.r:execution-stack-cell-clause
+    (bind ((clause (huginn.m.r:execution-stack-cell-clause
                     execution-stack-cell))
            (full-length (huginn.m.r:clause-length clause))
            (body-length (huginn.m.r:clause-body-length clause))
@@ -174,12 +174,16 @@
            (copy-body-function (huginn.m.r:clause-copy-body-function
                                 clause))
            (new-bindings-fill-pointer 0)
+           (recursive-goal-pointer (huginn.m.r:clause-recursive-goal-pointer
+                                    clause))
+           (recursive-goal-p (not (zerop recursive-goal-pointer)))
            (goals (~>> execution-stack-cell
                        huginn.m.r:execution-stack-cell-previous-cell
                        huginn.m.r:execution-stack-cell-goals
                        rest
                        (huginn.m.r:clause-goals clause
                                                 previous-fill-pointer))))
+      (declare (type fixnum new-fill-pointer))
       (if (null copy-body-function)
           (setf new-bindings-fill-pointer
                 (relocate-cells execution-state
@@ -195,6 +199,23 @@
                          previous-fill-pointer
                          bindings-fill-pointer
                          clause)))
+      (when recursive-goal-p
+        (let ((copy-head-function (huginn.m.r:clause-copy-head-function
+                                   clause)))
+          (if (null copy-head-function)
+              (relocate-cells execution-state
+                              clause
+                              new-fill-pointer
+                              0
+                              body-pointer
+                              bindings-fill-pointer
+                              new-fill-pointer)
+              (funcall copy-head-function execution-state
+                       new-fill-pointer
+                       bindings-fill-pointer
+                       clause)))
+        (setf new-fill-pointer (the fixnum (+ new-fill-pointer
+                                              body-pointer))))
       (setf (huginn.m.r:execution-stack-cell-bindings-fill-pointer
              execution-stack-cell)
             new-bindings-fill-pointer

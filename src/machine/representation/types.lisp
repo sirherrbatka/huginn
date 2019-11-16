@@ -133,6 +133,13 @@
     (- (clause-content-length clause) (clause-body-pointer clause)))
 
 
+  (declaim (notinline clause-head-length))
+  (-> clause-head-length (clause) cl-ds.utils:index)
+  (defun clause-head-length (clause)
+    (declare (optimize (speed 3) (safety 0)))
+    (clause-body-pointer clause))
+
+
   (declaim (notinline expand-state-heap))
   (defun expand-state-heap (state desired-size)
     (declare (type execution-state state)
