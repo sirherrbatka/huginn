@@ -20,6 +20,7 @@
    #:list-input
    #:make-compilation-state
    #:recursive-call
+   #:multiple-recursive-goals
    #:optimized-relocate-cells-function
    #:optimized-unify-head-function
    #:pointer-for-expression

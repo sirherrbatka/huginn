@@ -252,6 +252,17 @@
   (~> state read-flat-representation flat-representation-cells-count))
 
 
+(defun validate-flat-form (flat-form)
+  (let ((recursive-calls (remove-if-not (lambda (x)
+                                          (and (typep x 'expression-marker)
+                                               (read-recursive x)))
+                                        flat-form)))
+    (unless (<= (length recursive-calls) 1)
+      (error 'multiple-recursive-goals
+             "Clause contains multiple recursive goals."
+             :form (map 'list #'read-content recursive-calls)))))
+
+
 (defmethod make-compilation-state ((class (eql 'compilation-state))
                                    clause)
   (declare (optimize (debug 3)))
@@ -274,6 +285,7 @@
        (unless (goalp b)
          (error 'invalid-goal :form b))
        (enqueue-back flattening b))
+     (validate-flat-form flat-form)
      (flat-representation flattening flat-form))
     (make 'compilation-state
           :head head

@@ -37,3 +37,7 @@
   (:report (lambda (condition stream)
              (format stream "Invalid predicate ~a."
                      (read-form condition)))))
+
+
+(define-condition multiple-recursive-goals (compiler-error)
+  (()))
