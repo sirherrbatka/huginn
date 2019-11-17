@@ -22,3 +22,7 @@
 
 (define-condition multiple-recursive-goals (compiler-error)
   ())
+
+
+(define-condition multiple-goals-in-recursive-clause (compiler-error)
+  ())

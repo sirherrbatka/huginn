@@ -22,7 +22,7 @@
 (-> clause-recursive-p (clause) boolean)
 (defun clause-recursive-p (clause)
   (declare (optimize (speed 3)))
-  (~> clause clause-recursive-call-position (> 0)))
+  (~> clause clause-recursive-goal-pointer (> 0)))
 
 
 (-> execution-stack-cell-recursive-goal-pointer

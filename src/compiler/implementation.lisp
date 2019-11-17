@@ -264,13 +264,19 @@
   (~> state read-flat-representation flat-representation-cells-count))
 
 
-(defun validate-flat-form (flat-form)
-  (let ((recursive-calls (remove-if-not #'recursive-expression-marker-p
-                                        flat-form)))
-    (unless (<= (length recursive-calls) 1)
+(defun validate-flat-form (flat-form body)
+  (let* ((recursive-calls (remove-if-not #'recursive-expression-marker-p
+                                         flat-form))
+         (recursive-calls-count (length recursive-calls)))
+    (unless (<= recursive-calls-count 1)
       (error 'multiple-recursive-goals
              "Clause contains multiple recursive goals."
-             :form (map 'list #'read-content recursive-calls)))))
+             :form (first (map 'list #'read-content recursive-calls))))
+    (when (and (= 1 recursive-calls-count)
+               (> (length (remove-duplicates body)) 1))
+      (error 'multiple-goals-in-recursive-clause
+             "Recursive clause should contain only the recursive goal!"
+             :form (first (map 'list #'read-content recursive-calls))))))
 
 
 (defmethod make-compilation-state ((class (eql 'compilation-state))

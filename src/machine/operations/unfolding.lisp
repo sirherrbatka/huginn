@@ -10,12 +10,13 @@
                         huginn.m.r:clause)
       boolean)
   (defun recursive-goal-p (stack-cell goal-pointer clause)
-    (let ((stack-clause (huginn.m.r:execution-stack-cell-clause
-                         stack-cell)))
-      (and (not (null stack-clause))
-           (eq stack-clause clause)
-           (eql goal-pointer
-                (huginn.m.r:execution-stack-cell-recursive-goal-pointer stack-cell)))))
+    (and
+     (huginn.m.r:clause-recursive-p clause)
+     (let ((stack-clause (huginn.m.r:execution-stack-cell-clause
+                          stack-cell)))
+       (and (eq stack-clause clause)
+            (eql goal-pointer
+                 (huginn.m.r:execution-stack-cell-recursive-goal-pointer stack-cell))))))
 
 
   (-> update-after-recursive-goal-satisfaction (huginn.m.r:execution-stack-cell)
