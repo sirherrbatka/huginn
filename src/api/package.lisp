@@ -24,6 +24,7 @@
    #:*compile*
    #:with-options
    #:make-shared-resources
+   #:recur
    #:clauses))
 
 

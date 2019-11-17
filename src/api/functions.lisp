@@ -124,3 +124,8 @@
 (defun li (content)
   (check-type content list)
   (huginn.c:list-input content))
+
+
+(defun recur (content)
+  (check-type content list)
+  (huginn.c:recursive-call content))
