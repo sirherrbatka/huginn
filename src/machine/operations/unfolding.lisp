@@ -18,6 +18,12 @@
                 (huginn.m.r:execution-stack-cell-recursive-goal-pointer stack-cell)))))
 
 
+  (-> update-after-recursive-goal-satisfaction (huginn.m.r:execution-stack-cell)
+      t)
+  (defun update-after-recursive-goal-satisfaction (stack-cell)
+    cl-ds.utils:todo)
+
+
   (declaim (inline unfold))
   (defun unfold (execution-state stack-cell)
     (declare (type huginn.m.r:execution-stack-cell stack-cell)
@@ -42,10 +48,12 @@
               cl-ds.utils:todo
               (assert (not (nth-value 1 (cl-ds:peek-front clauses))))
               ;; this function also performs cleanup if unification fails
+              ;; returns the status of unification (T if success NIL if failure)
               (when (unify-recursive-goal execution-state
                                           stack-cell)
-                (cl-ds:reset! clauses)
-                ;; since no new stack frame was actually allocated, return the current one
+                ;; This will select next goal as current (if there is a next goal)
+                ;; it will also replace the clauses object with new range, matching said goal
+                (update-after-recursive-goal-satisfaction stack-cell)
                 (leave stack-cell))
               (next-iteration))
             (let* ((new-stack-cell (push-stack-cell stack-cell clause
