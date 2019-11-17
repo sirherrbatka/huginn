@@ -28,23 +28,6 @@
        :bindings-fill-pointer bindings-fill-pointer)))
 
 
-  (declaim (notinline push-recursive-stack-cell))
-  (defun push-recursive-stack-cell (execution-stack-cell)
-    (let* ((fill-pointer (huginn.m.r:execution-stack-cell-heap-fill-pointer
-                          execution-stack-cell))
-           (new-fill-pointer (+ fill-pointer
-                                (huginn.m.r:clause-body-pointer clause))))
-      (declare (type huginn.m.r:pointer new-fill-pointer fill-pointer))
-      (huginn.m.r:make-execution-stack-cell
-       :previous-cell execution-stack-cell
-       :heap-fill-pointer new-fill-pointer
-       :clause (huginn.m.r:execution-stack-cell-clause execution-stack-cell)
-       :heap-pointer fill-pointer
-       :unwind-trail-pointer (huginn.m.r:execution-stack-cell-unwind-trail-pointer
-                              execution-stack-cell)
-       :bindings-fill-pointer bindings-fill-pointer)))
-
-
   (declaim (notinline index-object))
   (defun index-object (execution-state object bindings-fill-pointer)
     (declare (type huginn.m.r:execution-state execution-state)
@@ -226,7 +209,8 @@
       (unless (endp goals)
         (setf (huginn.m.r:execution-stack-cell-clauses execution-stack-cell)
               (huginn.m.d:matching-clauses database execution-state
-                                           (first goals))))
+                                           (first goals)
+                                           clause)))
       nil))
 
 

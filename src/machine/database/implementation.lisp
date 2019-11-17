@@ -25,8 +25,11 @@
          (predicate-cell (aref content (1+ expression-position))))
     (assert (huginn.m.r:predicate-cell-p predicate-cell))
     (assert (huginn.m.r:fixnum-cell-p arity-cell))
-    (push clause (gethash (cons predicate-cell arity-cell)
-                          (clauses database)))))
+    (vector-push-extend
+     clause
+     (ensure (gethash (cons predicate-cell arity-cell)
+                      (clauses database))
+       (vect)))))
 
 
 (defmethod make-database ((class (eql 'database))
@@ -34,9 +37,13 @@
   (apply #'make 'database more-options))
 
 
+(def empty-range (make 'cl-ds:empty-range))
+
+
 (defmethod matching-clauses ((database database)
-                              execution-state
-                              goal-pointer)
+                             execution-state
+                             goal-pointer
+                             clause)
   (declare (type huginn.m.r:execution-state execution-state)
            (type huginn.m.r:pointer goal-pointer)
            (optimize (speed 3) (safety 0) (space 0)
@@ -50,14 +57,31 @@
          (expression-position (huginn.m.r:detag expression))
          (arity-cell (~> expression-position deref))
          (predicate-cell (~> expression-position 1+ deref))
-         (clauses (clauses database)))
-    (declare (type hash-table clauses))
+         (clauses (clauses database))
+         (result-vector (gethash (cons predicate-cell arity-cell) clauses))
+         (length (if (null result-vector)
+                     0
+                     (fill-pointer result-vector))))
+    (declare (type hash-table clauses)
+             (type (or null (vector t)) result-vector)
+             (type fixnum length))
     (assert (huginn.m.r:expression-cell-p expression))
     (assert (huginn.m.r:fixnum-cell-p arity-cell))
     (assert (huginn.m.r:predicate-cell-p predicate-cell))
+    (assert (and result-vector (array-has-fill-pointer-p result-vector)))
     ;; TODO, this will not handle unbound predicates
-    (~> (gethash (cons predicate-cell arity-cell) clauses)
-        cl-ds:whole-range)))
+    (if (zerop length)
+        empty-range
+        (let ((recursive-position (position clause result-vector
+                                            :test 'eq))
+              (end (1- length)))
+          (declare (type fixnum end))
+          (unless (or (null recursive-position)
+                      (eql end recursive-position))
+            (setf result-vector (copy-array result-vector))
+            (rotatef (aref result-vector recursive-position)
+                     (aref result-vector end)))
+          (cl-ds:whole-range result-vector)))))
 
 
 (defmethod clear ((database database))

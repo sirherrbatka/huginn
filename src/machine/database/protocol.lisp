@@ -10,7 +10,7 @@
 
 (defgeneric clauses (database))
 
-(defgeneric matching-clauses (database execution-state goal-pointer))
+(defgeneric matching-clauses (database execution-state goal-pointer clause))
 
 (defgeneric index-predicate (database predicate))
 

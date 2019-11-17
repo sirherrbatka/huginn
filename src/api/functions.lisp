@@ -114,7 +114,8 @@
             :objects-mapping objects-mapping))
          (clauses (huginn.m.d:matching-clauses database
                                                execution-state
-                                               (first goal-pointers)))
+                                               (first goal-pointers)
+                                               nil))
          (stack (huginn.m.r:make-initial-execution-stack-cell
                  goal-pointers total-size bindings-fill-pointer clauses)))
     (setf (huginn.m.r:execution-state-stack execution-state) stack)
