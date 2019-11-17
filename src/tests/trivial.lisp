@@ -23,7 +23,7 @@
   (with-options (:database (make-database 'huginn.m.d:database))
     (<- `(member ?item ,(li '(?item . ?rest))))
     (<- `(member ?item ,(li '(? . ?rest)))
-        '(member ?item ?rest))
+        (recur '(member ?item ?rest)))
     (<- '(= ?item ?item))
 
     (let ((answer (?- `(member ?zuzia ,(li `(nie-zuzia zuzia)))

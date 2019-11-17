@@ -335,7 +335,16 @@
 
 
 (defmethod pointer-for-expression ((state compilation-state)
-                                   expression)
+                                   (expression recursive-call))
+  (pointer-for (read-flat-representation state)
+               (lambda (elt)
+                 (eq (read-content elt)
+                     (recursive-call-content expression)))
+               :class 'expression-marker))
+
+
+(defmethod pointer-for-expression ((state compilation-state)
+                                   (expression list))
   (check-type expression expression)
   (pointer-for (read-flat-representation state)
                (lambda (elt)

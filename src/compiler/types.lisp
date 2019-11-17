@@ -33,6 +33,30 @@ Clause can contain the below:
        (inlined-fixnum-p element)))
 
 
+(defun has-predicate-p (expression)
+  (check-type expression clause)
+  (let ((predicate
+          (clause-head-predicate expression)))
+    (typep predicate 'predicate)))
+
+
+(defun has-at-least-one-argument-p (expression)
+  (and (> (length expression) 1)
+       (or (some #'variablep (rest expression))
+           (some #'list-input-p (rest expression)))))
+
+
+(defun goalp (expression)
+  (or (recursive-call-p expression)
+      (and (expressionp expression)
+           (has-predicate-p expression)
+           (has-at-least-one-argument-p expression))))
+
+
+(deftype goal ()
+  `(satisfies goalp))
+
+
 (deftype value ()
   `(satisfies valuep))
 
@@ -316,7 +340,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 
 
 (defun recursive-call (content)
-  (check-type content expression)
+  (check-type content goal)
   (make-recursive-call :content content))
 
 
