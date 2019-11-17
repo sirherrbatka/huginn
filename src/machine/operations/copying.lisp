@@ -196,6 +196,8 @@
                          previous-fill-pointer
                          bindings-fill-pointer
                          clause)))
+      (when (huginn.m.r:clause-recursive-p clause)
+        (incf new-fill-pointer body-pointer))
       (setf (huginn.m.r:execution-stack-cell-bindings-fill-pointer
              execution-stack-cell)
             new-bindings-fill-pointer

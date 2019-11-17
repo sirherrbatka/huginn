@@ -256,7 +256,6 @@
                                         &key
                                           (end (length flat-form))
                                           (start 0))
-  (declare (optimize (speed 1)))
   (- end start))
 
 
