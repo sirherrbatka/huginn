@@ -12,10 +12,10 @@
   (defun recursive-goal-p (stack-cell goal-pointer clause)
     (let ((stack-clause (huginn.m.r:execution-stack-cell-clause
                          stack-cell)))
-      (and stack-clause
+      (and (not (null stack-clause))
+           (eq stack-clause clause)
            (eql goal-pointer
-                (huginn.m.r:clause-recursive-goal-pointer stack-clause))
-           (eql stack-clause clause))))
+                (huginn.m.r:execution-stack-cell-recursive-goal-pointer stack-cell)))))
 
 
   (declaim (inline unfold))
@@ -39,22 +39,11 @@
                               clause)
             (progn
               ;; because in the case of the success clauses range will be reset, recursive clause MUST be the one yielded for check
+              cl-ds.utils:todo
               (assert (not (nth-value 1 (cl-ds:peek-front clauses))))
               ;; this function also performs cleanup if unification fails
-              (dereference-body execution-state stack-cell)
-              (~> stack-cell
-                  huginn.m.r:execution-stack-cell-previous-cell
-                  (clause-head-to-heap execution-state _ clause))
-              (when (unify-head-with-recursive-goal execution-state
-                                                    stack-cell)
-                (dereference-head execution-state stack-cell)
-                (reset-pointers-to-head execution-state stack-cell)
-                (let ((unified-p
-                        (~>> stack-cell
-                             huginn.m.r:execution-stack-cell-goal-pointer
-                             (unify execution-state stack-cell))))
-                  (assert unified-p))
-                (clause-body-to-heap execution-state stack-cell)
+              (when (unify-recursive-goal execution-state
+                                          stack-cell)
                 (cl-ds:reset! clauses)
                 ;; since no new stack frame was actually allocated, return the current one
                 (leave stack-cell))

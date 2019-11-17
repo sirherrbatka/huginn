@@ -28,6 +28,23 @@
        :bindings-fill-pointer bindings-fill-pointer)))
 
 
+  (declaim (notinline push-recursive-stack-cell))
+  (defun push-recursive-stack-cell (execution-stack-cell)
+    (let* ((fill-pointer (huginn.m.r:execution-stack-cell-heap-fill-pointer
+                          execution-stack-cell))
+           (new-fill-pointer (+ fill-pointer
+                                (huginn.m.r:clause-body-pointer clause))))
+      (declare (type huginn.m.r:pointer new-fill-pointer fill-pointer))
+      (huginn.m.r:make-execution-stack-cell
+       :previous-cell execution-stack-cell
+       :heap-fill-pointer new-fill-pointer
+       :clause (huginn.m.r:execution-stack-cell-clause execution-stack-cell)
+       :heap-pointer fill-pointer
+       :unwind-trail-pointer (huginn.m.r:execution-stack-cell-unwind-trail-pointer
+                              execution-stack-cell)
+       :bindings-fill-pointer bindings-fill-pointer)))
+
+
   (declaim (notinline index-object))
   (defun index-object (execution-state object bindings-fill-pointer)
     (declare (type huginn.m.r:execution-state execution-state)
@@ -174,9 +191,6 @@
            (copy-body-function (huginn.m.r:clause-copy-body-function
                                 clause))
            (new-bindings-fill-pointer 0)
-           (recursive-goal-pointer (huginn.m.r:clause-recursive-goal-pointer
-                                    clause))
-           (recursive-goal-p (not (zerop recursive-goal-pointer)))
            (goals (~>> execution-stack-cell
                        huginn.m.r:execution-stack-cell-previous-cell
                        huginn.m.r:execution-stack-cell-goals
@@ -199,23 +213,6 @@
                          previous-fill-pointer
                          bindings-fill-pointer
                          clause)))
-      (when recursive-goal-p
-        (let ((copy-head-function (huginn.m.r:clause-copy-head-function
-                                   clause)))
-          (if (null copy-head-function)
-              (relocate-cells execution-state
-                              clause
-                              new-fill-pointer
-                              0
-                              body-pointer
-                              bindings-fill-pointer
-                              new-fill-pointer)
-              (funcall copy-head-function execution-state
-                       new-fill-pointer
-                       bindings-fill-pointer
-                       clause)))
-        (setf new-fill-pointer (the fixnum (+ new-fill-pointer
-                                              body-pointer))))
       (setf (huginn.m.r:execution-stack-cell-bindings-fill-pointer
              execution-stack-cell)
             new-bindings-fill-pointer

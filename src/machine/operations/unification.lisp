@@ -638,10 +638,10 @@
              stop-on-failure))
 
 
-  (-> unify-head-with-recursive-goal (huginn.m.r:execution-state
-                                      huginn.m.r:execution-stack-cell)
-      boolean)
-  (defun unify-head-with-recursive-goal (execution-state stack-cell)
+  (-> establish-recursive-cell (huginn.m.r:execution-state
+                                huginn.m.r:execution-stack-cell)
+      (or null execution-stack-cell))
+  (defun establish-recursive-cell (execution-state stack-cell)
     (assert (huginn.m.r:recursive-execution-stack-cell-p stack-cell))
     (bind ((goal-pointer
             (huginn.m.r:execution-stack-cell-recursive-goal-pointer
@@ -649,20 +649,26 @@
            (old-unwind-trail-fill-pointer
             (huginn.m.r:execution-stack-cell-unwind-trail-pointer
              stack-cell))
-           (unified-p nil))
+           (unified-p nil)
+           (clause (huginn.m.r:execution-stack-cell-clause stack-cell))
+           (recursive-cell (push-recursive-stack-cell stack-cell)))
       (declare (type boolean unified-p)
                (type huginn.m.r:pointer goal-pointer))
-      (setf unified-p (unify execution-state stack-cell goal-pointer))
-      (unless unified-p ; we will do cleanup right here
-        (unbind-range execution-state
-                      old-unwind-trail-fill-pointer
-                      (huginn.m.r:execution-stack-cell-unwind-trail-pointer
-                       stack-cell)))
+      (clause-head-to-heap execution-state stack-cell clause)
+      (setf unified-p (unify execution-state recursive-cell goal-pointer))
+      (unless unified-p
+        (return-from establish-recursive-cell nil))
+      (clause-body-to-heap recursive-cell clause)
       ; this unwind trail fragment is not relevant anymore. It was either undone already OR modified cells will be overwritten with fresh body.
-      (setf (huginn.m.r:execution-stack-cell-unwind-trail-pointer
-             stack-cell)
-            old-unwind-trail-fill-pointer)
-      unified-p))
+      recursive-cell))
+
+
+  (-> unify-head-with-recursive-goal (huginn.m.r:execution-state
+                                      huginn.m.r:execution-stack-cell)
+      boolean)
+  (defun unify-head-with-recursive-goal (execution-state stack-cell)
+    (assert (huginn.m.r:recursive-execution-stack-cell-p stack-cell))
+    ())
 
 
   (declaim (notinline unify))

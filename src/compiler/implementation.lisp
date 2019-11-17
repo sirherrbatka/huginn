@@ -532,7 +532,9 @@
                  !bindings-fill-pointer)
     (if (zerop end)
         `(lambda (a b c) (declare (ignore b a)) c)
-        `(lambda (,!execution-state ,!heap-pointer ,!bindings-fill-pointer
+        `(lambda (,!execution-state
+                  ,!heap-pointer
+                  ,!bindings-fill-pointer
                   ,!clause)
            (declare  (type huginn.m.r:execution-state ,!execution-state)
                      (ignorable ,!execution-state

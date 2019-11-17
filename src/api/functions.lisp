@@ -42,6 +42,7 @@
 
 
 (defun <- (head &rest goals)
+  (declare (optimize (debug 3)))
   (let* ((compilation (make-compilation-state (list* head goals)))
          (content (huginn.c:content compilation (database)))
          (body-pointer (huginn.c:body-pointer compilation))
