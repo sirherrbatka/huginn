@@ -616,6 +616,7 @@
   (-> invoke-unification-function ((-> (huginn.m.r:execution-state
                                         huginn.m.r:execution-stack-cell
                                         huginn.m.r:pointer
+                                        huginn.m.r:pointer
                                         boolean)
                                        boolean)
                                    huginn.m.r:execution-state
@@ -632,6 +633,8 @@
              execution-state
              execution-stack-cell
              goal-pointer
+             (huginn.m.r:execution-stack-cell-heap-pointer
+              execution-stack-cell)
              stop-on-failure))
 
 
@@ -639,8 +642,9 @@
                                       huginn.m.r:execution-stack-cell)
       boolean)
   (defun unify-head-with-recursive-goal (execution-state stack-cell)
+    (assert (huginn.m.r:recursive-execution-stack-cell-p stack-cell))
     (bind ((goal-pointer
-            (huginn.m.r:execution-stack-cell-recursive-call-position
+            (huginn.m.r:execution-stack-cell-recursive-goal-pointer
              stack-cell))
            (old-unwind-trail-fill-pointer
             (huginn.m.r:execution-stack-cell-unwind-trail-pointer

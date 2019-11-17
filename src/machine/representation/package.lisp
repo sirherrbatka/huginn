@@ -50,7 +50,7 @@
    #:execution-stack-cell-more-goals-p
    #:execution-stack-cell-p
    #:execution-stack-cell-previous-cell
-   #:execution-stack-cell-recursive-call-position
+   #:execution-stack-cell-recursive-goal-pointer
    #:execution-stack-cell-same-clause-p
    #:execution-stack-cell-unwind-trail-pointer
    #:execution-state

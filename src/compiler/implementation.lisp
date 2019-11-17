@@ -653,7 +653,7 @@
     (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
       (if (emptyp filtered-markers)
           `(lambda (,execution-state-symbol ,execution-stack-cell-symbol
-                    ,goal-pointer-symbol ,!stop-on-failure)
+                    ,goal-pointer-symbol ,pointer-symbol ,!stop-on-failure)
              (declare (ignore ,execution-stack-cell-symbol
                               ,execution-stack-cell-symbol
                               ,goal-pointer-symbol)
@@ -662,6 +662,7 @@
           `(lambda (,execution-state-symbol
                     ,execution-stack-cell-symbol
                     ,goal-pointer-symbol
+                    ,pointer-symbol
                     ,!stop-on-failure)
              (declare (optimize (speed 3) (debug 0) (safety 0)
                                 (space 0) (compilation-speed 0))
@@ -672,8 +673,6 @@
              (block ,function-symbol
                (let* ((,heap-symbol (huginn.m.r:execution-state-heap
                                      ,execution-state-symbol))
-                      (,pointer-symbol (huginn.m.r:execution-stack-cell-heap-pointer
-                                        ,execution-stack-cell-symbol))
                       ,@(map 'list
                              (lambda (marker)
                                (list (read-value-symbol marker)

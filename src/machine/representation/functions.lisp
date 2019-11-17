@@ -25,15 +25,15 @@
   (~> clause clause-recursive-call-position (> 0)))
 
 
-(-> execution-stack-cell-recursive-call-position
+(-> execution-stack-cell-recursive-goal-pointer
     (execution-stack-cell)
     pointer)
-(defun execution-stack-cell-recursive-call-position (cell)
+(defun execution-stack-cell-recursive-goal-pointer (cell)
   (declare (optimize (speed 3)))
   (~> cell
       execution-stack-cell-clause
-      clause-recursive-call-position
-      (+ (recursive-execution-stack-cell-heap-pointer cell))))
+      clause-recursive-goal-pointer
+      (+ (execution-stack-cell-heap-pointer cell))))
 
 
 (-> recursive-execution-stack-cell-p

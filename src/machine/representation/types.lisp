@@ -34,7 +34,8 @@
      :type (or null (-> (execution-state pointer pointer clause)
                         pointer)))
     (unify-head-function nil
-     :type (or null (-> (execution-state execution-stack-cell pointer boolean) boolean)))
+     :type (or null (-> (execution-state execution-stack-cell pointer pointer boolean)
+                        boolean)))
     (input)
     (goal-pointers +placeholder-pointer-array+ :type (simple-array pointer (*)))
     (variable-values +placeholder-array+ :type simple-vector)
