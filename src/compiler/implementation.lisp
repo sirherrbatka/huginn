@@ -454,7 +454,7 @@
                                                   ,heap-pointer-symbol)))
                  (huginn.m.r:make-reference
                   (the huginn.m.r:pointer (+ ,object-position
-                                             ,heap-pointer-symbol))))))))
+                                             ,offset-pointer-symbol))))))))
 
 
 (defmethod cell-copy-form ((marker list-end-marker) arguments)
@@ -534,7 +534,7 @@
 (defun generate-copying-lambda-form (compilation-state database start end)
   (with-gensyms (!execution-state
                  !heap-pointer !heap !clause
-                 !bindings-fill-pointer)
+                 !bindings-fill-pointer !offset-pointer)
     (if (zerop end)
         `(lambda (a b c) (declare (ignore b a)) c)
         `(lambda (,!execution-state
@@ -570,6 +570,7 @@
                        :bindings-fill-pointer-symbol !bindings-fill-pointer
                        :heap-pointer-symbol !heap-pointer
                        :database database
+                       :offset-pointer-symbol !heap-pointer
                        :position i))
                  (collect (cell-copy-form marker arguments))))
            ,!bindings-fill-pointer))))
