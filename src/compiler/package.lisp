@@ -19,10 +19,15 @@
    #:invalid-predicate
    #:list-input
    #:make-compilation-state
+   #:recursive-call
+   #:multiple-recursive-goals
+   #:recursive-p
    #:optimized-relocate-cells-function
+   #:multiple-goals-in-recursive-clause
    #:optimized-unify-head-function
    #:pointer-for-expression
    #:pointer-for-list
+   #:pointer-for-recursive-goal
    #:pointer-for-predicate
    #:pointer-for-variable
    #:predicate

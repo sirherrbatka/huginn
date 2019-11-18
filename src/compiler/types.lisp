@@ -33,6 +33,30 @@ Clause can contain the below:
        (inlined-fixnum-p element)))
 
 
+(defun has-predicate-p (expression)
+  (check-type expression clause)
+  (let ((predicate
+          (clause-head-predicate expression)))
+    (typep predicate 'predicate)))
+
+
+(defun has-at-least-one-argument-p (expression)
+  (and (> (length expression) 1)
+       (or (some #'variablep (rest expression))
+           (some #'list-input-p (rest expression)))))
+
+
+(defun goalp (expression)
+  (or (recursive-call-p expression)
+      (and (expressionp expression)
+           (has-predicate-p expression)
+           (has-at-least-one-argument-p expression))))
+
+
+(deftype goal ()
+  `(satisfies goalp))
+
+
 (deftype value ()
   `(satisfies valuep))
 
@@ -106,7 +130,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
    (%variable-index :initarg :variable-index
                     :accessor access-variable-index))
   (:default-initargs
-   :queue (make 'flexichain:standard-flexichain)
+   :queue (make 'flexichain:standard-flexichain) ; can be replaced by queue from cl-ds
    :pointer 0
    :variable-index 0
    :markers (make-hash-table :test 'eq)))
@@ -195,7 +219,12 @@ This representation is pretty much the same as one used by norvig in the PAIP.
                              pointer-mixin
                              eager-value-mixin)
   ((%arity :initarg :arity
-           :reader read-arity)))
+           :reader read-arity)
+   (%recursive :initarg :recursive
+               :type boolean
+               :reader read-recursive))
+  (:default-initargs
+   :recursive nil))
 
 
 (defmethod initialize-instance :after ((marker expression-marker)
@@ -301,8 +330,18 @@ This representation is pretty much the same as one used by norvig in the PAIP.
   (content))
 
 
+(defstruct recursive-call
+  (content))
+
+
 (defun list-input (content)
+  (check-type content list)
   (make-list-input :content content))
+
+
+(defun recursive-call (content)
+  (check-type content goal)
+  (make-recursive-call :content content))
 
 
 (defclass unification-form-arguments ()

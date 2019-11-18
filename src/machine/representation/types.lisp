@@ -26,6 +26,7 @@
 
 
   (defstruct clause
+    (recursive-goal-pointer 0 :type pointer)
     (copy-head-function nil
      :type (or null (-> (execution-state pointer pointer clause)
                         pointer)))
@@ -33,7 +34,8 @@
      :type (or null (-> (execution-state pointer pointer clause)
                         pointer)))
     (unify-head-function nil
-     :type (or null (-> (execution-state execution-stack-cell pointer) boolean)))
+     :type (or null (-> (execution-state execution-stack-cell pointer pointer boolean)
+                        boolean)))
     (input)
     (goal-pointers +placeholder-pointer-array+ :type (simple-array pointer (*)))
     (variable-values +placeholder-array+ :type simple-vector)
@@ -57,14 +59,8 @@
     (previous-cell nil :type (or null execution-stack-cell))
     ;; well, it is stack, what did you expect?
     (unwind-trail-pointer 0 :type cl-ds.utils:index)
-    )
-
-
-  (defstruct (recursive-execution-stack-cell
-              (:include execution-stack-cell))
-    (tail-call-position 0 :type pointer)
-    (head-unwind-trail-pointer 0 :type cl-ds.utils:index)
-    (head-heap-fill-pointer 0 :type pointer))
+    ;; goal realized by this cell
+    (goal-pointer 0 :type pointer))
 
 
   (defun make-initial-execution-stack-cell (goal-pointers heap-fill-pointer
@@ -136,6 +132,13 @@
   (defun clause-body-length (clause)
     (declare (optimize (speed 3) (safety 0)))
     (- (clause-content-length clause) (clause-body-pointer clause)))
+
+
+  (declaim (notinline clause-head-length))
+  (-> clause-head-length (clause) cl-ds.utils:index)
+  (defun clause-head-length (clause)
+    (declare (optimize (speed 3) (safety 0)))
+    (clause-body-pointer clause))
 
 
   (declaim (notinline expand-state-heap))

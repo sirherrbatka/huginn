@@ -5,6 +5,26 @@
   (declare (optimize (speed 3) (debug 0) (safety 0)
                      (compilation-speed 0) (space 0)))
 
+  (-> recursive-goal-p (huginn.m.r:execution-stack-cell
+                        huginn.m.r:pointer
+                        huginn.m.r:clause)
+      boolean)
+  (defun recursive-goal-p (stack-cell goal-pointer clause)
+    (and
+     (huginn.m.r:clause-recursive-p clause)
+     (let ((stack-clause (huginn.m.r:execution-stack-cell-clause
+                          stack-cell)))
+       (and (eq stack-clause clause)
+            (eql goal-pointer
+                 (huginn.m.r:execution-stack-cell-recursive-goal-pointer stack-cell))))))
+
+
+  (-> update-after-recursive-goal-satisfaction (huginn.m.r:execution-stack-cell)
+      t)
+  (defun update-after-recursive-goal-satisfaction (stack-cell)
+    cl-ds.utils:todo)
+
+
   (declaim (inline unfold))
   (defun unfold (execution-state stack-cell)
     (declare (type huginn.m.r:execution-stack-cell stack-cell)
@@ -12,6 +32,8 @@
     (let* ((goals (huginn.m.r:execution-stack-cell-goals stack-cell))
            (clauses (huginn.m.r:execution-stack-cell-clauses stack-cell))
            (goal-pointer (first goals)))
+      (declare (type huginn.m.r:pointer goal-pointer)
+               (type list goals))
       (iterate
         (for (values clause more) = (cl-ds:consume-front clauses))
         (unless more ; no more clauses matching current goal
@@ -19,17 +41,32 @@
         (for bindings-fill-pointer = (clause-head-to-heap execution-state
                                                           stack-cell
                                                           clause))
-        (for new-stack-cell = (push-stack-cell stack-cell clause
-                                               bindings-fill-pointer))
-        (for head-unified-p = (unify execution-state
-                                     new-stack-cell
-                                     goal-pointer))
-        (unless head-unified-p
-          (pop-stack-cell execution-state new-stack-cell)
-          (next-iteration))
-        (clause-body-to-heap execution-state new-stack-cell)
-        (finish)
-        (finally (return new-stack-cell)))))
+        (if (recursive-goal-p stack-cell
+                              goal-pointer
+                              clause)
+            (progn
+              ;; because in the case of the success clauses range will be reset, recursive clause MUST be the one yielded for check
+              cl-ds.utils:todo
+              (assert (not (nth-value 1 (cl-ds:peek-front clauses))))
+              ;; this function also performs cleanup if unification fails
+              ;; returns the status of unification (T if success NIL if failure)
+              (when (unify-recursive-goal execution-state
+                                          stack-cell)
+                ;; This will select next goal as current (if there is a next goal)
+                ;; it will also replace the clauses object with new range, matching said goal
+                (update-after-recursive-goal-satisfaction stack-cell)
+                (leave stack-cell))
+              (next-iteration))
+            (let* ((new-stack-cell (push-stack-cell stack-cell clause
+                                                    bindings-fill-pointer))
+                   (head-unified-p (unify execution-state
+                                          new-stack-cell
+                                          goal-pointer)))
+              (unless head-unified-p
+                (pop-stack-cell execution-state new-stack-cell)
+                (next-iteration))
+              (clause-body-to-heap execution-state new-stack-cell)
+              (leave new-stack-cell))))))
 
 
   (declaim (notinline unfold-all))

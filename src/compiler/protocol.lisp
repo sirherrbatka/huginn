@@ -4,6 +4,10 @@
 (defclass fundamental-compilation-state ()
   ())
 
+(defgeneric recursive-p (state))
+
+(defgeneric pointer-for-recursive-goal (state))
+
 (defgeneric make-compilation-state (class content))
 
 (defgeneric cells-count (compilation-state))

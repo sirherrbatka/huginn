@@ -42,6 +42,7 @@
 
 
 (defun <- (head &rest goals)
+  (declare (optimize (debug 3)))
   (let* ((compilation (make-compilation-state (list* head goals)))
          (content (huginn.c:content compilation (database)))
          (body-pointer (huginn.c:body-pointer compilation))
@@ -62,7 +63,13 @@
                                 compilation
                                 database
                                 body-pointer
-                                (length content)))))
+                                (length content))))
+         (recursive-goal-pointer (huginn.c:pointer-for-recursive-goal
+                                  compilation))
+         (goal-pointers (map '(vector huginn.m.r:pointer)
+                             (curry #'huginn.c:pointer-for-expression
+                                    compilation)
+                             goals)))
     (~> (huginn.m.r:make-clause
          :copy-head-function copy-head-function
          :copy-body-function copy-body-function
@@ -71,10 +78,9 @@
          :variable-values variable-bindings
          :input (list* head goals)
          :content content
-         :goal-pointers (map '(vector huginn.m.r:pointer)
-                             (curry #'huginn.c:pointer-for-expression
-                                    compilation)
-                             goals))
+         ;; recursive goal can't show up as a head (because it is a goal) s' ot can't have value equal to 0. Therefore 0 is used as indicator for lack of the recursive goal
+         :recursive-goal-pointer (or recursive-goal-pointer 0)
+         :goal-pointers goal-pointers)
         add-clause)))
 
 
@@ -108,7 +114,8 @@
             :objects-mapping objects-mapping))
          (clauses (huginn.m.d:matching-clauses database
                                                execution-state
-                                               (first goal-pointers)))
+                                               (first goal-pointers)
+                                               nil))
          (stack (huginn.m.r:make-initial-execution-stack-cell
                  goal-pointers total-size bindings-fill-pointer clauses)))
     (setf (huginn.m.r:execution-state-stack execution-state) stack)
@@ -119,3 +126,8 @@
 (defun li (content)
   (check-type content list)
   (huginn.c:list-input content))
+
+
+(defun recur (content)
+  (check-type content list)
+  (huginn.c:recursive-call content))

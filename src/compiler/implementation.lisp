@@ -1,8 +1,13 @@
 (cl:in-package #:huginn.compiler)
 
 
+(defun recursive-expression-marker-p (x)
+  (and (typep x 'expression-marker)
+       (read-recursive x)))
+
+
 (defmethod marker-for ((flattening flattening) exp class
-                       &key (enforce-class nil))
+                       &key (enforce-class nil) (extra-options '()))
   (if (anonymus-variable-p exp)
       (make-instance class :content exp)
       (bind ((markers (read-markers flattening))
@@ -12,7 +17,8 @@
                    (and (null result)
                         (or (endp result-list)
                             enforce-class)))
-          (setf result (make-instance class :content exp)
+          (setf result (apply #'make-instance class
+                              :content exp extra-options)
                 result-list (cons result result-list)
                 (gethash exp markers) result-list)
           (when (and (typep result 'indexed-mixin)
@@ -28,6 +34,10 @@
   (cond
     ((expressionp exp) (~>> (marker-for flattening exp 'expression-marker)
                             (funcall direction flattening)))
+    ((recursive-call-p exp) (~>> (make 'expression-marker ; eventually this may use marker-for function for handling references. However right now it seems that there is no use case that would make it actually useful.
+                                       :content (recursive-call-content exp)
+                                       :recursive t)
+                                 (funcall direction flattening)))
     ((list-input-p exp) (~>> (marker-for flattening
                                           (list-input-content exp)
                                           'list-marker)
@@ -201,6 +211,13 @@
           :reader read-body)))
 
 
+(defmethod recursive-p ((state compilation-state))
+  (iterate
+    (for element in-vector (read-flat-representation state))
+    (when (recursive-expression-marker-p element)
+      (leave t))))
+
+
 (defmethod content ((state compilation-state)
                     (database huginn.m.d:database)
                     &optional output)
@@ -239,12 +256,26 @@
                                         &key
                                           (end (length flat-form))
                                           (start 0))
-  (declare (optimize (speed 1)))
   (- end start))
 
 
 (defmethod cells-count ((state compilation-state))
   (~> state read-flat-representation flat-representation-cells-count))
+
+
+(defun validate-flat-form (flat-form body)
+  (let* ((recursive-calls (remove-if-not #'recursive-expression-marker-p
+                                         flat-form))
+         (recursive-calls-count (length recursive-calls)))
+    (unless (<= recursive-calls-count 1)
+      (error 'multiple-recursive-goals
+             "Clause contains multiple recursive goals."
+             :form (first (map 'list #'read-content recursive-calls))))
+    (when (and (= 1 recursive-calls-count)
+               (> (length (remove-duplicates body)) 1))
+      (error 'multiple-goals-in-recursive-clause
+             "Recursive clause should contain only the recursive goal!"
+             :form (first (map 'list #'read-content recursive-calls))))))
 
 
 (defmethod make-compilation-state ((class (eql 'compilation-state))
@@ -269,6 +300,7 @@
        (unless (goalp b)
          (error 'invalid-goal :form b))
        (enqueue-back flattening b))
+     (validate-flat-form flat-form)
      (flat-representation flattening flat-form))
     (make 'compilation-state
           :head head
@@ -292,6 +324,12 @@
                               (funcall predicate elt)))))
 
 
+(defmethod pointer-for-recursive-goal ((state compilation-state))
+  (pointer-for (read-flat-representation state)
+               #'read-recursive
+               :class 'expression-marker))
+
+
 (defmethod pointer-for-list ((state compilation-state)
                              (list list-input))
   (pointer-for (read-flat-representation state)
@@ -302,7 +340,16 @@
 
 
 (defmethod pointer-for-expression ((state compilation-state)
-                                   expression)
+                                   (expression recursive-call))
+  (pointer-for (read-flat-representation state)
+               (lambda (elt)
+                 (eq (read-content elt)
+                     (recursive-call-content expression)))
+               :class 'expression-marker))
+
+
+(defmethod pointer-for-expression ((state compilation-state)
+                                   (expression list))
   (check-type expression expression)
   (pointer-for (read-flat-representation state)
                (lambda (elt)
@@ -490,7 +537,9 @@
                  !bindings-fill-pointer)
     (if (zerop end)
         `(lambda (a b c) (declare (ignore b a)) c)
-        `(lambda (,!execution-state ,!heap-pointer ,!bindings-fill-pointer
+        `(lambda (,!execution-state
+                  ,!heap-pointer
+                  ,!bindings-fill-pointer
                   ,!clause)
            (declare  (type huginn.m.r:execution-state ,!execution-state)
                      (ignorable ,!execution-state
@@ -602,6 +651,7 @@
                read-flat-representation
                (take (read-body-pointer compilation-state) _)
                (remove-duplicates :test #'eq :from-end t)))
+         (!stop-on-failure (gensym "STOP-ON-FAILURE"))
          (eager-markers (~>> filtered-markers
                              (remove-if-not (rcurry #'typep  'eager-value-mixin))))
          (arguments (make-unification-form-arguments
@@ -609,7 +659,8 @@
                     database)))
     (cl-ds.utils:with-slots-for (arguments unification-form-arguments)
       (if (emptyp filtered-markers)
-          `(lambda (,execution-state-symbol ,execution-stack-cell-symbol ,goal-pointer-symbol)
+          `(lambda (,execution-state-symbol ,execution-stack-cell-symbol
+                    ,goal-pointer-symbol ,pointer-symbol ,!stop-on-failure)
              (declare (ignore ,execution-stack-cell-symbol
                               ,execution-stack-cell-symbol
                               ,goal-pointer-symbol)
@@ -617,14 +668,18 @@
              t)
           `(lambda (,execution-state-symbol
                     ,execution-stack-cell-symbol
-                    ,goal-pointer-symbol)
+                    ,goal-pointer-symbol
+                    ,pointer-symbol
+                    ,!stop-on-failure)
              (declare (optimize (speed 3) (debug 0) (safety 0)
-                                (space 0) (compilation-speed 0)))
+                                (space 0) (compilation-speed 0))
+                      (type huginn.m.r:execution-stack-cell ,execution-stack-cell-symbol)
+                      (type huginn.m.r:execution-state ,execution-state-symbol)
+                      (type boolean ,!stop-on-failure)
+                      (type huginn.m.r:pointer ,goal-pointer-symbol))
              (block ,function-symbol
                (let* ((,heap-symbol (huginn.m.r:execution-state-heap
                                      ,execution-state-symbol))
-                      (,pointer-symbol (huginn.m.r:execution-stack-cell-heap-pointer
-                                        ,execution-stack-cell-symbol))
                       ,@(map 'list
                              (lambda (marker)
                                (list (read-value-symbol marker)
@@ -644,7 +699,8 @@
                                   (list (read-value-symbol marker)
                                         (cell-value-form marker arguments)))))
                    (labels ((,fail-symbol ()
-                              (return-from ,function-symbol nil))
+                              (when ,!stop-on-failure
+                                (return-from ,function-symbol nil)))
                             ,@(map 'list
                                 (lambda (marker)
                                   (list (read-unification-function-symbol marker)

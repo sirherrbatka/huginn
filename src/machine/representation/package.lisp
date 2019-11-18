@@ -28,6 +28,9 @@
    #:clause-goals
    #:clause-input
    #:clause-length
+   #:clause-recursive-goal-pointer
+   #:clause-head-length
+   #:clause-recursive-p
    #:clause-unify-head-function
    #:clause-variable-values
    #:clone-execution-stack-cell
@@ -41,11 +44,14 @@
    #:execution-stack-cell-clauses
    #:execution-stack-cell-clausese
    #:execution-stack-cell-goals
+   #:execution-stack-cell-goal-pointer
    #:execution-stack-cell-heap-fill-pointer
    #:execution-stack-cell-heap-pointer
    #:execution-stack-cell-more-goals-p
    #:execution-stack-cell-p
    #:execution-stack-cell-previous-cell
+   #:execution-stack-cell-recursive-goal-pointer
+   #:execution-stack-cell-same-clause-p
    #:execution-stack-cell-unwind-trail-pointer
    #:execution-state
    #:execution-state-database
@@ -67,23 +73,17 @@
    #:list-rest-unbound-p
    #:list-start-cell-p
    #:make-clause
-   #:make-clause
    #:make-execution-stack-cell
    #:make-execution-state
    #:make-initial-execution-stack-cell
-   #:make-recursive-execution-stack-cell
    #:make-reference
    #:pointer
    #:predicate-cell-p
    #:predicate-unbound-p
-   #:recursive-execution-stack-cell-head-heap-fill-pointer
-   #:recursive-execution-stack-cell-head-unwind-trail-pointer
    #:recursive-execution-stack-cell-p
-   #:recursive-execution-stack-cell-tail-call-position
    #:reference-cell-p
    #:retag
    #:same-cells-p
-   #:save-head-state
    #:scan-heap-list
    #:symbol-tag-of
    #:tag

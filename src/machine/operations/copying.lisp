@@ -122,7 +122,7 @@
              (type huginn.m.r:execution-state execution-state)
              (type huginn.m.r:execution-stack-cell execution-stack-cell)
              (type huginn.m.r:clause clause))
-    (let ((head-length (huginn.m.r:clause-body-pointer clause))
+    (let ((head-length (huginn.m.r:clause-head-length clause))
           (fill-pointer
             (huginn.m.r:execution-stack-cell-heap-fill-pointer
              execution-stack-cell))
@@ -150,7 +150,7 @@
     "Copies clause body to heap. Will extend variable bindings in the state (or fail and return nil if can't do so). Will return: new trail, new bindings-heap-pointer, and success-info. To unroll changes do the execution-state performed by this function it is required to both unwind-variable-bindings-trail and unbind-range"
     (declare (type huginn.m.r:execution-state execution-state)
              (type huginn.m.r:execution-stack-cell execution-stack-cell))
-    (let* ((clause (huginn.m.r:execution-stack-cell-clause
+    (bind ((clause (huginn.m.r:execution-stack-cell-clause
                     execution-stack-cell))
            (full-length (huginn.m.r:clause-length clause))
            (body-length (huginn.m.r:clause-body-length clause))
@@ -180,6 +180,7 @@
                        rest
                        (huginn.m.r:clause-goals clause
                                                 previous-fill-pointer))))
+      (declare (type fixnum new-fill-pointer))
       (if (null copy-body-function)
           (setf new-bindings-fill-pointer
                 (relocate-cells execution-state
@@ -195,6 +196,8 @@
                          previous-fill-pointer
                          bindings-fill-pointer
                          clause)))
+      (when (huginn.m.r:clause-recursive-p clause)
+        (incf new-fill-pointer body-pointer))
       (setf (huginn.m.r:execution-stack-cell-bindings-fill-pointer
              execution-stack-cell)
             new-bindings-fill-pointer
@@ -208,5 +211,21 @@
       (unless (endp goals)
         (setf (huginn.m.r:execution-stack-cell-clauses execution-stack-cell)
               (huginn.m.d:matching-clauses database execution-state
-                                           (first goals))))
-      nil)))
+                                           (first goals)
+                                           clause)))
+      nil))
+
+
+  (-> dereference-body (huginn.m.r:execution-state
+                        huginn.m.r:execution-stack-cell)
+      t)
+  (defun dereference-body (huginn.m.r:execution-state
+                           huginn.m.r:execution-stack-cell)
+    cl-ds.utils:todo)
+
+
+  (-> dereference-head (huginn.m.r:execution-state
+                        huginn.m.r:execution-stack-cell)
+      t)
+  (defun dereference-head (execution-state stack-cell)
+    cl-ds.utils:todo))
