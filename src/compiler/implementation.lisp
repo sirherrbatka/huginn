@@ -300,7 +300,7 @@
        (unless (goalp b)
          (error 'invalid-goal :form b))
        (enqueue-back flattening b))
-     (validate-flat-form flat-form)
+     (validate-flat-form flat-form body)
      (flat-representation flattening flat-form))
     (make 'compilation-state
           :head head
