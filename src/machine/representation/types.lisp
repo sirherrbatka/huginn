@@ -28,10 +28,10 @@
   (defstruct clause
     (recursive-goal-pointer 0 :type pointer)
     (copy-head-function nil
-     :type (or null (-> (execution-state pointer pointer clause)
+     :type (or null (-> (execution-state pointer pointer clause &optional pointer)
                         pointer)))
     (copy-body-function nil
-     :type (or null (-> (execution-state pointer pointer clause)
+     :type (or null (-> (execution-state pointer pointer clause &optional pointer)
                         pointer)))
     (unify-head-function nil
      :type (or null (-> (execution-state execution-stack-cell pointer pointer boolean)

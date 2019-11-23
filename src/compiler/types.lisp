@@ -299,8 +299,12 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 (defclass cell-copy-form-arguments ()
   ((%heap-symbol :initarg :heap-symbol
                  :reader read-heap-symbol)
+   (%body-pointer :initarg :body-pointer
+                  :reader read-body-pointer)
    (%execution-state-symbol :initarg :execution-state-symbol
                             :reader read-execution-state-symbol)
+   (%head-pointer-symbol :initarg :head-pointer-symbol
+                         :reader read-head-pointer-symbol)
    (%heap-pointer-symbol :initarg :heap-pointer-symbol
                          :reader read-heap-pointer-symbol)
    (%execution-stack-cell-symbol :reader read-execution-stack-cell-symbol
@@ -319,6 +323,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
 
 (cl-ds.utils:define-list-of-slots cell-copy-form-arguments ()
   (heap-symbol read-heap-symbol)
+  (body-pointer read-body-pointer)
   (clause-symbol read-clause-symbol)
   (position read-position)
   (offset-pointer-symbol read-offset-pointer-symbol)
@@ -326,6 +331,7 @@ This representation is pretty much the same as one used by norvig in the PAIP.
   (execution-stack-cell-symbol read-execution-stack-cell-symbol)
   (heap-pointer-symbol read-heap-pointer-symbol)
   (bindings-fill-pointer-symbol read-bindings-fill-pointer-symbol)
+  (head-pointer-symbol read-head-pointer-symbol)
   (database read-database))
 
 

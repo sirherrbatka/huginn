@@ -452,9 +452,13 @@
           `(setf (aref ,heap-symbol
                        (the huginn.m.r:pointer (+ ,position
                                                   ,heap-pointer-symbol)))
-                 (huginn.m.r:make-reference
-                  (the huginn.m.r:pointer (+ ,object-position
-                                             ,offset-pointer-symbol))))))))
+                 ,(if (< object-position body-pointer)
+                      `(huginn.m.r:make-reference
+                        (the huginn.m.r:pointer (+ ,object-position
+                                                   ,head-pointer-symbol)))
+                      `(huginn.m.r:make-reference
+                        (the huginn.m.r:pointer (+ ,object-position
+                                                   ,offset-pointer-symbol)))))))))
 
 
 (defmethod cell-copy-form ((marker list-end-marker) arguments)
@@ -534,20 +538,22 @@
 (defun generate-copying-lambda-form (compilation-state database start end)
   (with-gensyms (!execution-state
                  !heap-pointer !heap !clause
-                 !bindings-fill-pointer !offset-pointer)
+                 !bindings-fill-pointer !head-pointer)
     (if (zerop end)
-        `(lambda (a b c) (declare (ignore b a)) c)
+        `(lambda (a b c &optional d) (declare (ignore b a d)) c)
         `(lambda (,!execution-state
                   ,!heap-pointer
                   ,!bindings-fill-pointer
-                  ,!clause)
+                  ,!clause
+                  &optional (,!head-pointer ,!heap-pointer))
            (declare  (type huginn.m.r:execution-state ,!execution-state)
                      (ignorable ,!execution-state
                                 ,!heap-pointer
                                 ,!clause
                                 ,!bindings-fill-pointer)
                      (type huginn.m.r:pointer ,!heap-pointer
-                           ,!bindings-fill-pointer)
+                           ,!bindings-fill-pointer ,!heap-pointer
+                           ,!head-pointer)
                      (optimize (speed 3) (debug 0) (safety 0)
                                (compilation-speed 0) (space 0)))
            (huginn.m.r:expand-state-heap ,!execution-state
@@ -566,10 +572,12 @@
                        'cell-copy-form-arguments
                        :heap-symbol !heap
                        :clause-symbol !clause
+                       :body-pointer (body-pointer compilation-state)
                        :execution-state-symbol !execution-state
                        :bindings-fill-pointer-symbol !bindings-fill-pointer
                        :heap-pointer-symbol !heap-pointer
                        :database database
+                       :head-pointer-symbol !head-pointer
                        :offset-pointer-symbol !heap-pointer
                        :position i))
                  (collect (cell-copy-form marker arguments))))

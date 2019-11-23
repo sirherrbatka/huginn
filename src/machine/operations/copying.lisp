@@ -63,12 +63,12 @@
                          bindings-fill-pointer
                          offset
                          &optional
-                           (head-pointer nil))
+                           (head-pointer offset))
     (declare (type huginn.m.r:pointer
                    destination-start source-start source-end
                    offset
+                   head-pointer
                    bindings-fill-pointer)
-             (type (or null huginn.m.r:pointer) head-pointer)
              (type huginn.m.r:execution-state execution-state)
              (type huginn.m.r:clause clause))
     (huginn.m.r:expand-state-heap execution-state
@@ -80,8 +80,7 @@
              (declare (type huginn.m.r:cell cell))
              (let* ((tag (huginn.m.r:tag-of cell))
                     (word (huginn.m.r:detag cell))
-                    (new-word (if (and head-pointer
-                                       (< word source-start))
+                    (new-word (if (< word source-start)
                                   (+ word head-pointer)
                                   (+ word offset)))
                     (result (huginn.m.r:tag tag new-word)))
