@@ -9,7 +9,7 @@
     (<- `(= ?item ?item))
     (<- `(member ?item ,(li '(?item . ?rest))))
     (<- `(member ?item ,(li '(? . ?rest)))
-        (recur '(member ?item ?rest)))
+        '(member ?item ?rest))
     (<- `(iright ?left ?right ,(li `(?left ?right . ?))))
     (<- `(iright ?left ?right ,(li `(? . ?rest)))
         `(iright ?left ?right ?rest))

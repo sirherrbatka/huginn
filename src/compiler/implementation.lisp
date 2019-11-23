@@ -550,6 +550,7 @@
                      (ignorable ,!execution-state
                                 ,!heap-pointer
                                 ,!clause
+                                ,!head-pointer
                                 ,!bindings-fill-pointer)
                      (type huginn.m.r:pointer ,!heap-pointer
                            ,!bindings-fill-pointer ,!heap-pointer
