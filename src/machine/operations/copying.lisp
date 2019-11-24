@@ -242,4 +242,12 @@
       (for reference-pointer = (huginn.m.r:detag cell))
       (unless (< from reference-pointer below) (next-iteration))
       (setf (aref heap reference-pointer)
-            (huginn.m.r:dereference-heap-pointer state reference-pointer nil)))))
+            (huginn.m.r:dereference-heap-pointer state reference-pointer nil))))
+
+
+  (defun copy-recursive-head (state cell)
+    cl-ds.utils:todo)
+
+
+  (defun copy-recursive-body (state cell)
+    cl-ds.utils:todo))
