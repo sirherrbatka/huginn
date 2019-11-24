@@ -59,6 +59,7 @@
          (predicate-cell (~> expression-position 1+ deref))
          (clauses (clauses database))
          (result-vector (gethash (cons predicate-cell arity-cell) clauses))
+         (recursive-position 0)
          (length (if (null result-vector)
                      0
                      (fill-pointer result-vector))))
@@ -72,11 +73,12 @@
     ;; TODO, this will not handle unbound predicates
     (if (zerop length)
         empty-range
-        (let ((recursive-position (position clause result-vector
-                                            :test 'eq))
-              (end (1- length)))
+        (let ((end (1- length)))
           (declare (type fixnum end))
-          (unless (or (null recursive-position)
+          (unless (or (not (huginn.m.r:clause-recursive-p clause))
+                      (null (setf recursive-position
+                                  (position clause result-vector
+                                            :test 'eq)))
                       (eql end recursive-position))
             (setf result-vector (copy-array result-vector))
             (rotatef (aref result-vector recursive-position)

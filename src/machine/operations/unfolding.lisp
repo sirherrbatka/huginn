@@ -25,6 +25,39 @@
     cl-ds.utils:todo)
 
 
+  (-> handle-recursive-goal
+      (huginn.m.r:execution-state huginn.m.r:execution-stack-cell)
+      boolean)
+  (defun handle-recursive-goal (execution-state stack-cell)
+    (copy-recursive-head execution-state stack-cell)
+    (if-let (result (unify-recursive-goal execution-state
+                                          stack-cell))
+      (let* ((clause (huginn.m.r:execution-stack-cell-clause stack-cell))
+             (clause-head-length (huginn.m.r:clause-body-pointer clause))
+             (clause-body-length (huginn.m.r:clause-body-length clause))
+             (pointer (huginn.m.r:execution-stack-cell-heap-pointer
+                       stack-cell))
+             (clause-end-pointer (+ clause-head-length
+                                    clause-body-length
+                                    pointer))
+             (body-start (+ clause-head-length pointer))
+             (body-end (+ body-start clause-body-length)))
+        (declare (type huginn.m.r:pointer clause-end-pointer body-start body-end))
+        (realize-heap-cells execution-state
+                            body-start
+                            body-end
+                            clause-end-pointer
+                            (the huginn.m.r:pointer
+                                 (+ clause-end-pointer clause-head-length)))
+        (copy-recursive-body execution-state stack-cell)
+        (unify-head-with-recursive-head execution-state
+                                        stack-cell)
+        t)
+      (progn
+        ;; cleanup goes here
+        nil)))
+
+
   (declaim (inline unfold))
   (defun unfold (execution-state stack-cell)
     (declare (type huginn.m.r:execution-stack-cell stack-cell)
@@ -50,8 +83,8 @@
               (assert (not (nth-value 1 (cl-ds:peek-front clauses))))
               ;; this function also performs cleanup if unification fails
               ;; returns the status of unification (T if success NIL if failure)
-              (when (unify-recursive-goal execution-state
-                                          stack-cell)
+              (when (handle-recursive-goal execution-state
+                                           stack-cell)
                 ;; This will select next goal as current (if there is a next goal)
                 ;; it will also replace the clauses object with new range, matching said goal
                 (update-after-recursive-goal-satisfaction stack-cell)

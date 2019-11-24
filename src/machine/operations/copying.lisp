@@ -224,16 +224,22 @@
       nil))
 
 
-  (-> dereference-body (huginn.m.r:execution-state
-                        huginn.m.r:execution-stack-cell)
+  (-> realize-heap-cells
+      (huginn.m.r:execution-state
+       huginn.m.r:pointer
+       huginn.m.r:pointer
+       huginn.m.r:pointer
+       huginn.m.r:pointer)
       t)
-  (defun dereference-body (huginn.m.r:execution-state
-                           huginn.m.r:execution-stack-cell)
-    cl-ds.utils:todo)
-
-
-  (-> dereference-head (huginn.m.r:execution-state
-                        huginn.m.r:execution-stack-cell)
-      t)
-  (defun dereference-head (execution-state stack-cell)
-    cl-ds.utils:todo))
+  (defun realize-heap-cells (state from below section-start section-end)
+    (iterate
+      (declare (type huginn.m.r:pointer reference-pointer pointer))
+      (with heap = (huginn.m.r:execution-state-heap state))
+      (for pointer from section-start below section-end)
+      (for cell = (aref heap pointer))
+      (for reference-p = (huginn.m.r:reference-cell-p cell))
+      (unless reference-p (next-iteration))
+      (for reference-pointer = (huginn.m.r:detag cell))
+      (unless (< from reference-pointer below) (next-iteration))
+      (setf (aref heap reference-pointer)
+            (huginn.m.r:dereference-heap-pointer state reference-pointer t)))))
