@@ -30,8 +30,8 @@
       boolean)
   (defun handle-recursive-goal (execution-state stack-cell)
     (copy-recursive-head execution-state stack-cell)
-    (if-let (result (unify-recursive-goal execution-state
-                                          stack-cell))
+    (if (unify-recursive-goal execution-state
+                              stack-cell)
       (let* ((clause (huginn.m.r:execution-stack-cell-clause stack-cell))
              (clause-head-length (huginn.m.r:clause-body-pointer clause))
              (clause-body-length (huginn.m.r:clause-body-length clause))
