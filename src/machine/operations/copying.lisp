@@ -250,8 +250,6 @@
     (bind ((clause (huginn.m.r:execution-stack-cell-clause stack-cell))
            (copy-head-function (huginn.m.r:clause-copy-head-function
                                 clause))
-           (heap-pointer (huginn.m.r:execution-stack-cell-heap-pointer
-                          stack-cell))
            (head-length (huginn.m.r:clause-head-length clause))
            (clause-length (huginn.m.r:clause-content-length clause))
            (bindings-fill-pointer (huginn.m.r:execution-stack-cell-bindings-fill-pointer
@@ -261,8 +259,17 @@
                                       clause-length)))
       (declare (type huginn.m.r:pointer recursive-head-pointer))
       (if (null copy-head-function)
-          cl-ds.utils:todo
-          cl-ds.utils:todo)))
+          (relocate-cells execution-state
+                          clause
+                          recursive-head-pointer
+                          0 head-length
+                          bindings-fill-pointer
+                          recursive-head-pointer)
+          (funcall copy-head-function
+                   execution-state
+                   recursive-head-pointer
+                   bindings-fill-pointer
+                   clause))))
 
 
   (-> copy-recursive-body (huginn.m.r:execution-state huginn.m.r:execution-stack-cell) t)
