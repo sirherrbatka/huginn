@@ -245,9 +245,43 @@
             (huginn.m.r:dereference-heap-pointer state reference-pointer nil))))
 
 
-  (defun copy-recursive-head (state cell)
+  (defun copy-recursive-head (state stack-cell)
     cl-ds.utils:todo)
 
 
-  (defun copy-recursive-body (state cell)
-    cl-ds.utils:todo))
+  (-> copy-recursive-body (huginn.m.r:execution-state huginn.m.r:execution-stack-cell) t)
+  (defun copy-recursive-body (execution-state stack-cell)
+    (bind ((clause (huginn.m.r:execution-stack-cell-clause stack-cell))
+           (copy-body-function (huginn.m.r:clause-copy-body-function
+                                clause))
+           (heap-pointer (huginn.m.r:execution-stack-cell-heap-pointer
+                          stack-cell))
+           (head-length (huginn.m.r:clause-head-length clause))
+           (clause-length (huginn.m.r:clause-content-length clause))
+           (bindings-fill-pointer (huginn.m.r:execution-stack-cell-bindings-fill-pointer
+                                   stack-cell))
+           (recursive-head-pointer (+ (huginn.m.r:execution-stack-cell-heap-pointer
+                                       stack-cell)
+                                      clause-length)))
+      (declare (type huginn.m.r:pointer recursive-head-pointer))
+      (if (null copy-body-function)
+          (relocate-cells execution-state
+                          clause
+                          (the huginn.m.r:pointer
+                               (+ (huginn.m.r:execution-stack-cell-heap-pointer
+                                   stack-cell)
+                                  head-length))
+                          (huginn.m.r:clause-body-pointer clause)
+                          clause-length
+                          bindings-fill-pointer
+                          heap-pointer
+                          recursive-head-pointer)
+          (funcall copy-body-function
+                   execution-state
+                   (the huginn.m.r:pointer
+                        (+ (huginn.m.r:execution-stack-cell-heap-pointer
+                            stack-cell)
+                           head-length))
+                   bindings-fill-pointer
+                   clause
+                   recursive-head-pointer)))))
