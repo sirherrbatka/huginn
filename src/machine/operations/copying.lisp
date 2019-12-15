@@ -4,7 +4,7 @@
 (locally
   (declare (optimize (speed 3) (debug 0) (safety 0)
                      (space 0) (compilation-speed 0)))
-  ;; this should be performed only after clause was already proven (and therefore copied to heap.
+  ;; this should be performed only after clause head was already proven (and therefore copied to heap.
   ;; Code assumes that next stack cell is located DIRECTLY after the current one on the heap
   (declaim (notinline push-stack-cell))
   (defun push-stack-cell (execution-stack-cell clause
@@ -251,12 +251,10 @@
            (copy-head-function (huginn.m.r:clause-copy-head-function
                                 clause))
            (head-length (huginn.m.r:clause-head-length clause))
-           (clause-length (huginn.m.r:clause-content-length clause))
            (bindings-fill-pointer (huginn.m.r:execution-stack-cell-bindings-fill-pointer
                                    stack-cell))
-           (recursive-head-pointer (+ (huginn.m.r:execution-stack-cell-heap-pointer
-                                       stack-cell)
-                                      clause-length)))
+           (recursive-head-pointer (huginn.m.r:execution-stack-cell-recursive-head-pointer
+                                    stack-cell)))
       (declare (type huginn.m.r:pointer recursive-head-pointer))
       (if (null copy-head-function)
           (relocate-cells execution-state

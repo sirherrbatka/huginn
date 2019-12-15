@@ -37,6 +37,18 @@
       (+ (execution-stack-cell-heap-pointer cell))))
 
 
+(-> execution-stack-cell-recursive-head-pointer (execution-stack-cell)
+    pointer)
+(defun execution-stack-cell-recursive-head-pointer (stack-cell)
+  (declare (optimize (speed 3) (safety 0)))
+  (let ((clause (execution-stack-cell-clause stack-cell)))
+    (assert (clause-recursive-p clause))
+    (the pointer
+         (+ (execution-stack-cell-heap-pointer stack-cell)
+            (clause-body-pointer clause)
+            (clause-body-length clause)))))
+
+
 (-> recursive-execution-stack-cell-p
     (t)
     boolean)

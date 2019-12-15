@@ -31,6 +31,7 @@
    #:clause-recursive-goal-pointer
    #:clause-head-length
    #:clause-recursive-p
+   #:execution-stack-cell-recursive-head-pointer
    #:clause-unify-head-function
    #:clause-variable-values
    #:clone-execution-stack-cell

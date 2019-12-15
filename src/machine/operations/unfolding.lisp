@@ -78,7 +78,7 @@
                               goal-pointer
                               clause)
             (progn
-              ;; because in the case of the success clauses range will be reset, recursive clause MUST be the one yielded for check
+              ;; because in the case of the success clauses range will be reset, recursive clause MUST be the last yielded
               cl-ds.utils:todo
               (assert (not (nth-value 1 (cl-ds:peek-front clauses))))
               ;; this function also performs cleanup if unification fails
