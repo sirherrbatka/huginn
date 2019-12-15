@@ -23,7 +23,7 @@
                  (type huginn.m.r:cell old-value))
         (for i from trail-start by 2 below trail-end)
         (for address = (aref trail i))
-        (for old-value = (aref trail (1+ i)))
+        (for old-value = (aref trail (the fixnum (1+ i))))
         (setf (aref heap address) old-value))))
 
 

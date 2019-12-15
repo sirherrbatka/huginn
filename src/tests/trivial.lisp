@@ -11,6 +11,20 @@
 
 (prove:plan 26)
 
+
+(with-options (:database (make-database 'huginn.m.d:database))
+  (<- `(member ?item ,(li '(?item . ?rest))))
+  (<- `(member ?item ,(li '(? . ?rest)))
+      (recur '(member ?item ?rest)))
+
+  (let ((data '(a b c)))
+    (let ((answer (serapeum:~> (?- `(member ?object ,(li data)))
+                               cl-ds.alg:to-list
+                               (mapcar #'cdar _))))
+      (prove:is answer data)
+      )))
+
+
 (with/without-compilation
   (with-options (:database (make-database 'huginn.m.d:database))
     (<- '(lubi zuzia ?cos) '(jest ?cos kot))

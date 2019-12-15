@@ -663,14 +663,6 @@
       recursive-cell))
 
 
-  (-> unify-head-with-recursive-goal (huginn.m.r:execution-state
-                                      huginn.m.r:execution-stack-cell)
-      boolean)
-  (defun unify-head-with-recursive-goal (execution-state stack-cell)
-    (assert (huginn.m.r:recursive-execution-stack-cell-p stack-cell))
-    ())
-
-
   (declaim (notinline unify))
   (-> unify (huginn.m.r:execution-state
              huginn.m.r:execution-stack-cell
@@ -706,71 +698,64 @@
                                               stop-on-failure)
                  (unify-loop execution-state
                              execution-stack-cell
-                             stop-on-failure)))))))
+                             stop-on-failure))))))
 
 
-(-> unify-recursive-goal
-    (huginn.m.r:execution-state huginn.m.r:execution-stack-cell)
-    boolean)
-(defun unify-recursive-goal (execution-state execution-stack-cell)
-  (assert (huginn.m.r:recursive-execution-stack-cell-p execution-stack-cell))
-  (let ((unify-head-function (~> execution-stack-cell
-                                 huginn.m.r:execution-stack-cell-clause
-                                 huginn.m.r:clause-unify-head-function))
-        (recursive-head-pointer (huginn.m.r:execution-stack-cell-recursive-head-pointer
-                                 execution-stack-cell))
-        (recursive-goal-pointer (huginn.m.r:execution-stack-cell-recursive-goal-pointer
-                                 execution-stack-cell)))
-    (with-unification-stack (execution-state)
-      (if (null unify-head-function)
-          (progn
-            (uclear)
-            (upush recursive-head-pointer
-                   recursive-goal-pointer)
-            (unify-loop execution-state
-                        execution-stack-cell
-                        t))
-          (progn
-            (uclear)
-            (and (funcall unify-head-function
-                          execution-state
-                          execution-stack-cell
-                          recursive-goal-pointer
-                          recursive-head-pointer
-                          t)
-                 (unify-loop execution-state
-                             execution-stack-cell
-                             t)))))))
+  (-> unify-recursive-goal
+      (huginn.m.r:execution-state huginn.m.r:execution-stack-cell)
+      boolean)
+  (defun unify-recursive-goal (execution-state execution-stack-cell)
+    (declare (optimize (debug 3) (safety 3) (speed 0)))
+    (assert (huginn.m.r:recursive-execution-stack-cell-p execution-stack-cell))
+    (let ((unify-head-function (~> execution-stack-cell
+                                   huginn.m.r:execution-stack-cell-clause
+                                   huginn.m.r:clause-unify-head-function))
+          (recursive-head-pointer (huginn.m.r:execution-stack-cell-recursive-head-pointer
+                                   execution-stack-cell))
+          (recursive-goal-pointer (huginn.m.r:execution-stack-cell-recursive-goal-pointer
+                                   execution-stack-cell)))
+      (with-unification-stack (execution-state)
+        (if (null unify-head-function)
+            (progn
+              (uclear)
+              (upush recursive-head-pointer
+                     recursive-goal-pointer)
+              (return-from unify-recursive-goal
+                (unify-loop execution-state
+                            execution-stack-cell
+                            t)))
+            (progn
+              (uclear)
+              (return-from unify-recursive-goal
+                (and (funcall unify-head-function
+                              execution-state
+                              execution-stack-cell
+                              recursive-goal-pointer
+                              recursive-head-pointer
+                              t)
+                     (unify-loop execution-state
+                                 execution-stack-cell
+                                 t))))))))
 
 
-(-> unify-head-with-recursive-head (huginn.m.r:execution-state
-                                    huginn.m.r:execution-stack-cell)
-    t)
-(defun unify-head-with-recursive-head (execution-state execution-stack-cell)
-  (assert (huginn.m.r:recursive-execution-stack-cell-p execution-stack-cell))
-  (let ((recursive-head-pointer (huginn.m.r:execution-stack-cell-recursive-head-pointer
-                                 execution-stack-cell))
-        (head-pointer (huginn.m.r:execution-stack-cell-heap-pointer
-                       execution-stack-cell))
-        (unify-head-function (~> execution-stack-cell
-                                 huginn.m.r:execution-stack-cell-clause
-                                 huginn.m.r:clause-unify-head-function)))
-    (with-unification-stack (execution-state)
-      (if (null unify-head-function)
-          (progn
-            (uclear)
-            (upush head-pointer
-                   recursive-head-pointer)
-            (unify-loop execution-state
-                        execution-stack-cell
-                        nil))
-          (progn
-            (uclear)
-            (and (invoke-unification-function unify-head-function
-                                              execution-state
-                                              execution-stack-cell
-                                              recursive-head-pointer
-                                              nil)
-                 (unify-loop execution-state
-                             execution-stack-cell
-                             nil)))))))
+  (-> unify-head-with-recursive-head (huginn.m.r:execution-state
+                                      huginn.m.r:execution-stack-cell)
+      t)
+  (defun unify-head-with-recursive-head (execution-state execution-stack-cell)
+    (assert (huginn.m.r:recursive-execution-stack-cell-p execution-stack-cell))
+    (let* ((recursive-head-pointer (huginn.m.r:execution-stack-cell-recursive-head-pointer
+                                    execution-stack-cell))
+           (head-pointer (huginn.m.r:execution-stack-cell-heap-pointer
+                          execution-stack-cell))
+           (heap (huginn.m.r:execution-state-heap execution-state))
+           (clause (huginn.m.r:execution-stack-cell-clause execution-stack-cell))
+           (head-length (huginn.m.r:clause-head-length clause))
+           (unify-head-function (~> execution-stack-cell
+                                    huginn.m.r:execution-stack-cell-clause
+                                    huginn.m.r:clause-unify-head-function)))
+      (iterate
+        (for i from 0 below head-length)
+        (setf (aref heap (+ i head-pointer))
+              (aref heap (+ i recursive-head-pointer))))
+      ))
+  )

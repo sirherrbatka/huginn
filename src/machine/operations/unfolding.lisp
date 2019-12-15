@@ -2,7 +2,7 @@
 
 
 (locally
-  (declare (optimize (speed 3) (debug 0) (safety 0)
+  (declare (optimize (speed 0) (debug 3) (safety 3)
                      (compilation-speed 0) (space 0)))
 
   (-> recursive-goal-p (huginn.m.r:execution-stack-cell
@@ -43,9 +43,9 @@
                             clause-end-pointer
                             (the huginn.m.r:pointer
                                  (+ clause-end-pointer clause-head-length)))
-        (copy-recursive-body execution-state stack-cell)
         (unify-head-with-recursive-head execution-state
                                         stack-cell)
+        (copy-recursive-body execution-state stack-cell)
         t)
       (progn
         ;; cleanup goes here
@@ -57,19 +57,48 @@
                                                 huginn.m.r:execution-stack-cell)
       t)
   (defun update-after-recursive-goal-satisfaction (execution-state execution-stack-cell)
+    (declare (optimize (debug 3) (safety 3) (speed 0)))
     (pop (huginn.m.r:execution-stack-cell-goals execution-stack-cell))
     (let* ((clause (huginn.m.r:execution-stack-cell-clause
                     execution-stack-cell))
-           (fresh-goal (~> execution-stack-cell
-                           huginn.m.r:execution-stack-cell-goals
-                           first)))
-      (unless (null fresh-goal)
+           (old-goal (huginn.m.r:execution-stack-cell-goal-pointer
+                      execution-stack-cell))
+           (head-pointer (huginn.m.r:execution-stack-cell-heap-pointer
+                          execution-stack-cell))
+           (unify-head-function (huginn.m.r:clause-unify-head-function
+                                 clause)))
+      (with-unification-stack (execution-state)
+        (if (null unify-head-function)
+            (progn
+              (uclear)
+              (upush head-pointer
+                     old-goal)
+              (unify-loop execution-state
+                          execution-stack-cell
+                          t))
+            (progn
+              cl-ds.utils:todo
+              (uclear)
+              (and (invoke-unification-function unify-head-function
+                                                execution-state
+                                                execution-stack-cell
+                                                recursive-head-pointer
+                                                nil)
+                   (unify-loop execution-state
+                               execution-stack-cell
+                               nil))))
+        (setf (huginn.m.r:execution-stack-cell-heap-fill-pointer execution-stack-cell)
+              (+ head-pointer (huginn.m.r:clause-head-length clause)))
+        (clause-body-to-heap execution-state execution-stack-cell)
         (setf (huginn.m.r:execution-stack-cell-clauses execution-stack-cell)
-              (huginn.m.d:matching-clauses (huginn.m.r:execution-state-database
-                                            execution-state)
-                                           execution-state
-                                           fresh-goal
-                                           clause)))))
+              (huginn.m.d:matching-clauses
+               (huginn.m.r:execution-state-database execution-state)
+               execution-state
+               (~> execution-stack-cell
+                   huginn.m.r:execution-stack-cell-goals
+                   first)
+               clause))
+        )))
 
 
 
@@ -92,7 +121,9 @@
         (if (recursive-goal-p stack-cell
                               goal-pointer
                               clause)
-            (progn
+            (let ((old-unwind-trail-fill-pointer
+                    (huginn.m.r:execution-stack-cell-unwind-trail-pointer
+                     stack-cell)))
               ;; because in the case of the success clauses range will be reset, recursive clause MUST be the last yielded
               (assert (not (nth-value 1 (cl-ds:peek-front clauses))))
               ;; this function also performs cleanup if unification fails
@@ -103,6 +134,9 @@
                 ;; it will also replace the clauses object with new range, matching said goal
                 (update-after-recursive-goal-satisfaction execution-state
                                                           stack-cell)
+                (setf (huginn.m.r:execution-stack-cell-unwind-trail-pointer
+                       stack-cell)
+                      old-unwind-trail-fill-pointer)
                 (leave stack-cell))
               (next-iteration))
             (let* ((new-stack-cell (push-stack-cell stack-cell clause
