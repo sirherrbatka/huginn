@@ -52,6 +52,27 @@
         nil)))
 
 
+
+  (-> update-after-recursive-goal-satisfaction (huginn.m.r:execution-state
+                                                huginn.m.r:execution-stack-cell)
+      t)
+  (defun update-after-recursive-goal-satisfaction (execution-state execution-stack-cell)
+    (pop (huginn.m.r:execution-stack-cell-goals execution-stack-cell))
+    (let* ((clause (huginn.m.r:execution-stack-cell-clause
+                    execution-stack-cell))
+           (fresh-goal (~> execution-stack-cell
+                           huginn.m.r:execution-stack-cell-goals
+                           first)))
+      (unless (null fresh-goal)
+        (setf (huginn.m.r:execution-stack-cell-clauses execution-stack-cell)
+              (huginn.m.d:matching-clauses (huginn.m.r:execution-state-database
+                                            execution-state)
+                                           execution-state
+                                           fresh-goal
+                                           clause)))))
+
+
+
   (declaim (inline unfold))
   (defun unfold (execution-state stack-cell)
     (declare (type huginn.m.r:execution-stack-cell stack-cell)
@@ -81,7 +102,8 @@
                                            stack-cell)
                 ;; This will select next goal as current (if there is a next goal)
                 ;; it will also replace the clauses object with new range, matching said goal
-                (update-after-recursive-goal-satisfaction stack-cell)
+                (update-after-recursive-goal-satisfaction execution-state
+                                                          stack-cell)
                 (leave stack-cell))
               (next-iteration))
             (let* ((new-stack-cell (push-stack-cell stack-cell clause
