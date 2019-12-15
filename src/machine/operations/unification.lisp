@@ -732,11 +732,45 @@
                         t))
           (progn
             (uclear)
-            (and (invoke-unification-function unify-head-function
-                                              execution-state
-                                              execution-stack-cell
-                                              recursive-goal-pointer
-                                              t)
+            (and (funcall unify-head-function
+                          execution-state
+                          execution-stack-cell
+                          recursive-goal-pointer
+                          recursive-head-pointer
+                          t)
                  (unify-loop execution-state
                              execution-stack-cell
                              t)))))))
+
+
+(-> unify-head-with-recursive-head (huginn.m.r:execution-state
+                                    huginn.m.r:execution-stack-cell)
+    t)
+(defun unify-head-with-recursive-head (execution-state execution-stack-cell)
+  (assert (huginn.m.r:recursive-execution-stack-cell-p execution-stack-cell))
+  (let ((recursive-head-pointer (huginn.m.r:execution-stack-cell-recursive-head-pointer
+                                 execution-stack-cell))
+        (head-pointer (huginn.m.r:execution-stack-cell-heap-pointer
+                       execution-stack-cell))
+        (unify-head-function (~> execution-stack-cell
+                                 huginn.m.r:execution-stack-cell-clause
+                                 huginn.m.r:clause-unify-head-function)))
+    (with-unification-stack (execution-state)
+      (if (null unify-head-function)
+          (progn
+            (uclear)
+            (upush head-pointer
+                   recursive-head-pointer)
+            (unify-loop execution-state
+                        execution-stack-cell
+                        nil))
+          (progn
+            (uclear)
+            (and (invoke-unification-function unify-head-function
+                                              execution-state
+                                              execution-stack-cell
+                                              recursive-head-pointer
+                                              nil)
+                 (unify-loop execution-state
+                             execution-stack-cell
+                             nil)))))))

@@ -19,12 +19,6 @@
                  (huginn.m.r:execution-stack-cell-recursive-goal-pointer stack-cell))))))
 
 
-  (-> update-after-recursive-goal-satisfaction (huginn.m.r:execution-stack-cell)
-      t)
-  (defun update-after-recursive-goal-satisfaction (stack-cell)
-    cl-ds.utils:todo)
-
-
   (-> handle-recursive-goal
       (huginn.m.r:execution-state huginn.m.r:execution-stack-cell)
       boolean)
