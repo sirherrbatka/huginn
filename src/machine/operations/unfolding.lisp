@@ -84,7 +84,7 @@
                           t)
                  (unify-loop execution-state
                              execution-stack-cell
-                             nil)))
+                             t)))
         (setf (huginn.m.r:execution-stack-cell-heap-fill-pointer execution-stack-cell)
               (+ head-pointer (huginn.m.r:clause-head-length clause)))
         (clause-body-to-heap execution-state execution-stack-cell)
