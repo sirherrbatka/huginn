@@ -232,6 +232,7 @@
        huginn.m.r:pointer)
       t)
   (defun realize-heap-cells (state from below section-start section-end)
+    (declare (optimize (speed 3) (safety 0) (debug 0) (space 0)))
     (iterate
       (declare (type huginn.m.r:pointer reference-pointer pointer))
       (with heap = (huginn.m.r:execution-state-heap state))

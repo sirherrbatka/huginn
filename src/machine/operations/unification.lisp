@@ -742,6 +742,7 @@
                                       huginn.m.r:execution-stack-cell)
       t)
   (defun unify-head-with-recursive-head (execution-state execution-stack-cell)
+    (declare (optimize (speed 3) (debug 0) (safety 0) (space 0)))
     (assert (huginn.m.r:recursive-execution-stack-cell-p execution-stack-cell))
     (let* ((recursive-head-pointer (huginn.m.r:execution-stack-cell-recursive-head-pointer
                                     execution-stack-cell))
@@ -749,13 +750,11 @@
                           execution-stack-cell))
            (heap (huginn.m.r:execution-state-heap execution-state))
            (clause (huginn.m.r:execution-stack-cell-clause execution-stack-cell))
-           (head-length (huginn.m.r:clause-head-length clause))
-           (unify-head-function (~> execution-stack-cell
-                                    huginn.m.r:execution-stack-cell-clause
-                                    huginn.m.r:clause-unify-head-function)))
+           (head-length (huginn.m.r:clause-head-length clause)))
       (iterate
+        (declare (type fixnum i))
         (for i from 0 below head-length)
-        (setf (aref heap (+ i head-pointer))
-              (aref heap (+ i recursive-head-pointer))))
+        (setf (aref heap (the fixnum (+ i head-pointer)))
+              (aref heap (the fixnum (+ i recursive-head-pointer)))))
       ))
   )
