@@ -715,9 +715,9 @@
           (recursive-goal-pointer (huginn.m.r:execution-stack-cell-recursive-goal-pointer
                                    execution-stack-cell)))
       (with-unification-stack (execution-state)
+        (uclear)
         (if (null unify-head-function)
             (progn
-              (uclear)
               (upush recursive-head-pointer
                      recursive-goal-pointer)
               (return-from unify-recursive-goal
@@ -725,7 +725,6 @@
                             execution-stack-cell
                             t)))
             (progn
-              (uclear)
               (return-from unify-recursive-goal
                 (and (funcall unify-head-function
                               execution-state

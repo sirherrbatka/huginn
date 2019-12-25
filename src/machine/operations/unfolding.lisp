@@ -52,7 +52,6 @@
         nil)))
 
 
-
   (-> update-after-recursive-goal-satisfaction (huginn.m.r:execution-state
                                                 huginn.m.r:execution-stack-cell)
       t)
