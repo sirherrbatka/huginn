@@ -23,6 +23,7 @@
                               :components ((:file "package")
                                            (:file "conditions")
                                            (:file "protocol")
+                                           (:file "clause-range")
                                            (:file "implementation")))
                              (:module "operations"
                               :components ((:file "package")
