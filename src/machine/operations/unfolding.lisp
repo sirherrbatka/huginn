@@ -57,7 +57,7 @@
                                                 huginn.m.r:execution-stack-cell)
       t)
   (defun update-after-recursive-goal-satisfaction (execution-state execution-stack-cell)
-    (declare (optimize (debug 3) (safety 3) (speed 0)))
+    (declare (optimize (speed 0) (debug 3) (safety 3) (compilation-speed 3)))
     (pop (huginn.m.r:execution-stack-cell-goals execution-stack-cell))
     (let* ((clause (huginn.m.r:execution-stack-cell-clause
                     execution-stack-cell))
