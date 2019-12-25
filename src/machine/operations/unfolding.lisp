@@ -77,13 +77,13 @@
                           execution-stack-cell
                           t))
             (progn
-              cl-ds.utils:todo
               (uclear)
-              (and (invoke-unification-function unify-head-function
-                                                execution-state
-                                                execution-stack-cell
-                                                recursive-head-pointer
-                                                nil)
+              (and (funcall unify-head-function
+                            execution-state
+                            execution-stack-cell
+                            head-pointer
+                            old-goal
+                            t)
                    (unify-loop execution-state
                                execution-stack-cell
                                nil))))
