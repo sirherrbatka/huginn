@@ -2,7 +2,7 @@
 
 
 (locally
-  (declare (optimize (speed 0) (debug 3) (safety 3)
+  (declare (optimize (speed 3) (debug 0) (safety 0)
                      (compilation-speed 0) (space 0)))
 
   (-> recursive-goal-p (huginn.m.r:execution-stack-cell
@@ -57,7 +57,7 @@
                                                 huginn.m.r:execution-stack-cell)
       t)
   (defun update-after-recursive-goal-satisfaction (execution-state execution-stack-cell)
-    (declare (optimize (speed 0) (debug 3) (safety 3) (compilation-speed 3)))
+    (declare (optimize (speed 3) (debug 0) (safety 0) (compilation-speed 0)))
     (pop (huginn.m.r:execution-stack-cell-goals execution-stack-cell))
     (let* ((clause (huginn.m.r:execution-stack-cell-clause
                     execution-stack-cell))

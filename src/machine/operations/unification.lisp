@@ -705,7 +705,7 @@
       (huginn.m.r:execution-state huginn.m.r:execution-stack-cell)
       boolean)
   (defun unify-recursive-goal (execution-state execution-stack-cell)
-    (declare (optimize (debug 3) (safety 3) (speed 0)))
+    (declare (optimize (speed 3) (debug 0) (safety 0) (space 0)))
     (assert (huginn.m.r:recursive-execution-stack-cell-p execution-stack-cell))
     (let ((unify-head-function (~> execution-stack-cell
                                    huginn.m.r:execution-stack-cell-clause
