@@ -241,8 +241,7 @@
       (unless reference-p (next-iteration))
       (for reference-pointer = (huginn.m.r:detag cell))
       (unless (< from reference-pointer below) (next-iteration))
-      (setf (aref heap reference-pointer)
-            (huginn.m.r:dereference-heap-pointer state reference-pointer nil))))
+      (setf (aref heap pointer) (aref heap reference-pointer))))
 
 
   (-> copy-recursive-head (huginn.m.r:execution-state huginn.m.r:execution-stack-cell) t)
