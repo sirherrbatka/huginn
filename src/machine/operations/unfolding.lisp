@@ -34,15 +34,13 @@
              (clause-end-pointer (+ clause-head-length
                                     clause-body-length
                                     pointer))
-             (body-start (+ clause-head-length pointer))
-             (body-end (+ body-start clause-body-length)))
-        (declare (type huginn.m.r:pointer clause-end-pointer body-start body-end))
+             (end (+ clause-end-pointer clause-head-length)))
+        (declare (type huginn.m.r:pointer clause-end-pointer end))
         (realize-heap-cells execution-state
-                            body-start
-                            body-end
+                            pointer
+                            end
                             clause-end-pointer
-                            (the huginn.m.r:pointer
-                                 (+ clause-end-pointer clause-head-length)))
+                            end)
         (unify-head-with-recursive-head execution-state
                                         stack-cell)
         (copy-recursive-body execution-state stack-cell)
