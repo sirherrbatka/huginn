@@ -23,12 +23,15 @@
   (declare (type (array t (*)) clauses)
            (optimize (speed 3)))
   (assert (array-has-fill-pointer-p clauses))
-  (make 'clauses-range
-        :recursive-clause-position (if-let ((recur (position clause clauses
-                                                             :test 'eq)))
-                                     recur
-                                     -1)
-        :clauses clauses))
+  (make
+   'clauses-range
+   :recursive-clause-position
+   (if-let ((recursive (huginn.m.r:clause-recursive-p clause))
+            (recur (position clause clauses
+                             :test 'eq)))
+     recur
+     -1)
+   :clauses clauses))
 
 
 (cl-ds.utils:define-list-of-slots clauses-range ()
@@ -112,3 +115,17 @@
                    (> recursive-clause -1))
               (values (aref vector recursive-clause) t)
               (values nil nil))))))
+
+
+(defmethod cl-ds:traverse ((range clauses-range) function)
+  (ensure-functionf function)
+  (iterate
+    (for (values data more) = (cl-ds:consume-front range))
+    (while more)
+    (funcall function data)
+    (finally (return range))))
+
+
+(defmethod cl-ds:across ((range clauses-range) function)
+  (cl-ds:traverse (cl-ds:clone range) function)
+  range)
