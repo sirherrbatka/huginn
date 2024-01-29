@@ -4,6 +4,8 @@
 (defclass database (fundamental-database)
   ((%clauses :initarg :clauses
              :reader clauses)
+   (%objects-database :initarg :objects-database
+                     :accessor objects-database)
    (%reverse-predicate :initarg :reverse-predicate
                        :accessor access-reverse-predicates)
    (%predicates :initarg :predicates
@@ -12,6 +14,7 @@
                       :accessor access-predicates-index))
   (:default-initargs
    :clauses (make-hash-table :test 'equal)
+   :objects-database nil
    :reverse-predicate (vect)
    :predicates-index 1
    :predicates (make-hash-table)))
@@ -30,6 +33,13 @@
      (ensure (gethash (cons predicate-cell arity-cell)
                       (clauses database))
        (vect)))))
+
+
+(defmethod register-object ((database database) object)
+  (let ((table (ensure (objects-database database)
+                 (make-hash-table :test 'eq :weakness :value))))
+    (setf (gethash (id object) table) object)
+    object))
 
 
 (defmethod make-database ((class (eql 'database))
@@ -59,6 +69,7 @@
          (predicate-cell (~> expression-position 1+ deref))
          (clauses (clauses database))
          (result-vector (gethash (cons predicate-cell arity-cell) clauses))
+         (recursive-position 0)
          (length (if (null result-vector)
                      0
                      (fill-pointer result-vector))))
@@ -72,7 +83,17 @@
     ;; TODO, this will not handle unbound predicates
     (if (zerop length)
         empty-range
-        (make-clauses-range clause result-vector))))
+        (let ((end (1- length)))
+          (declare (type fixnum end))
+          (unless (or (not (huginn.m.r:clause-recursive-p clause))
+                      (null (setf recursive-position
+                                  (position clause result-vector
+                                            :test 'eq)))
+                      (eql end recursive-position))
+            (setf result-vector (copy-array result-vector))
+            (rotatef (aref result-vector recursive-position)
+                     (aref result-vector end)))
+          (cl-ds:whole-range result-vector)))))
 
 
 (defmethod clear ((database database))

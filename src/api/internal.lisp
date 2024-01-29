@@ -39,7 +39,7 @@
   (iterate
     (for (values data more) = (next-answer range))
     (while more)
-    (funcall function data))
+    (funcall function (print data)))
   range)
 
 

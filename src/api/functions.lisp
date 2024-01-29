@@ -93,7 +93,7 @@
          (variable-bindings (huginn.c:variable-bindings compilation))
          (bindings-fill-pointer (length variable-bindings))
          (objects-mapping (iterate
-                            (with table = (make-hash-table :test 'eql))
+                            (with table = (make-hash-table :test 'eq))
                             (for i from 0)
                             (for v in-vector variable-bindings)
                             (setf (gethash v table) i)
@@ -111,6 +111,7 @@
             :heap content
             :unification-stack (shared-resources-unification-stack resources)
             :unwind-trail (shared-resources-unwind-trail resources)
+            :objects-database (huginn.machine.database:objects-database database)
             :objects-mapping objects-mapping))
          (clauses (huginn.m.d:matching-clauses database
                                                execution-state
@@ -131,3 +132,7 @@
 (defun recur (content)
   (check-type content list)
   (huginn.c:recursive-call content))
+
+
+(defun register-object (object)
+  (huginn.machine.database:register-object (database) object))

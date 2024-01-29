@@ -16,7 +16,7 @@
 
   (define-constant +placeholder-array+
       (make-array 0 :element-type 'cell)
-    :test 'vector=
+    :test 'equalp
     :documentation "Just an empty array of correct type, used as initial binding for CLAUSE slot.")
 
 
@@ -38,7 +38,7 @@
                         boolean)))
     (input)
     (goal-pointers +placeholder-pointer-array+ :type (simple-array pointer (*)))
-    (variable-values +placeholder-array+ :type simple-vector)
+    (variable-values +placeholder-array+ :type (simple-array cell (*)))
     (content +placeholder-array+ :type vector-representation)
     (body-pointer 0 :type fixnum))
 
@@ -95,7 +95,7 @@
     ;; Actual execution stack. If NULL after unfolding, no more answers can be found.
     (unwind-trail (make-array 64 :element-type 'fixnum)
      :type (simple-array fixnum (*)))
-    )
+    (objects-database nil))
 
 
   (declaim (notinline execution-stack-cell-more-goals-p))
@@ -166,6 +166,7 @@
     (assert (variable-cell-p cell))
     (let* ((word (detag cell))
            (index (1- word))
+           (objects-database (execution-state-objects-database state))
            (bindings (execution-state-variable-bindings state))
            (length (length bindings)))
       (declare (type fixnum index))
@@ -173,7 +174,10 @@
         (error 'variable-unbound-error))
       (unless (< index length)
         (error 'unknown-variable-error :cell cell))
-      (aref bindings index)))
+      (let ((result (aref bindings index)))
+        (if objects-database
+            (gethash result objects-database result)
+            result))))
 
 
   (-> execution-state-heap-size (execution-state) fixnum)
@@ -249,6 +253,7 @@
   (defun clone-execution-state (execution-state)
     (make-execution-state
      :database (execution-state-database execution-state)
+     :objects-database (execution-state-objects-database execution-state)
      :objects-mapping (~> execution-state
                           execution-state-objects-mapping
                           copy-hash-table)

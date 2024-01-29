@@ -2,7 +2,7 @@
 
 
 (locally
-  (declare (optimize (speed 3) (debug 0) (safety 0)
+  (declare (optimize (speed 0) (debug 3) (safety 3)
                      (compilation-speed 0) (space 0)))
 
   (-> recursive-goal-p (huginn.m.r:execution-stack-cell
@@ -34,13 +34,15 @@
              (clause-end-pointer (+ clause-head-length
                                     clause-body-length
                                     pointer))
-             (end (+ clause-end-pointer clause-head-length)))
-        (declare (type huginn.m.r:pointer clause-end-pointer end))
+             (body-start (+ clause-head-length pointer))
+             (body-end (+ body-start clause-body-length)))
+        (declare (type huginn.m.r:pointer clause-end-pointer body-start body-end))
         (realize-heap-cells execution-state
                             pointer
-                            end
+                            body-start
                             clause-end-pointer
-                            end)
+                            (the huginn.m.r:pointer
+                                 (+ clause-end-pointer clause-head-length)))
         (unify-head-with-recursive-head execution-state
                                         stack-cell)
         (copy-recursive-body execution-state stack-cell)
@@ -50,27 +52,53 @@
         nil)))
 
 
+
   (-> update-after-recursive-goal-satisfaction (huginn.m.r:execution-state
                                                 huginn.m.r:execution-stack-cell)
       t)
   (defun update-after-recursive-goal-satisfaction (execution-state execution-stack-cell)
-    (declare (optimize (speed 3) (debug 0) (safety 0) (compilation-speed 0)))
+    (declare (optimize (debug 3) (safety 3) (speed 0)))
     (pop (huginn.m.r:execution-stack-cell-goals execution-stack-cell))
     (let* ((clause (huginn.m.r:execution-stack-cell-clause
                     execution-stack-cell))
+           (old-goal (huginn.m.r:execution-stack-cell-goal-pointer
+                      execution-stack-cell))
            (head-pointer (huginn.m.r:execution-stack-cell-heap-pointer
-                          execution-stack-cell)))
-      (setf (huginn.m.r:execution-stack-cell-heap-fill-pointer execution-stack-cell)
-            (+ head-pointer (huginn.m.r:clause-head-length clause)))
-      (clause-body-to-heap execution-state execution-stack-cell)
-      (setf (huginn.m.r:execution-stack-cell-clauses execution-stack-cell)
-            (huginn.m.d:matching-clauses
-             (huginn.m.r:execution-state-database execution-state)
-             execution-state
-             (~> execution-stack-cell
-                 huginn.m.r:execution-stack-cell-goals
-                 first)
-             clause))))
+                          execution-stack-cell))
+           (unify-head-function (huginn.m.r:clause-unify-head-function
+                                 clause)))
+      (with-unification-stack (execution-state)
+        (if (null unify-head-function)
+            (progn
+              (uclear)
+              (upush head-pointer
+                     old-goal)
+              (unify-loop execution-state
+                          execution-stack-cell
+                          t))
+            (progn
+              cl-ds.utils:todo
+              (uclear)
+              (and (invoke-unification-function unify-head-function
+                                                execution-state
+                                                execution-stack-cell
+                                                recursive-head-pointer
+                                                nil)
+                   (unify-loop execution-state
+                               execution-stack-cell
+                               nil))))
+        (setf (huginn.m.r:execution-stack-cell-heap-fill-pointer execution-stack-cell)
+              (+ head-pointer (huginn.m.r:clause-head-length clause)))
+        (clause-body-to-heap execution-state execution-stack-cell)
+        (setf (huginn.m.r:execution-stack-cell-clauses execution-stack-cell)
+              (huginn.m.d:matching-clauses
+               (huginn.m.r:execution-state-database execution-state)
+               execution-state
+               (~> execution-stack-cell
+                   huginn.m.r:execution-stack-cell-goals
+                   first)
+               clause))
+        )))
 
 
 

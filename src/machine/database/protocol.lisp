@@ -8,6 +8,11 @@
 (defclass fundamental-database ()
   ())
 
+(defclass id-tagged-object ()
+  ((%id
+    :initform (gensym)
+    :reader id)))
+
 (defgeneric clauses (database))
 
 (defgeneric matching-clauses (database execution-state goal-pointer clause))
@@ -23,3 +28,7 @@
 (defgeneric clear (database))
 
 (defgeneric word (condition))
+
+(defgeneric id (object))
+
+(defgeneric register-object (database object))

@@ -7,6 +7,10 @@
   (:export
    #:add-clause
    #:word
+   #:id
+   #:id-tagged-object
+   #:objects-database
+   #:register-object
    #:clauses
    #:clear
    #:database
